@@ -22,15 +22,14 @@ public class Drivetrain extends SubsystemBase {
         BackRight
     }
 
-    public class SwerveModule extends MotorSafety {
+    public class SwerveModule {
         public final SwerveModulePlace place;
-        public final WPI_TalonFX motorU;
-        public final WPI_TalonFX motorV;
+        public final WPI_TalonFX azimuth;
+        public final WPI_TalonFX drive;
 
         /// The absolute encoder for angle
         public final WPI_CANCoder encoder;
 
-        public double speed = 0;
         public Rotation2d targetAngle = new Rotation2d();
 
         private final PIDController angleController = new PIDController(
@@ -39,49 +38,35 @@ public class Drivetrain extends SubsystemBase {
             Constants.Drivetrain.swerveAnglePID.d
         );
 
-        public SwerveModule(SwerveModulePlace place, WPI_TalonFX motorU, WPI_TalonFX motorV, WPI_CANCoder encoder) {
-            super();
-
-            motorU.setSafetyEnabled(false);
-            motorV.setSafetyEnabled(false);
-
+        public SwerveModule(SwerveModulePlace place, WPI_TalonFX azimuth, WPI_TalonFX drive, WPI_CANCoder encoder) {
             this.place = place;
-            this.motorU = motorU;
-            this.motorV = motorV;
+            this.azimuth = azimuth;
+            this.drive = drive;
             this.encoder = encoder;
+
+
+
+            this.angleController.enableContinuousInput(-180, 180);
         }
 
         public Rotation2d angle() { return Rotation2d.fromDegrees(this.encoder.getAbsolutePosition()); }
 
         public void applyState(SwerveModuleState state) {
-            this.speed = state.speedMetersPerSecond;
             this.targetAngle = state.angle;
 
-            this.setSafetyEnabled(true);
-            this.feed();
+            double ffw = Constants.Drivetrain.driveFFW.calculate(state.speedMetersPerSecond);
+
+            this.drive.set(ControlMode.Velocity, ffw);
         }
 
         public void halt() {
-            this.stopMotor();
-
-            this.setSafetyEnabled(false);
+            this.drive.stopMotor();
         }
-
-        @Override
-        public void stopMotor() {
-            this.speed = 0;
-
-            this.setSafetyEnabled(false);
-        }
-
-        @Override
-        public String getDescription() { return String.format("SwerveModule(%s)", this.place.name()); }
 
         void updateController() {
             double turn = this.angleController.calculate(this.angle().getDegrees(), this.targetAngle.getDegrees());
 
-            this.motorU.set(ControlMode.PercentOutput, this.speed + turn);
-            this.motorV.set(ControlMode.PercentOutput, this.speed - turn);
+            this.azimuth.set(ControlMode.PercentOutput, turn);
         }
     }
 
@@ -101,26 +86,26 @@ public class Drivetrain extends SubsystemBase {
         this.gyro = new WPI_Pigeon2(Constants.CAN.pigeon);
         this.swerveFrontLeft = new SwerveModule(
             SwerveModulePlace.FrontLeft,
-            new WPI_TalonFX(Constants.CAN.swerveFrontLeftMotorU),
-            new WPI_TalonFX(Constants.CAN.swerveFrontLeftMotorV),
+            new WPI_TalonFX(Constants.CAN.swerveFrontLeftAzimuth),
+            new WPI_TalonFX(Constants.CAN.swerveFrontLeftDrive),
             new WPI_CANCoder(Constants.CAN.swerveFrontLeftEncoder)
         );
         this.swerveFrontRight = new SwerveModule(
             SwerveModulePlace.FrontRight,
-            new WPI_TalonFX(Constants.CAN.swerveFrontRightMotorU),
-            new WPI_TalonFX(Constants.CAN.swerveFrontRightMotorV),
+            new WPI_TalonFX(Constants.CAN.swerveFrontRightAzimuth),
+            new WPI_TalonFX(Constants.CAN.swerveFrontRightDrive),
             new WPI_CANCoder(Constants.CAN.swerveFrontRightEncoder)
         );
         this.swerveBackLeft = new SwerveModule(
             SwerveModulePlace.BackLeft,
-            new WPI_TalonFX(Constants.CAN.swerveBackLeftMotorU),
-            new WPI_TalonFX(Constants.CAN.swerveBackLeftMotorV),
+            new WPI_TalonFX(Constants.CAN.swerveBackLeftAzimuth),
+            new WPI_TalonFX(Constants.CAN.swerveBackLeftDrive),
             new WPI_CANCoder(Constants.CAN.swerveBackLeftEncoder)
         );
         this.swerveBackRight = new SwerveModule(
             SwerveModulePlace.BackRight,
-            new WPI_TalonFX(Constants.CAN.swerveBackRightMotorU),
-            new WPI_TalonFX(Constants.CAN.swerveBackRightMotorV),
+            new WPI_TalonFX(Constants.CAN.swerveBackRightAzimuth),
+            new WPI_TalonFX(Constants.CAN.swerveBackRightDrive),
             new WPI_CANCoder(Constants.CAN.swerveBackRightEncoder)
         );
         this.modules = new SwerveModule[] { this.swerveFrontLeft, this.swerveFrontRight, this.swerveBackLeft, this.swerveBackRight };
