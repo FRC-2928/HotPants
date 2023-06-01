@@ -1,13 +1,15 @@
 package frc.robot.oi;
 
+import java.util.function.Supplier;
+
 import edu.wpi.first.wpilibj.XboxController;
 
 public class DriverOI extends BaseOI {
     public DriverOI(XboxController controller) { super(controller); }
 
-    public final double moveAxial() { return this.controller.getLeftX(); }
+    public final Supplier<Double> moveAxial = this.controller::getLeftY;
 
-    public final double moveLateral() { return this.controller.getLeftY(); }
+    public final Supplier<Double> moveLateral = this.controller::getLeftX;
 
-    public final double moveTheta() { return this.controller.getRightX(); }
+    public final Supplier<Double> moveTheta = this.controller::getRightX;
 }

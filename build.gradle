@@ -39,6 +39,7 @@ deploy {
 
 def deployArtifact = deploy.targets.roborio.artifacts.frcJava
 
+/*
 // Configuration for AdvantageKit
 repositories {
     maven {
@@ -50,6 +51,7 @@ repositories {
     }
     mavenLocal()
 }
+*/
 
 // Set to true to use debug for JNI.
 wpi.java.debugJni = false

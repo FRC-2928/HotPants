@@ -4,15 +4,19 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commands.drivetrain.Drive;
 import frc.robot.oi.DriverOI;
+import frc.robot.subsystems.Drivetrain;
 
 public class Robot extends TimedRobot {
 	public static Robot instance;
 
 	private Command autonomousCommand;
 
-	public DriverOI driverOI = new DriverOI(new XboxController(0));
-	public DriverOI operatorOI = new DriverOI(new XboxController(1));
+	public final DriverOI driverOI = new DriverOI(new XboxController(0));
+	public final DriverOI operatorOI = new DriverOI(new XboxController(1));
+
+    public final Drivetrain drivetrain = new Drivetrain();
 
 	public Robot() {
 		Utils.ensureSingleton(this);
@@ -62,6 +66,8 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopInit() {
 		CommandScheduler.getInstance().cancelAll();
+
+        this.drivetrain.setDefaultCommand(new Drive(this.drivetrain, this.driverOI));
 	}
 
 	@Override
