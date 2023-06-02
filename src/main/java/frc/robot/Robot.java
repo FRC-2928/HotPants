@@ -19,7 +19,6 @@ public class Robot extends TimedRobot {
     public final Drivetrain drivetrain = new Drivetrain();
 
 	public Robot() {
-		Utils.ensureSingleton(this);
 		Robot.instance = this;
 	}
 
