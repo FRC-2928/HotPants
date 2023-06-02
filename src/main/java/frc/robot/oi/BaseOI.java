@@ -9,7 +9,7 @@ public abstract class BaseOI {
 
     public final Trigger cstopButton;
 
-    protected BaseOI(XboxController controller) {
+    protected BaseOI(final XboxController controller) {
         this.controller = controller;
 
         this.cstopButton = new JoystickButton(this.controller, XboxController.Button.kStart.value);

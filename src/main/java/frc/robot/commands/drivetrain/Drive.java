@@ -11,7 +11,7 @@ public class Drive extends CommandBase {
     public final Drivetrain drivetrain;
     public final DriverOI oi;
 
-    public Drive(Drivetrain drivetrain, DriverOI oi) {
+    public Drive(final Drivetrain drivetrain, final DriverOI oi) {
         this.drivetrain = drivetrain;
         this.oi = oi;
 
@@ -20,9 +20,9 @@ public class Drive extends CommandBase {
 
     @Override
     public void execute() {
-        double axial = MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
-        double lateral = MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
-        double theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
+        final double axial = MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
+        final double lateral = MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
+        final double theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
 
         this.drivetrain.swerve(this.drivetrain.kinematics.toSwerveModuleStates(new ChassisSpeeds(
             axial * Constants.Drivetrain.axialSpeed,

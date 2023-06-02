@@ -8,12 +8,12 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 
 public class Constants {
     public static final class PIDValues {
-        public double p;
-        public double i;
-        public double d;
-        public double f;
+        public final double p;
+        public final double i;
+        public final double d;
+        public final double f;
 
-        public PIDValues(double p, double i, double d, double f) {
+        public PIDValues(final double p, final double i, final double d, final double f) {
             this.p = p;
             this.i = i;
             this.d = d;

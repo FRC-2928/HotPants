@@ -22,7 +22,7 @@ public class Drivetrain extends SubsystemBase {
         BackLeft(2),
         BackRight(3);
 
-        private SwerveModulePlace(int index) { this.index = index; }
+        private SwerveModulePlace(final int index) { this.index = index; }
 
         public final int index;
     }
@@ -38,7 +38,7 @@ public class Drivetrain extends SubsystemBase {
 
         public Rotation2d target = new Rotation2d();
 
-        public SwerveModule(SwerveModulePlace place, WPI_TalonFX azimuth, WPI_TalonFX drive, WPI_CANCoder encoder) {
+        public SwerveModule(final SwerveModulePlace place, final WPI_TalonFX azimuth, final WPI_TalonFX drive, final WPI_CANCoder encoder) {
             this.place = place;
             this.azimuth = azimuth;
             this.drive = drive;
@@ -53,8 +53,8 @@ public class Drivetrain extends SubsystemBase {
 
         public Rotation2d angle() { return Rotation2d.fromDegrees(this.encoder.getAbsolutePosition()); }
 
-        public void applyState(SwerveModuleState state) {
-            double ffw = Constants.Drivetrain.driveFFW.calculate(state.speedMetersPerSecond);
+        public void applyState(final SwerveModuleState state) {
+            final double ffw = Constants.Drivetrain.driveFFW.calculate(state.speedMetersPerSecond);
 
             this.target = state.angle;
             this.drive.set(ControlMode.PercentOutput, ffw);
@@ -68,7 +68,7 @@ public class Drivetrain extends SubsystemBase {
             SmartDashboard.putNumber(this.place.name() + " Angle", this.angle().getDegrees());
             SmartDashboard.putNumber(this.place.name() + " Target", this.target.getDegrees());
 
-            double turn = this.pid.calculate(this.angle().getDegrees(), this.target.getDegrees());
+            final double turn = this.pid.calculate(this.angle().getDegrees(), this.target.getDegrees());
 
             // todo: correct angle
             // maybe invert encoder angles and remove the negation below?
@@ -80,10 +80,26 @@ public class Drivetrain extends SubsystemBase {
         public final SwerveModuleState[] states;
 
         public SwerveState() { this.states = new SwerveModuleState[4]; }
-        public SwerveState(SwerveModuleState[] states) { this.states = states; }
+        public SwerveState(final SwerveModuleState[] states) { this.states = states; }
 
-        public SwerveModuleState get(SwerveModulePlace place) { return this.states[place.index]; }
-        public SwerveState set(SwerveModulePlace place, SwerveModuleState state) {
+        public static SwerveState forward() {
+            return new SwerveState()
+                .set(SwerveModulePlace.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
+                .set(SwerveModulePlace.FrontRight, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
+                .set(SwerveModulePlace.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
+                .set(SwerveModulePlace.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
+        }
+
+        public static SwerveState locked() {
+            return new SwerveState()
+                .set(SwerveModulePlace.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(-45)))
+                .set(SwerveModulePlace.FrontRight, new SwerveModuleState(0, Rotation2d.fromDegrees(45)))
+                .set(SwerveModulePlace.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(-135)))
+                .set(SwerveModulePlace.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(135)));
+        }
+
+        public SwerveModuleState get(final SwerveModulePlace place) { return this.states[place.index]; }
+        public SwerveState set(final SwerveModulePlace place, final SwerveModuleState state) {
             this.states[place.index] = state;
             return this;
         }
@@ -130,18 +146,19 @@ public class Drivetrain extends SubsystemBase {
         this.swerveBackRight.drive.setInverted(true);
     }
 
-    public void swerve(SwerveModuleState[] states) {
+    public void swerve(final SwerveModuleState[] states) {
         for(int i = 0; i < this.modules.length; i++)
             this.modules[i].applyState(states[i]);
     }
 
-    public void swerve(SwerveState state) {
+    public void swerve(final SwerveState state) {
         for(int i = 0; i < this.modules.length; i++)
             this.modules[i].applyState(state.states[i]);
     }
 
+    @Override
     public void periodic() {
-        for(SwerveModule swerve : this.modules)
+        for(final SwerveModule swerve : this.modules)
             swerve.update();
     }
 }
