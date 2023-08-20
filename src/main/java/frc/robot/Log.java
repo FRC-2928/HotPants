@@ -7,6 +7,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+// todo: implement AdvantageKit and remove this
+
 public final class Log extends SubsystemBase {
 	private static Log instance;
 
@@ -16,7 +18,7 @@ public final class Log extends SubsystemBase {
 	/// `trimExcessLeadingLines` after using `writelnFast`
 	public static int lineLimit = Integer.MAX_VALUE;
 	private int lines = 0;
-	private StringBuilder log = new StringBuilder(1024);
+	private final StringBuilder log = new StringBuilder(1024);
 	private boolean dirty = false;
 
 	private Log() {}
@@ -29,21 +31,21 @@ public final class Log extends SubsystemBase {
 
 	/// Writes data to stderr, writes it to the buffer, and dirties
 	/// the network entry.
-	public static void write(Object... input) {
+	public static void write(final Object... input) {
 		Log.writeFast(input);
 		Log.trimExcessLeadingLines();
 	}
 
 	/// Writes a line to stderr, writes it to the buffer, trims old
 	/// leading lines, and dirties the network entry.
-	public static void writeln(Object... input) { Log.write(input, '\n'); }
+	public static void writeln(final Object... input) { Log.write(input, '\n'); }
 
 	/// Writes to the buffer, does NOT trim any old leading lines, and
 	/// dirties the network entry.
 	/// Use this to buffer many line calls together before calling
 	/// `trimExcessLeadingLines` or `writeln`
-	public static void writeFast(Object... input) {
-		for(Object entry : input) {
+	public static void writeFast(final Object... input) {
+		for(final Object entry : input) {
 			if(entry.getClass().isArray()) {
 				Object[] array;
 
@@ -59,11 +61,11 @@ public final class Log extends SubsystemBase {
 		}
 	}
 
-	public static void writeFast(String str) {
+	public static void writeFast(final String str) {
 		DriverStationJNI.sendConsoleLine(str);
 
 		System.err.print(str);
-		
+
 		Log.instance.log.append(str);
 		Log.instance.lines += str.lines().count();
 		Log.instance.dirty = true;
@@ -73,18 +75,18 @@ public final class Log extends SubsystemBase {
 	/// dirties the network entry.
 	/// Use this to buffer many line calls together before calling
 	/// `trimExcessLeadingLines` or `writeln`
-	public static void writelnFast(Object... input) { Log.writeFast(input, '\n'); }
+	public static void writelnFast(final Object... input) { Log.writeFast(input, '\n'); }
 
 	/// Panic the runtime with an uncatchable exception
 	/// This function will *never* return
-	public static void panic(Exception fuckup) {
+	public static void panic(final Exception fuckup) {
 		Log.error(fuckup);
 
 		System.exit(1);
 	}
 
 	/// Writes an error to the buffer, trims old leading lines, dirties the network entry, and transmits the error to the driver station with a full stack trace
-	public static void error(Exception error) {
+	public static void error(final Exception error) {
 		Log.writeln("! ERROR: ", error.getLocalizedMessage(), " !");
 		DriverStation.reportError(error.getLocalizedMessage(), error.getStackTrace());
 	}
@@ -103,7 +105,7 @@ public final class Log extends SubsystemBase {
 	}
 
 	/// Writes a warning to the buffer, trims old leading lines, dirties the network entry, and transmits the warning to the driver station with a full stack trace
-	public static void warningFull(String warning) {
+	public static void warningFull(final String warning) {
 		Log.writeln("! WARNING: ", warning, " !");
 		DriverStation.reportWarning(warning, Thread.currentThread().getStackTrace());
 	}

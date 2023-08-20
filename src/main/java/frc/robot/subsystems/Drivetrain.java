@@ -1,15 +1,22 @@
 package frc.robot.subsystems;
 
+import java.util.Arrays;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.sensors.AbsoluteSensorRange;
+import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.ctre.phoenix.sensors.WPI_CANCoder;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -37,6 +44,7 @@ public class Drivetrain extends SubsystemBase {
         private final PIDController pid = Constants.Drivetrain.swerveAzimuthPID.createController();
 
         public Rotation2d target = new Rotation2d();
+        public double targetVelocity = 0;
 
         public SwerveModule(final SwerveModulePlace place, final WPI_TalonFX azimuth, final WPI_TalonFX drive, final WPI_CANCoder encoder) {
             this.place = place;
@@ -48,15 +56,18 @@ public class Drivetrain extends SubsystemBase {
 
             drive.setNeutralMode(NeutralMode.Brake);
 
+            encoder.configAbsoluteSensorRange(AbsoluteSensorRange.Signed_PlusMinus180);
+            encoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
+
             this.pid.enableContinuousInput(-180, 180);
         }
 
-        public Rotation2d angle() { return Rotation2d.fromDegrees(this.encoder.getAbsolutePosition()); }
+        public SwerveModulePosition pos() { return new SwerveModulePosition(Constants.Drivetrain.driveGearMotorToWheel.forward(Constants.Drivetrain.motorEncoderToRotations.forward(this.drive.getSelectedSensorPosition())), Rotation2d.fromDegrees(this.encoder.getAbsolutePosition())); }
 
         public void applyState(final SwerveModuleState state) {
-            final double ffw = Constants.Drivetrain.driveFFW.calculate(state.speedMetersPerSecond);
+            final double ffw = Constants.Drivetrain.driveFFW.calculate(-state.speedMetersPerSecond);
 
-            this.target = state.angle;
+            this.target = state.angle.unaryMinus();
             this.drive.set(ControlMode.PercentOutput, ffw);
         }
 
@@ -65,14 +76,12 @@ public class Drivetrain extends SubsystemBase {
         }
 
         void update() {
-            SmartDashboard.putNumber(this.place.name() + " Angle", this.angle().getDegrees());
+            SmartDashboard.putNumber(this.place.name() + " Angle", this.pos().angle.getDegrees());
             SmartDashboard.putNumber(this.place.name() + " Target", this.target.getDegrees());
 
-            final double turn = this.pid.calculate(this.angle().getDegrees(), this.target.getDegrees());
+            final double turn = this.pid.calculate(this.pos().angle.getDegrees(), this.target.getDegrees());
 
-            // todo: correct angle
-            // maybe invert encoder angles and remove the negation below?
-            this.azimuth.set(ControlMode.PercentOutput, -turn * Constants.Drivetrain.azimuthGearRatio);
+            this.azimuth.set(ControlMode.PercentOutput, Constants.Drivetrain.azimuthGearMotorToWheel.forward(-turn));
         }
     }
 
@@ -139,26 +148,34 @@ public class Drivetrain extends SubsystemBase {
     };
 
     public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
-    public final SwerveDriveOdometry odometry = new SwerveDriveOdometry(this.kinematics, this.gyro.getRotation2d(), null);
+    public final SwerveDrivePoseEstimator est = new SwerveDrivePoseEstimator(this.kinematics, this.gyro.getRotation2d(), this.getModulePositions(), new Pose2d());
 
     public Drivetrain() {
         this.swerveFrontRight.drive.setInverted(true);
         this.swerveBackRight.drive.setInverted(true);
     }
 
+    public SwerveModulePosition[] getModulePositions() {
+        return Arrays.stream(this.modules).map(SwerveModule::pos).toArray(SwerveModulePosition[]::new);
+    }
+
     public void swerve(final SwerveModuleState[] states) {
-        for(int i = 0; i < this.modules.length; i++)
-            this.modules[i].applyState(states[i]);
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxWheelSpeed);
+        for(int i = 0; i < this.modules.length; i++) this.modules[i].applyState(states[i]);
     }
 
     public void swerve(final SwerveState state) {
-        for(int i = 0; i < this.modules.length; i++)
-            this.modules[i].applyState(state.states[i]);
+        this.swerve(state.states);
+    }
+
+    public ChassisSpeeds fod(final ChassisSpeeds field) {
+        return ChassisSpeeds.fromFieldRelativeSpeeds(field, this.gyro.getRotation2d().unaryMinus());
     }
 
     @Override
     public void periodic() {
-        for(final SwerveModule swerve : this.modules)
-            swerve.update();
+        for(final SwerveModule swerve : this.modules) swerve.update();
+
+        this.est.update(this.gyro.getRotation2d(), this.getModulePositions());
     }
 }

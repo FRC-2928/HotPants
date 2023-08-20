@@ -7,25 +7,31 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 
 public class Constants {
-    public static final class PIDValues {
-        public final double p;
-        public final double i;
-        public final double d;
-        public final double f;
+    private Constants() { throw new IllegalCallerException("Cannot instantiate `Constants`"); }
 
-        public PIDValues(final double p, final double i, final double d, final double f) {
-            this.p = p;
-            this.i = i;
-            this.d = d;
-            this.f = f;
-        }
+    public static final double mod(final double lhs, final double rhs) { return (lhs % rhs + rhs) % rhs; }
 
-        public PIDController createController() {
-            return new PIDController(this.p, this.i, this.d);
-        }
+    public static record PIDValues(
+        double p,
+        double i,
+        double d,
+        double f
+    ) {
+        public final PIDController createController() { return new PIDController(this.p, this.i, this.d); }
+    }
+
+    public static record Ratio(double factor) {
+        public Ratio(final double from, final double to) { this(to / from); }
+
+        public final double forward(final double value) { return value * this.factor; }
+        public final double inverse(final double value) { return value / this.factor; }
+
+        public final Ratio inverse() { return new Ratio(1 / this.factor); }
     }
 
     public static final class CAN {
+        private CAN() { throw new IllegalCallerException("Cannot instantiate `Constants.CAN`"); }
+
         public static final int pigeon = 0;
 
         public static final int swerveFrontLeftAzimuth = 16;
@@ -46,8 +52,11 @@ public class Constants {
     }
 
     public static final class Drivetrain {
+        private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
+
         // todo: tune
-        public static final PIDValues swerveAzimuthPID = new PIDValues(0.075, 0, 0, 0);
+        public static final PIDValues swerveAzimuthPID = new PIDValues(0.3, 0.01, 0.003, 0);
+        public static final PIDValues absoluteRotationPID = new PIDValues(0.1, 0, 0, 0);
 
         public static final double wheelPositionRadius = 0.3906711; // radius of the circle that wheels are positioned on
 
@@ -63,14 +72,20 @@ public class Constants {
             Constants.Drivetrain.swerveBackRightTranslation
         );
 
-        // todo: fill
+        // todo: find
         public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 1, 0);
-        public static final double driveGearRatio = 1.0 / 6.75; // 6.75:1 (motor:wheel)
-        public static final double azimuthGearRatio = 1.0 / (150.0 / 7.0); // (150 / 7):1 (motor:wheel)
+
+        public static final Ratio motorEncoderToRotations = new Ratio(2048, 1);
+        public static final Ratio driveGearMotorToWheel = new Ratio(6.75, 1); // 6.75:1 (motor:wheel)
+        public static final Ratio azimuthGearMotorToWheel = new Ratio(150.0 / 7.0, 1); // (150 / 7):1 (motor:wheel)
+
         public static final double wheelRadius = 2.0 * 0.0254; // m
 
-        public static final double axialSpeed = 1.0;
-        public static final double lateralSpeed = 1.0;
-        public static final double thetaSpeed = 90.0;
+        // todo: find
+        public static final double maxWheelSpeed = 10.0;
+
+        // todo: choose
+        public static final double axialLateralSpeed = 1; // m/s
+        public static final double thetaSpeed = 180.0; // deg/s
     }
 }

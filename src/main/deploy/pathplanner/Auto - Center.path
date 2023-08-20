@@ -2,15 +2,15 @@
   "waypoints": [
     {
       "anchorPoint": {
-        "x": 2.35,
-        "y": 2.75
+        "x": 2.0035232914830776,
+        "y": 4.402487660073711
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.35,
-        "y": 2.75
+        "x": 3.2511338010153663,
+        "y": 4.216063101178081
       },
-      "holonomicAngle": 180.0,
+      "holonomicAngle": -131.05481377096237,
       "isReversal": false,
       "velOverride": null,
       "isLocked": false,
@@ -24,16 +24,41 @@
     },
     {
       "anchorPoint": {
-        "x": 6.047502184449808,
-        "y": 2.753347331381605
+        "x": 8.45668109940871,
+        "y": 6.0086069367129795
       },
       "prevControl": {
-        "x": 5.047502184449808,
-        "y": 2.753347331381605
+        "x": 7.952022736960842,
+        "y": 5.985667920238076
       },
       "nextControl": {
-        "x": 5.047502184449808,
-        "y": 2.753347331381605
+        "x": 9.403144244571136,
+        "y": 6.051627988765817
+      },
+      "holonomicAngle": 0,
+      "isReversal": false,
+      "velOverride": null,
+      "isLocked": false,
+      "isStopPoint": false,
+      "stopEvent": {
+        "names": [],
+        "executionBehavior": "parallel",
+        "waitBehavior": "none",
+        "waitTime": 0
+      }
+    },
+    {
+      "anchorPoint": {
+        "x": 10.593393351366307,
+        "y": 4.976101687444878
+      },
+      "prevControl": {
+        "x": 9.593393351366307,
+        "y": 4.976101687444878
+      },
+      "nextControl": {
+        "x": 9.593393351366307,
+        "y": 4.976101687444878
       },
       "holonomicAngle": 180.0,
       "isReversal": true,
@@ -49,12 +74,12 @@
     },
     {
       "anchorPoint": {
-        "x": 3.85,
-        "y": 2.75
+        "x": 3.8821092311236507,
+        "y": 2.380498213590345
       },
       "prevControl": {
-        "x": 4.350821907099709,
-        "y": 2.75
+        "x": 9.905056518520908,
+        "y": 2.6673052272759294
       },
       "nextControl": null,
       "holonomicAngle": 180.0,
@@ -75,7 +100,7 @@
   "isReversed": null,
   "markers": [
     {
-      "position": 2.0,
+      "position": 3.0,
       "names": [
         "balance"
       ]

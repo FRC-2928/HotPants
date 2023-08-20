@@ -1,25 +1,37 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj.TimedRobot;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.commands.drivetrain.Drive;
+import frc.robot.commands.drivetrain.LockWheels;
 import frc.robot.oi.DriverOI;
+import frc.robot.oi.OperatorOI;
 import frc.robot.subsystems.Drivetrain;
 
-public class Robot extends TimedRobot {
+public class Robot extends LoggedRobot {
 	public static Robot instance;
+    public static final Logger log = Logger.getInstance();
 
 	private Command autonomousCommand;
 
 	public final DriverOI driverOI = new DriverOI(new XboxController(0));
-	public final DriverOI operatorOI = new DriverOI(new XboxController(1));
+	public final OperatorOI operatorOI = new OperatorOI(new XboxController(1));
 
     public final Drivetrain drivetrain = new Drivetrain();
 
 	public Robot() {
 		Robot.instance = this;
+
+        this.driverOI.lock.whileTrue(new LockWheels(this.drivetrain, this.driverOI));
+        this.driverOI.resetFOD.whileTrue(new RunCommand(() -> {
+            this.drivetrain.gyro.setYaw(0);
+            System.out.printf("rst %s\n", this.drivetrain.gyro.getRotation2d());
+        }));
 	}
 
 	// ROBOT //
