@@ -38,16 +38,16 @@ public class Drive extends CommandBase {
         final double lateral = MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
         final double theta;
 
-        if(this.absoluteRotation) {
+        if(this.absoluteRotation) { // todo debug graphs and make this work
             final double rotX = this.oi.moveRotationX.get();
             final double rotY = this.oi.moveRotationY.get();
 
             this.absoluteTargetMagnitude = Math.sqrt(rotX * rotX + rotY * rotY);
-            if(this.absoluteTargetMagnitude > 0.25) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(rotX, rotY));
+            if(this.absoluteTargetMagnitude > 0.25) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(rotX, -rotY));
 
-            theta = this.absoluteController.calculate(Constants.mod(this.drivetrain.gyro.getRotation2d().getRotations(), 1), this.absoluteTarget.getRotations());
+            theta = this.absoluteController.calculate(Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1) - 0.5, this.absoluteTarget.getRotations());
             SmartDashboard.putNumber("absolute target", this.absoluteTarget.getRotations());
-            SmartDashboard.putNumber("absolute current", Constants.mod(this.drivetrain.gyro.getRotation2d().getRotations(), 1));
+            SmartDashboard.putNumber("absolute current", Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1) - 0.5);
         } else theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
 
         ChassisSpeeds desired = new ChassisSpeeds(

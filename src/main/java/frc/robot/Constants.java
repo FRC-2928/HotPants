@@ -56,7 +56,7 @@ public class Constants {
 
         // todo: tune
         public static final PIDValues swerveAzimuthPID = new PIDValues(0.3, 0.01, 0.003, 0);
-        public static final PIDValues absoluteRotationPID = new PIDValues(0.1, 0, 0, 0);
+        public static final PIDValues absoluteRotationPID = new PIDValues(0.15, 0, 0, 0);
 
         public static final double wheelPositionRadius = 0.3906711; // radius of the circle that wheels are positioned on
 
