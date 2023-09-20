@@ -66,7 +66,7 @@ public class Constants {
             /// Field-oriented drive
             public static final boolean fod = true;
             /// Absolute rotation (point right stick in direction to face)
-            public static final boolean absoluteRotation = false;
+            public static final boolean absoluteRotation = true;
 
             /// Optimize wheel rotation to only rotate less than 90deg per turn
             public static final boolean wheelOptimization = true;
@@ -76,8 +76,8 @@ public class Constants {
 
         // todo: tune
         //public static final PIDValues swerveAzimuthPID = new PIDValues(0.3, 0.01, 0.003, 0);
-        public static final PIDValues swerveAzimuthPID = new PIDValues(0.15, 1, 0, 0); // todo: test this more, see how it feels and inspect wheel motion, compare to above
-        public static final PIDValues absoluteRotationPID = new PIDValues(3.25, 0, 0.4, 0);
+        public static final PIDValues swerveAzimuthPID = new PIDValues(0.25, 0.75, 0, 0); // todo: test this more, see how it feels and inspect wheel motion, compare to above
+        public static final PIDValues absoluteRotationPID = new PIDValues(2.75, 0, 0.2, 0);
 
         public static final double thetaCompensationFactor = 0.35;
 
