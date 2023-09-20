@@ -181,6 +181,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public ChassisSpeeds compensate(final ChassisSpeeds original) {
+        // using this function because its just an easy way to rotate the axial/lateral speeds
         return ChassisSpeeds.fromFieldRelativeSpeeds(original, Rotation2d.fromRadians(original.omegaRadiansPerSecond * Constants.Drivetrain.thetaCompensationFactor));
     }
 
