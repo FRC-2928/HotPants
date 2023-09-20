@@ -4,7 +4,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.oi.DriverOI;
@@ -13,9 +12,6 @@ import frc.robot.subsystems.Drivetrain;
 public class Drive extends CommandBase {
     public final Drivetrain drivetrain;
     public final DriverOI oi;
-
-    public boolean fod = true;
-    public boolean absoluteRotation = false;
 
     public Rotation2d absoluteTarget = new Rotation2d();
     public double absoluteTargetMagnitude = 0;
@@ -27,7 +23,7 @@ public class Drive extends CommandBase {
 
         this.addRequirements(drivetrain);
 
-        this.absoluteController.enableContinuousInput(0, 360);
+        this.absoluteController.enableContinuousInput(-0.5, 0.5);
     }
 
     @Override
@@ -38,29 +34,25 @@ public class Drive extends CommandBase {
         final double lateral = MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
         final double theta;
 
-        if(this.absoluteRotation) { // todo debug graphs and make this work
+        if(Constants.Drivetrain.Flags.absoluteRotation) {
             final double rotX = this.oi.moveRotationX.get();
             final double rotY = this.oi.moveRotationY.get();
 
             this.absoluteTargetMagnitude = Math.sqrt(rotX * rotX + rotY * rotY);
-            if(this.absoluteTargetMagnitude > 0.25) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(rotX, -rotY));
+            if(this.absoluteTargetMagnitude > 0.5) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(-rotX, rotY));
+            this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;
 
-            theta = this.absoluteController.calculate(Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1) - 0.5, this.absoluteTarget.getRotations());
-            SmartDashboard.putNumber("absolute target", this.absoluteTarget.getRotations());
-            SmartDashboard.putNumber("absolute current", Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1) - 0.5);
+            theta = MathUtil.clamp(this.absoluteController.calculate(Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1) - 0.5, this.absoluteTarget.getRotations()), -0.65, 0.65);
         } else theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
 
         ChassisSpeeds desired = new ChassisSpeeds(
             axial * -Constants.Drivetrain.axialLateralSpeed * mul,
             lateral * Constants.Drivetrain.axialLateralSpeed * mul,
-            theta * Math.toRadians(Constants.Drivetrain.thetaSpeed) * mul
+            theta * Math.toRadians(Constants.Drivetrain.thetaSpeed) * mul * (Constants.Drivetrain.Flags.absoluteRotation ? this.absoluteTargetMagnitude : 1)
         );
 
-        if(this.fod) {
-            final ChassisSpeeds fod = this.drivetrain.fod(desired);
-            //System.out.printf("fod %s -> %s\n", desired, fod);
-            desired = fod;
-        }
+        if(Constants.Drivetrain.Flags.thetaCompensation) desired = this.drivetrain.compensate(desired);
+        if(Constants.Drivetrain.Flags.fod) desired = this.drivetrain.fod(desired);
 
         this.drivetrain.swerve(this.drivetrain.kinematics.toSwerveModuleStates(desired));
     }

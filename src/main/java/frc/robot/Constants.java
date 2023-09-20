@@ -10,6 +10,12 @@ public class Constants {
     private Constants() { throw new IllegalCallerException("Cannot instantiate `Constants`"); }
 
     public static final double mod(final double lhs, final double rhs) { return (lhs % rhs + rhs) % rhs; }
+    public static final double angleNorm(final double angle) {
+        return Constants.mod(angle + 180, 360) - 180;
+    }
+    public static final double angleDistance(final double a, final double b) {
+        return Math.abs(Constants.angleNorm(180 - Math.abs(Math.abs(Constants.angleNorm(a) - Constants.angleNorm(b)) - 180)));
+    }
 
     public static record PIDValues(
         double p,
@@ -54,9 +60,25 @@ public class Constants {
     public static final class Drivetrain {
         private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
+        public static final class Flags {
+            private Flags() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain.Flags`"); }
+
+            /// Field-oriented drive
+            public static final boolean fod = true;
+            /// Absolute rotation (point right stick in direction to face)
+            public static final boolean absoluteRotation = false;
+
+            /// Optimize wheel rotation to only rotate less than 90deg per turn
+            public static final boolean wheelOptimization = true;
+            /// Compensate for wheel rotation while driving and rotating
+            public static final boolean thetaCompensation = true;
+        }
+
         // todo: tune
         public static final PIDValues swerveAzimuthPID = new PIDValues(0.3, 0.01, 0.003, 0);
-        public static final PIDValues absoluteRotationPID = new PIDValues(0.15, 0, 0, 0);
+        public static final PIDValues absoluteRotationPID = new PIDValues(3.25, 0, 0.4, 0);
+
+        public static final double thetaCompensationFactor = 0.35;
 
         public static final double wheelPositionRadius = 0.3906711; // radius of the circle that wheels are positioned on
 

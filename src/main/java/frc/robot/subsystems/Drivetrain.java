@@ -43,6 +43,8 @@ public class Drivetrain extends SubsystemBase {
 
         private final PIDController pid = Constants.Drivetrain.swerveAzimuthPID.createController();
 
+        private boolean backwards = false;
+
         public Rotation2d target = new Rotation2d();
         public double targetVelocity = 0;
 
@@ -68,7 +70,7 @@ public class Drivetrain extends SubsystemBase {
             final double ffw = Constants.Drivetrain.driveFFW.calculate(-state.speedMetersPerSecond);
 
             this.target = state.angle.unaryMinus();
-            this.drive.set(ControlMode.PercentOutput, ffw);
+            this.targetVelocity = ffw;
         }
 
         public void halt() {
@@ -77,11 +79,17 @@ public class Drivetrain extends SubsystemBase {
 
         void update() {
             SmartDashboard.putNumber(this.place.name() + " Angle", this.pos().angle.getDegrees());
-            SmartDashboard.putNumber(this.place.name() + " Target", this.target.getDegrees());
 
-            final double turn = this.pid.calculate(this.pos().angle.getDegrees(), this.target.getDegrees());
+            this.backwards = Constants.Drivetrain.Flags.wheelOptimization & Constants.angleDistance(this.target.getDegrees(), this.pos().angle.getDegrees()) > 90;
+            final double target = this.backwards ? Constants.angleNorm(this.target.getDegrees() + 180) : this.target.getDegrees();
+
+            SmartDashboard.putNumber(this.place.name() + " Target", target);
+            SmartDashboard.putNumber(this.place.name() + " Distance From Target", Constants.angleDistance(target, this.pos().angle.getDegrees()));
+
+            final double turn = this.pid.calculate(this.pos().angle.getDegrees(), target);
 
             this.azimuth.set(ControlMode.PercentOutput, Constants.Drivetrain.azimuthGearMotorToWheel.forward(-turn));
+            this.drive.set(ControlMode.PercentOutput, this.backwards ? -this.targetVelocity : this.targetVelocity);
         }
     }
 
@@ -170,6 +178,10 @@ public class Drivetrain extends SubsystemBase {
 
     public ChassisSpeeds fod(final ChassisSpeeds field) {
         return ChassisSpeeds.fromFieldRelativeSpeeds(field, this.gyro.getRotation2d().unaryMinus());
+    }
+
+    public ChassisSpeeds compensate(final ChassisSpeeds original) {
+        return ChassisSpeeds.fromFieldRelativeSpeeds(original, Rotation2d.fromRadians(original.omegaRadiansPerSecond * Constants.Drivetrain.thetaCompensationFactor));
     }
 
     @Override
