@@ -10,6 +10,7 @@ import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.ctre.phoenix.sensors.WPI_CANCoder;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -88,7 +89,7 @@ public class Drivetrain extends SubsystemBase {
 
             final double turn = this.pid.calculate(this.pos().angle.getDegrees(), target);
 
-            this.azimuth.set(ControlMode.PercentOutput, Constants.Drivetrain.azimuthGearMotorToWheel.forward(-turn));
+            this.azimuth.set(ControlMode.PercentOutput, Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
             this.drive.set(ControlMode.PercentOutput, this.backwards ? -this.targetVelocity : this.targetVelocity);
         }
     }

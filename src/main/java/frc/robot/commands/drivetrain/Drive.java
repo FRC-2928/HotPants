@@ -30,8 +30,11 @@ public class Drive extends CommandBase {
     public void execute() {
         final double mul = MathUtil.interpolate(1, 0.5, this.oi.slow.get());
 
-        final double axial = MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
+        final double axial = -MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
         final double lateral = MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
+        final Rotation2d moveDirection = Rotation2d.fromRadians(Math.atan2(lateral, axial));
+        final double moveMagnitude = this.curve(MathUtil.clamp(Math.sqrt(lateral * lateral + axial * axial), 0, 1));
+
         final double theta;
 
         if(Constants.Drivetrain.Flags.absoluteRotation) {
@@ -42,18 +45,23 @@ public class Drive extends CommandBase {
             if(this.absoluteTargetMagnitude > 0.5) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(-rotX, rotY));
             this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;
 
-            theta = MathUtil.clamp(this.absoluteController.calculate(Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1) - 0.5, this.absoluteTarget.getRotations()), -0.65, 0.65);
+            theta = MathUtil.clamp(this.absoluteController.calculate(Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1), this.absoluteTarget.getRotations() + 0.5), -0.75, 0.75);
         } else theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
 
         ChassisSpeeds desired = new ChassisSpeeds(
-            axial * -Constants.Drivetrain.axialLateralSpeed * mul,
-            lateral * Constants.Drivetrain.axialLateralSpeed * mul,
-            theta * Math.toRadians(Constants.Drivetrain.thetaSpeed) * mul * (Constants.Drivetrain.Flags.absoluteRotation ? this.absoluteTargetMagnitude : 1)
+            Math.cos(moveDirection.getRadians()) * moveMagnitude * Constants.Drivetrain.axialLateralSpeed * mul,
+            Math.sin(moveDirection.getRadians()) * moveMagnitude * Constants.Drivetrain.axialLateralSpeed * mul,
+            this.curve(theta) * Math.toRadians(Constants.Drivetrain.thetaSpeed) * mul * (Constants.Drivetrain.Flags.absoluteRotation ? this.absoluteTargetMagnitude : 1)
         );
 
         if(Constants.Drivetrain.Flags.thetaCompensation) desired = this.drivetrain.compensate(desired);
         if(Constants.Drivetrain.Flags.fod) desired = this.drivetrain.fod(desired);
 
         this.drivetrain.swerve(this.drivetrain.kinematics.toSwerveModuleStates(desired));
+    }
+
+    // Input curve function
+    private double curve(final double input) {
+        return Math.pow(input, 2); // x^2
     }
 }

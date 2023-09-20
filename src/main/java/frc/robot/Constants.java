@@ -75,7 +75,8 @@ public class Constants {
         }
 
         // todo: tune
-        public static final PIDValues swerveAzimuthPID = new PIDValues(0.3, 0.01, 0.003, 0);
+        //public static final PIDValues swerveAzimuthPID = new PIDValues(0.3, 0.01, 0.003, 0);
+        public static final PIDValues swerveAzimuthPID = new PIDValues(0.15, 1, 0, 0); // todo: test this more, see how it feels and inspect wheel motion, compare to above
         public static final PIDValues absoluteRotationPID = new PIDValues(3.25, 0, 0.4, 0);
 
         public static final double thetaCompensationFactor = 0.35;
