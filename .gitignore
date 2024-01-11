@@ -155,7 +155,6 @@ gradle-app.setting
 # DO NOT REMOVE .classpath and .project
 .classpath
 .project
-.settings/
 bin/
 
 # IntelliJ

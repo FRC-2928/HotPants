@@ -5,24 +5,23 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+//import edu.wpi.first.wpilibj.RobotBase;
 
 public class Constants {
     private Constants() { throw new IllegalCallerException("Cannot instantiate `Constants`"); }
 
+    // public static final Mode mode = RobotBase.isReal();
+
     public static final double mod(final double lhs, final double rhs) { return (lhs % rhs + rhs) % rhs; }
-    public static final double angleNorm(final double angle) {
-        return Constants.mod(angle + 180, 360) - 180;
-    }
+
+    public static final double angleNorm(final double angle) { return Constants.mod(angle + 180, 360) - 180; }
+
     public static final double angleDistance(final double a, final double b) {
-        return Math.abs(Constants.angleNorm(180 - Math.abs(Math.abs(Constants.angleNorm(a) - Constants.angleNorm(b)) - 180)));
+        return Math
+            .abs(Constants.angleNorm(180 - Math.abs(Math.abs(Constants.angleNorm(a) - Constants.angleNorm(b)) - 180)));
     }
 
-    public static record PIDValues(
-        double p,
-        double i,
-        double d,
-        double f
-    ) {
+    public static record PIDValues(double p, double i, double d, double f) {
         public final PIDController createController() { return new PIDController(this.p, this.i, this.d); }
     }
 
@@ -30,6 +29,7 @@ public class Constants {
         public Ratio(final double from, final double to) { this(to / from); }
 
         public final double forward(final double value) { return value * this.factor; }
+
         public final double inverse(final double value) { return value / this.factor; }
 
         public final Ratio inverse() { return new Ratio(1 / this.factor); }
@@ -75,7 +75,7 @@ public class Constants {
         }
 
         // todo: tune
-        //public static final PIDValues swerveAzimuthPID = new PIDValues(0.3, 0.01, 0.003, 0);
+        // public static final PIDValues swerveAzimuthPID = new PIDValues(0.3, 0.01, 0.003, 0);
         public static final PIDValues swerveAzimuthPID = new PIDValues(0.25, 0.75, 0, 0); // todo: test this more, see how it feels and inspect wheel motion, compare to above
         public static final PIDValues absoluteRotationPID = new PIDValues(2.75, 0, 0.2, 0);
 
@@ -83,10 +83,22 @@ public class Constants {
 
         public static final double wheelPositionRadius = 0.3906711; // radius of the circle that wheels are positioned on
 
-        public static final Translation2d swerveFrontLeftTranslation = new Translation2d(Constants.Drivetrain.wheelPositionRadius, Rotation2d.fromDegrees(-45));
-        public static final Translation2d swerveFrontRightTranslation = new Translation2d(Constants.Drivetrain.wheelPositionRadius, Rotation2d.fromDegrees(45));
-        public static final Translation2d swerveBackLeftTranslation = new Translation2d(Constants.Drivetrain.wheelPositionRadius, Rotation2d.fromDegrees(180 + 45));
-        public static final Translation2d swerveBackRightTranslation = new Translation2d(Constants.Drivetrain.wheelPositionRadius, Rotation2d.fromDegrees(180 - 45));
+        public static final Translation2d swerveFrontLeftTranslation = new Translation2d(
+            Constants.Drivetrain.wheelPositionRadius,
+            Rotation2d.fromDegrees(-45)
+        );
+        public static final Translation2d swerveFrontRightTranslation = new Translation2d(
+            Constants.Drivetrain.wheelPositionRadius,
+            Rotation2d.fromDegrees(45)
+        );
+        public static final Translation2d swerveBackLeftTranslation = new Translation2d(
+            Constants.Drivetrain.wheelPositionRadius,
+            Rotation2d.fromDegrees(180 + 45)
+        );
+        public static final Translation2d swerveBackRightTranslation = new Translation2d(
+            Constants.Drivetrain.wheelPositionRadius,
+            Rotation2d.fromDegrees(180 - 45)
+        );
 
         public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
             Constants.Drivetrain.swerveFrontLeftTranslation,
