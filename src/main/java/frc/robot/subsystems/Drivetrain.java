@@ -144,7 +144,7 @@ public class Drivetrain extends SubsystemBase {
         }
     }
 
-    public final Pigeon2 gyro = new Pigeon2(Constants.CAN.pigeon);
+    public final Pigeon2 gyro = new Pigeon2(Constants.CAN.pigeon, "canivore");
 
     public final SwerveModule swerveFrontLeft = new SwerveModule(
         SwerveModulePlace.FrontLeft,
