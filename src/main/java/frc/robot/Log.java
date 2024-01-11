@@ -25,9 +25,7 @@ public final class Log extends SubsystemBase {
 
 	/// Starts the log, you should never need to use this, save for
 	/// the first line of the `main` function
-	public static void start() throws Exception {
-		Log.instance = new Log();
-	}
+	public static void start() throws Exception { Log.instance = new Log(); }
 
 	/// Writes data to stderr, writes it to the buffer, and dirties
 	/// the network entry.
@@ -49,10 +47,13 @@ public final class Log extends SubsystemBase {
 			if(entry.getClass().isArray()) {
 				Object[] array;
 
-				if(entry instanceof int[]) array = Arrays.stream((int[])entry).boxed().toArray(Integer[]::new);
-				else if(entry instanceof long[]) array = Arrays.stream((long[])entry).boxed().toArray(Long[]::new);
-				else if(entry instanceof double[]) array = Arrays.stream((double[])entry).boxed().toArray(Double[]::new);
-				else array = (Object[])entry;
+				if(entry instanceof int[]) array = Arrays.stream((int[]) entry).boxed().toArray(Integer[]::new);
+				else if(entry instanceof long[]) array = Arrays.stream((long[]) entry).boxed().toArray(Long[]::new);
+				else
+					if(entry instanceof double[])
+						array = Arrays.stream((double[]) entry).boxed().toArray(Double[]::new);
+					else
+						array = (Object[]) entry;
 
 				Log.writeFast(array);
 			} else {
@@ -113,7 +114,8 @@ public final class Log extends SubsystemBase {
 	/// Trims as many leading lines is necessary so that the buffer contains less
 	/// than `lineLimit` lines long
 	public static void trimExcessLeadingLines() {
-		while(Log.instance.lines > Log.lineLimit) Log.instance.trimSingleLine();
+		while(Log.instance.lines > Log.lineLimit)
+			Log.instance.trimSingleLine();
 	}
 
 	/// Unconditionally trims a single line off the front

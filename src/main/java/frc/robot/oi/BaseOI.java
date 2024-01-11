@@ -5,13 +5,13 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public abstract class BaseOI {
-    public XboxController controller;
+	public XboxController controller;
 
-    public final Trigger cstopButton;
+	public final Trigger cstopButton;
 
-    protected BaseOI(final XboxController controller) {
-        this.controller = controller;
+	protected BaseOI(final XboxController controller) {
+		this.controller = controller;
 
-        this.cstopButton = new JoystickButton(this.controller, XboxController.Button.kStart.value);
-    }
+		this.cstopButton = new JoystickButton(this.controller, XboxController.Button.kStart.value);
+	}
 }
