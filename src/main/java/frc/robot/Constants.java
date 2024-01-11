@@ -38,6 +38,8 @@ public class Constants {
     public static final class CAN {
         private CAN() { throw new IllegalCallerException("Cannot instantiate `Constants.CAN`"); }
 
+        public static final int pdh = 0;
+
         public static final int pigeon = 0;
 
         public static final int swerveFrontLeftAzimuth = 16;
