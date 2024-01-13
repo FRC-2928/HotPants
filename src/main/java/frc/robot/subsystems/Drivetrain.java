@@ -77,12 +77,12 @@ public class Drivetrain extends SubsystemBase {
 					.forward(
 						Constants.Drivetrain.motorEncoderToRotations.forward(this.drive.getRotorPosition().getValue())
 					),
-				Rotation2d.fromDegrees(this.encoder.getAbsolutePosition().getValue())
+				Rotation2d.fromRotations(this.encoder.getAbsolutePosition().getValue())
 			);
 		}
 
 		public void applyState(final SwerveModuleState state) {
-			final double ffw = Constants.Drivetrain.driveFFW.calculate(-state.speedMetersPerSecond);
+			final double ffw = Constants.Drivetrain.driveFFW.calculate(state.speedMetersPerSecond);
 
 			this.target = state.angle.unaryMinus();
 			this.targetVelocity = ffw;
