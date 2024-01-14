@@ -2,6 +2,7 @@ package frc.robot;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -14,10 +15,10 @@ import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
 	private Command autonomousCommand;
-	private final LoggedDashboardChooser<Command> autoChooser;
+	private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
 	public final DriverOI driverOI = new DriverOI(new CommandXboxController(0));
-	public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
+	// public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
 
 	public final Drivetrain drivetrain = new Drivetrain();
 
@@ -27,8 +28,6 @@ public class RobotContainer {
 			this.drivetrain.gyro.setYaw(0);
 			System.out.printf("rst %s\n", this.drivetrain.gyro.getRotation2d());
 		}));
-
-		this.autoChooser = new LoggedDashboardChooser<>("Auto Choices", null);
 	}
 
 	// public void init() {}
@@ -55,7 +54,7 @@ public class RobotContainer {
 	 * @return the command to run in autonomous
 	 */
 	public Command getAutonomousCommand() {
-		return autoChooser.get();
+		return autoChooser.getSelected();
 	}
 
 }
