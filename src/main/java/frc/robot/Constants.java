@@ -1,5 +1,8 @@
 package frc.robot;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -45,18 +48,22 @@ public class Constants {
 		public static final int swerveFrontLeftAzimuth = 16;
 		public static final int swerveFrontLeftDrive = 15;
 		public static final int swerveFrontLeftEncoder = 16;
+		public static final double swerveFrontLeftOffset = -0.385009765625;
 
 		public static final int swerveFrontRightAzimuth = 3;
 		public static final int swerveFrontRightDrive = 4;
 		public static final int swerveFrontRightEncoder = 3;
+		public static final double swerveFrontRightOffset = -0.38671875;
 
 		public static final int swerveBackLeftAzimuth = 17;
 		public static final int swerveBackLeftDrive = 18;
 		public static final int swerveBackLeftEncoder = 17;
+		public static final double swerveBackLeftOffset = -0.19384765625;
 
 		public static final int swerveBackRightAzimuth = 1;
 		public static final int swerveBackRightDrive = 2;
 		public static final int swerveBackRightEncoder = 1;
+		public static final double swerveBackRightOffset = -0.404296875;
 	}
 
 	public static final class Drivetrain {

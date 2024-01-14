@@ -5,49 +5,51 @@ import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public class Robot extends LoggedRobot {
-	public static Robot instance;
+	private Command autonomousCommand;
+	private RobotContainer robotContainer;
 
-	public final RobotContainer cont = new RobotContainer();
-
-	public Robot() {
-		Robot.instance = this;
-
+	@Override
+	public void robotInit() { 		
 		ConduitApi.getInstance().configurePowerDistribution(Constants.CAN.pdh, ModuleType.kRev.value);
+
 		Logger.start();
+
+		this.robotContainer = new RobotContainer();
 	}
 
-	// ROBOT //
-
 	@Override
-	public void robotInit() { cont.init(); }
-
-	@Override
-	public void robotPeriodic() { CommandScheduler.getInstance().run(); }
+	public void robotPeriodic() { 
+		CommandScheduler.getInstance().run(); 
+	}
 
 	// DISABLED //
-
 	@Override
 	public void disabledInit() {
 		CommandScheduler.getInstance().cancelAll();
-		cont.disabled();
 	}
 
 	@Override
 	public void disabledPeriodic() {}
 
 	@Override
-	public void disabledExit() { cont.enabled(); }
+	public void disabledExit() {}
 
 	// AUTONOMOUS //
 
 	@Override
 	public void autonomousInit() {
 		CommandScheduler.getInstance().cancelAll();
+		// Get selected routine from the SmartDashboard
+		this.autonomousCommand = this.robotContainer.getAutonomousCommand();
 
-		cont.auto();
+		// schedule the autonomous command (example)
+		if (this.autonomousCommand != null) {
+		  this.autonomousCommand.schedule();
+		}
 	}
 
 	@Override
@@ -57,12 +59,16 @@ public class Robot extends LoggedRobot {
 	public void autonomousExit() {}
 
 	// TELEOP //
-
+	
 	@Override
 	public void teleopInit() {
-		CommandScheduler.getInstance().cancelAll();
-
-		cont.teleop();
+		// This makes sure that the autonomous stops running when
+		// teleop starts running. If you want the autonomous to
+		// continue until interrupted by another command, remove
+		// this line or comment it out.
+		if (autonomousCommand != null) {
+			autonomousCommand.cancel();
+		}
 	}
 
 	@Override
@@ -76,8 +82,6 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
-
-		cont.test();
 	}
 
 	@Override

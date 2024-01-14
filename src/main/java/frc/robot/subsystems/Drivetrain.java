@@ -22,6 +22,7 @@ public class Drivetrain extends SubsystemBase {
 		new TalonFX(Constants.CAN.swerveFrontLeftAzimuth, "canivore"),
 		new TalonFX(Constants.CAN.swerveFrontLeftDrive, "canivore"),
 		new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore")
+		// Constants.CAN.frontLeftOffset
 	);
 	public final SwerveModule swerveFrontRight = new SwerveModule(
 		SwerveModule.Place.FrontRight,

@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -57,6 +58,7 @@ public class SwerveModule {
     public final TalonFX azimuth;
     public final TalonFX drive;
     public final CANcoder encoder;
+    // public final double encoderOffset;
 
     private final PIDController pid = Constants.Drivetrain.swerveAzimuthPID.createController();
 
@@ -70,19 +72,21 @@ public class SwerveModule {
         final TalonFX azimuth,
         final TalonFX drive,
         final CANcoder encoder
+        // final double encoderOffset
     ) {
         this.place = place;
         this.azimuth = azimuth;
         this.drive = drive;
         this.encoder = encoder;
+        // this.encoderOffset = encoderOffset;
 
         azimuth.setNeutralMode(NeutralModeValue.Brake);
 
         drive.setNeutralMode(NeutralModeValue.Brake);
-        // AbsoluteSensorRange.Signed_PlusMinus180
-        // SensorInitializationStrategy.BootToAbsolutePosition
-        // encoder.configAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
-        // encoder.configSensorInitializationStrategy("uhjg");
+
+        // CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
+        // encoderConfig.MagnetSensor.MagnetOffset = encoderOffset;
+        // encoder.getConfigurator().apply(encoderConfig);
 
         this.pid.enableContinuousInput(-180, 180);
     }
