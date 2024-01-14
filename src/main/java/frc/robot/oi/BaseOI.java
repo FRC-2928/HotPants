@@ -1,17 +1,23 @@
 package frc.robot.oi;
 
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public abstract class BaseOI {
-	public XboxController controller;
+	public CommandXboxController controller;
+	public final XboxController hid;
 
-	public final Trigger cstopButton;
+	/**
+	 * C-Stop, the most useful command you'll ever have
+	 * Press this magical button (start/left "window" button) to stop *all running commands*
+	 */
+	public final Trigger cstop;
 
-	protected BaseOI(final XboxController controller) {
+	protected BaseOI(final CommandXboxController controller) {
 		this.controller = controller;
+		this.hid = controller.getHID();
 
-		this.cstopButton = new JoystickButton(this.controller, XboxController.Button.kStart.value);
+		this.cstop = this.controller.start();
 	}
 }

@@ -2,24 +2,39 @@ package frc.robot.oi;
 
 import java.util.function.Supplier;
 
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class DriverOI extends BaseOI {
-	public DriverOI(final XboxController controller) { super(controller); }
+	public DriverOI(final CommandXboxController controller) {
+		super(controller);
 
-	public final Supplier<Double> moveAxial = this.controller::getLeftY;
-	public final Supplier<Double> moveLateral = this.controller::getLeftX;
+		this.moveAxial = this.controller::getLeftY;
+		this.moveLateral = this.controller::getLeftX;
+		
+		this.moveTheta = this.controller::getRightX;
+		
+		this.moveRotationX = this.controller::getRightX;
+		this.moveRotationY = this.controller::getRightY;
+		
+		this.slow = this.controller::getRightTriggerAxis;
 
-	public final Supplier<Double> moveTheta = this.controller::getRightX;
+		this.lock = this.controller.leftBumper();
 
-	public final Supplier<Double> moveRotationX = this.controller::getRightX;
-	public final Supplier<Double> moveRotationY = this.controller::getRightY;
+		this.resetFOD = this.controller.y();
+	}
 
-	public final Supplier<Double> slow = this.controller::getRightTriggerAxis;
+	public final Supplier<Double> moveAxial;
+	public final Supplier<Double> moveLateral;
 
-	public final Trigger lock = new JoystickButton(this.controller, XboxController.Button.kLeftBumper.value);
+	public final Supplier<Double> moveTheta;
 
-	public final Trigger resetFOD = new JoystickButton(this.controller, XboxController.Button.kY.value);
+	public final Supplier<Double> moveRotationX;
+	public final Supplier<Double> moveRotationY;
+
+	public final Supplier<Double> slow;
+
+	public final Trigger lock;
+
+	public final Trigger resetFOD;
 }
