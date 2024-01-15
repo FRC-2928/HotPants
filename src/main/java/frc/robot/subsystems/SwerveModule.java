@@ -15,50 +15,49 @@ import frc.robot.Constants;
 
 public class SwerveModule {
     public static enum Place {
-		FrontLeft(0), FrontRight(1), BackLeft(2), BackRight(3);
+        FrontLeft(0), FrontRight(1), BackLeft(2), BackRight(3);
 
-		private Place(final int index) { this.index = index; }
+        private Place(final int index) { this.index = index; }
 
-		public final int index;
-	}
+        public final int index;
+    }
 
-	public static class State {
-		public final SwerveModuleState[] states;
+    public static class State {
+        public final SwerveModuleState[] states;
 
-		public State() { this.states = new SwerveModuleState[4]; }
+        public State() { this.states = new SwerveModuleState[4]; }
 
-		public State(final SwerveModuleState[] states) { this.states = states; }
+        public State(final SwerveModuleState[] states) { this.states = states; }
 
-		public static State forward() {
-			return new State()
-				.set(Place.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
-				.set(Place.FrontRight, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
-				.set(Place.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
-				.set(Place.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
-		}
+        public static State forward() {
+            return new State()
+                .set(Place.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
+                .set(Place.FrontRight, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
+                .set(Place.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
+                .set(Place.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
+        }
 
-		public static State locked() {
-			return new State()
-				.set(Place.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(-45)))
-				.set(Place.FrontRight, new SwerveModuleState(0, Rotation2d.fromDegrees(45)))
-				.set(Place.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(-135)))
-				.set(Place.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(135)));
-		}
+        public static State locked() {
+            return new State()
+                .set(Place.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(-45)))
+                .set(Place.FrontRight, new SwerveModuleState(0, Rotation2d.fromDegrees(45)))
+                .set(Place.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(-135)))
+                .set(Place.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(135)));
+        }
 
-		public SwerveModuleState get(final Place place) { return this.states[place.index]; }
+        public SwerveModuleState get(final Place place) { return this.states[place.index]; }
 
-		public State set(final Place place, final SwerveModuleState state) {
-			this.states[place.index] = state;
-			return this;
-		}
-	}
+        public State set(final Place place, final SwerveModuleState state) {
+            this.states[place.index] = state;
+            return this;
+        }
+    }
 
     public final Place place;
 
     public final TalonFX azimuth;
     public final TalonFX drive;
     public final CANcoder encoder;
-    // public final double encoderOffset;
 
     private final PIDController pid = Constants.Drivetrain.swerveAzimuthPID.createController();
 
@@ -71,22 +70,21 @@ public class SwerveModule {
         final Place place,
         final TalonFX azimuth,
         final TalonFX drive,
-        final CANcoder encoder
-        // final double encoderOffset
+        final CANcoder encoder,
+        final double encoderOffset
     ) {
         this.place = place;
         this.azimuth = azimuth;
         this.drive = drive;
         this.encoder = encoder;
-        // this.encoderOffset = encoderOffset;
 
         azimuth.setNeutralMode(NeutralModeValue.Brake);
 
         drive.setNeutralMode(NeutralModeValue.Brake);
 
-        // CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
-        // encoderConfig.MagnetSensor.MagnetOffset = encoderOffset;
-        // encoder.getConfigurator().apply(encoderConfig);
+        CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
+        encoderConfig.MagnetSensor.MagnetOffset = encoderOffset;
+        encoder.getConfigurator().apply(encoderConfig);
 
         this.pid.enableContinuousInput(-180, 180);
     }

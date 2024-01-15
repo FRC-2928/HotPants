@@ -20,20 +20,13 @@ public class RobotContainer {
 
 	public final Drivetrain drivetrain = new Drivetrain();
 
-	public RobotContainer() {
-		this.driverOI.lock.whileTrue(new LockWheels(this.drivetrain, this.driverOI));
+	public RobotContainer() { this.configureDriverControls(); }
+
+	private void configureDriverControls() {
 		this.driverOI.resetFOD.whileTrue(new RunCommand(() -> this.drivetrain.gyro.setYaw(0)));
+		this.driverOI.lock.whileTrue(new LockWheels(this.drivetrain, this.driverOI));
 	}
-
-	// public void init() {}
-
-	// public void disabled() {}
-
-	// public void enabled() {}
-
-	// public void auto() {}
 
 	public void teleop() { this.drivetrain.setDefaultCommand(new Drive(this.drivetrain, this.driverOI)); }
 
-	// public void test() {}
 }

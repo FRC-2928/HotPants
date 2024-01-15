@@ -21,26 +21,29 @@ public class Drivetrain extends SubsystemBase {
 		SwerveModule.Place.FrontLeft,
 		new TalonFX(Constants.CAN.swerveFrontLeftAzimuth, "canivore"),
 		new TalonFX(Constants.CAN.swerveFrontLeftDrive, "canivore"),
-		new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore")
-		// Constants.CAN.frontLeftOffset
+		new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore"),
+		Constants.CAN.swerveFrontLeftOffset
 	);
 	public final SwerveModule swerveFrontRight = new SwerveModule(
 		SwerveModule.Place.FrontRight,
 		new TalonFX(Constants.CAN.swerveFrontRightAzimuth, "canivore"),
 		new TalonFX(Constants.CAN.swerveFrontRightDrive, "canivore"),
-		new CANcoder(Constants.CAN.swerveFrontRightEncoder, "canivore")
+		new CANcoder(Constants.CAN.swerveFrontRightEncoder, "canivore"),
+		Constants.CAN.swerveFrontRightOffset
 	);
 	public final SwerveModule swerveBackLeft = new SwerveModule(
 		SwerveModule.Place.BackLeft,
 		new TalonFX(Constants.CAN.swerveBackLeftAzimuth, "canivore"),
 		new TalonFX(Constants.CAN.swerveBackLeftDrive, "canivore"),
-		new CANcoder(Constants.CAN.swerveBackLeftEncoder, "canivore")
+		new CANcoder(Constants.CAN.swerveBackLeftEncoder, "canivore"),
+		Constants.CAN.swerveBackLeftOffset
 	);
 	public final SwerveModule swerveBackRight = new SwerveModule(
 		SwerveModule.Place.BackRight,
 		new TalonFX(Constants.CAN.swerveBackRightAzimuth, "canivore"),
 		new TalonFX(Constants.CAN.swerveBackRightDrive, "canivore"),
-		new CANcoder(Constants.CAN.swerveBackRightEncoder, "canivore")
+		new CANcoder(Constants.CAN.swerveBackRightEncoder, "canivore"),
+		Constants.CAN.swerveBackRightOffset
 	);
 	public final SwerveModule[] modules = {
 		this.swerveFrontLeft,
