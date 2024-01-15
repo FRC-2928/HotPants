@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.drivetrain.Drive;
 import frc.robot.commands.drivetrain.LockWheels;
 import frc.robot.oi.DriverOI;
-import frc.robot.oi.OperatorOI;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
@@ -17,7 +16,7 @@ public class RobotContainer {
 		Command> autoChooser = new LoggedDashboardChooser<>("Autonomous Routine", new SendableChooser<>());
 
 	public final DriverOI driverOI = new DriverOI(new CommandXboxController(0));
-	public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
+	// public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
 
 	public final Drivetrain drivetrain = new Drivetrain();
 
