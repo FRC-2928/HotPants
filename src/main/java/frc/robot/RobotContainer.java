@@ -2,8 +2,8 @@ package frc.robot;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.drivetrain.Drive;
@@ -13,8 +13,8 @@ import frc.robot.oi.OperatorOI;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
-	private Command autonomousCommand;
-	private final LoggedDashboardChooser<Command> autoChooser;
+	public final LoggedDashboardChooser<
+		Command> autoChooser = new LoggedDashboardChooser<>("Autonomous Routine", new SendableChooser<>());
 
 	public final DriverOI driverOI = new DriverOI(new CommandXboxController(0));
 	public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
@@ -23,12 +23,7 @@ public class RobotContainer {
 
 	public RobotContainer() {
 		this.driverOI.lock.whileTrue(new LockWheels(this.drivetrain, this.driverOI));
-		this.driverOI.resetFOD.whileTrue(new RunCommand(() -> {
-			this.drivetrain.gyro.setYaw(0);
-			System.out.printf("rst %s\n", this.drivetrain.gyro.getRotation2d());
-		}));
-
-		this.autoChooser = new LoggedDashboardChooser<>("Auto Choices", null);
+		this.driverOI.resetFOD.whileTrue(new RunCommand(() -> this.drivetrain.gyro.setYaw(0)));
 	}
 
 	// public void init() {}
@@ -37,25 +32,9 @@ public class RobotContainer {
 
 	// public void enabled() {}
 
-	public void auto() {
-		this.autonomousCommand = null;
+	// public void auto() {}
 
-		if(this.autonomousCommand != null) this.autonomousCommand.schedule();
-	}
+	public void teleop() { this.drivetrain.setDefaultCommand(new Drive(this.drivetrain, this.driverOI)); }
 
-	public void teleop() {
-		this.drivetrain.setDefaultCommand(new Drive(this.drivetrain, this.driverOI));
-	}
-
-	public void test() { CommandScheduler.getInstance().cancelAll(); }
-
-	/**
-	 * Use this to pass the autonomous command to the main {@link Robot} class.
-	 *
-	 * @return the command to run in autonomous
-	 */
-	public Command getAutonomousCommand() {
-		return autoChooser.get();
-	}
-
+	// public void test() {}
 }
