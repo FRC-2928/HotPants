@@ -9,7 +9,7 @@ import frc.robot.Constants;
 import frc.robot.oi.DriverOI;
 import frc.robot.subsystems.Drivetrain;
 
-public class Drive extends Command {
+public class JoystickDrive extends Command {
 	public final Drivetrain drivetrain;
 	public final DriverOI oi;
 
@@ -17,7 +17,7 @@ public class Drive extends Command {
 	public double absoluteTargetMagnitude = 0.5;
 	private final PIDController absoluteController = Constants.Drivetrain.absoluteRotationPID.createController();
 
-	public Drive(final Drivetrain drivetrain, final DriverOI oi) {
+	public JoystickDrive(final Drivetrain drivetrain, final DriverOI oi) {
 		this.drivetrain = drivetrain;
 		this.oi = oi;
 
@@ -54,7 +54,8 @@ public class Drive extends Command {
 						.clamp(
 							this.absoluteController
 								.calculate(
-									Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1)
+									// Constants.mod(this.drivetrain.gyroInputs.getRotation2d().unaryMinus().getRotations(), 1)
+									Constants.mod(this.drivetrain.getGyroRotations(),1)
 										- 0.5,
 									this.absoluteTarget.getRotations()
 								),

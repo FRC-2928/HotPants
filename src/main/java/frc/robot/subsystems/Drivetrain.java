@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import java.util.Arrays;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.hardware.*;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -11,61 +13,41 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.commands.drivetrain.GyroIO;
+import frc.robot.commands.drivetrain.GyroIOInputsAutoLogged;
+import frc.robot.commands.drivetrain.ModuleIO;
+import frc.robot.subsystems.SwerveModule.Place;
 
 public class Drivetrain extends SubsystemBase {
-	public final Pigeon2 gyro = new Pigeon2(Constants.CAN.pigeon, "canivore");
-
-	public final SwerveModule swerveFrontLeft = new SwerveModule(
-		SwerveModule.Place.FrontLeft,
-		new TalonFX(Constants.CAN.swerveFrontLeftAzimuth, "canivore"),
-		new TalonFX(Constants.CAN.swerveFrontLeftDrive, "canivore"),
-		new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore"),
-		Constants.CAN.swerveFrontLeftOffset
-	);
-	public final SwerveModule swerveFrontRight = new SwerveModule(
-		SwerveModule.Place.FrontRight,
-		new TalonFX(Constants.CAN.swerveFrontRightAzimuth, "canivore"),
-		new TalonFX(Constants.CAN.swerveFrontRightDrive, "canivore"),
-		new CANcoder(Constants.CAN.swerveFrontRightEncoder, "canivore"),
-		Constants.CAN.swerveFrontRightOffset
-	);
-	public final SwerveModule swerveBackLeft = new SwerveModule(
-		SwerveModule.Place.BackLeft,
-		new TalonFX(Constants.CAN.swerveBackLeftAzimuth, "canivore"),
-		new TalonFX(Constants.CAN.swerveBackLeftDrive, "canivore"),
-		new CANcoder(Constants.CAN.swerveBackLeftEncoder, "canivore"),
-		Constants.CAN.swerveBackLeftOffset
-	);
-	public final SwerveModule swerveBackRight = new SwerveModule(
-		SwerveModule.Place.BackRight,
-		new TalonFX(Constants.CAN.swerveBackRightAzimuth, "canivore"),
-		new TalonFX(Constants.CAN.swerveBackRightDrive, "canivore"),
-		new CANcoder(Constants.CAN.swerveBackRightEncoder, "canivore"),
-		Constants.CAN.swerveBackRightOffset
-	);
-	public final SwerveModule[] modules = {
-		this.swerveFrontLeft,
-		this.swerveFrontRight,
-		this.swerveBackLeft,
-		this.swerveBackRight, };
-
+	private final GyroIO gyroIO;
+	private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+	private final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
-	public final SwerveDrivePoseEstimator est = new SwerveDrivePoseEstimator(
+	public final SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
 		this.kinematics,
-		this.gyro.getRotation2d(),
+		this.gyroInputs.yawPosition,
 		this.getModulePositions(),
-		new Pose2d()
+		new Pose2d() 	
 	);
 
-	public Drivetrain() {
-		this.swerveFrontRight.drive.setInverted(true);
-		this.swerveBackRight.drive.setInverted(true);
+	public Drivetrain(
+		GyroIO gyroIO,
+		ModuleIO flModuleIO,
+		ModuleIO frModuleIO,
+		ModuleIO blModuleIO,
+		ModuleIO brModuleIO) {
+		this.gyroIO = gyroIO;
+		modules[0] = new SwerveModule(flModuleIO, Place.FrontLeft);
+		modules[1] = new SwerveModule(frModuleIO, Place.FrontRight);
+		modules[2] = new SwerveModule(blModuleIO, Place.BackLeft);
+		modules[3] = new SwerveModule(brModuleIO, Place.BackRight);
 	}
 
 	public SwerveModulePosition[] getModulePositions() {
-		return Arrays.stream(this.modules).map(SwerveModule::pos).toArray(SwerveModulePosition[]::new);
+		return Arrays.stream(this.modules).map(SwerveModule::updateModulePosition).toArray(SwerveModulePosition[]::new);
 	}
 
 	public void swerve(final SwerveModuleState[] states) {
@@ -77,7 +59,7 @@ public class Drivetrain extends SubsystemBase {
 	public void swerve(final SwerveModule.State state) { this.swerve(state.states); }
 
 	public ChassisSpeeds fod(final ChassisSpeeds field) {
-		return ChassisSpeeds.fromFieldRelativeSpeeds(field, this.gyro.getRotation2d().unaryMinus());
+		return ChassisSpeeds.fromFieldRelativeSpeeds(field, this.gyroInputs.yawPosition);
 	}
 
 	public ChassisSpeeds compensate(final ChassisSpeeds original) {
@@ -88,12 +70,34 @@ public class Drivetrain extends SubsystemBase {
 				Rotation2d.fromRadians(original.omegaRadiansPerSecond * Constants.Drivetrain.thetaCompensationFactor)
 			);
 	}
+	public void resetGyro() {
+		gyroIO.resetGyro();
+	}
+	
+	public double getGyroRotations() {
+		return gyroInputs.rotations;
+	}
 
 	@Override
 	public void periodic() {
+		gyroIO.updateInputs(gyroInputs);
+		Logger.processInputs("Drive/Gyro", gyroInputs);
 		for(final SwerveModule swerve : this.modules)
 			swerve.update();
+		// Stop moving when disabled
+		if (DriverStation.isDisabled()) {
+			for (var module : modules) {
+				module.stop();
+			}
+		}
 
-		this.est.update(this.gyro.getRotation2d(), this.getModulePositions());
+		// Log empty setpoint states when disabled
+		if (DriverStation.isDisabled()) {
+			Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
+			Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
+			
+		}
+		// this.est.update(this.gyro.getRotation2d(), this.getModulePosition());
+		this.poseEstimator.update(this.gyroInputs.yawPosition, this.getModulePositions());
 	}
 }

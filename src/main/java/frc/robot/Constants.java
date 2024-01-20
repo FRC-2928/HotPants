@@ -10,6 +10,18 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 public class Constants {
 	private Constants() { throw new IllegalCallerException("Cannot instantiate `Constants`"); }
 
+
+	public static final Mode currentMode = Mode.REAL;
+	public static enum Mode {
+		/** Running on a real robot. */
+		REAL,
+
+		/** Running a physics simulator. */
+		SIM,
+
+		/** Replaying from a log file. */
+		REPLAY
+	}
 	// public static final Mode mode = RobotBase.isReal();
 
 	public static final double mod(final double lhs, final double rhs) { return (lhs % rhs + rhs) % rhs; }

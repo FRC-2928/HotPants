@@ -1,8 +1,12 @@
 package frc.robot;
 
 import org.littletonrobotics.conduit.ConduitApi;
+import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGReader;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -17,6 +21,26 @@ public class Robot extends LoggedRobot {
 	public Robot() {
 		super();
 		Robot.instance = this;
+		switch (Constants.currentMode) {
+			case REAL:
+				// Running on a real robot, log to a USB stick
+				Logger.addDataReceiver(new WPILOGWriter("/U"));
+				Logger.addDataReceiver(new NT4Publisher());
+				break;
+
+			case SIM:
+				// Running a physics simulator, log to NT
+				Logger.addDataReceiver(new NT4Publisher());
+				break;
+
+			case REPLAY:
+				// Replaying a log, set up replay source
+				setUseTiming(false); // Run as fast as possible
+				String logPath = LogFileUtil.findReplayLog();
+				Logger.setReplaySource(new WPILOGReader(logPath));
+				Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
+				break;
+			}
 	}
 
 	@Override

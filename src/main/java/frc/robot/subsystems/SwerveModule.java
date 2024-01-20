@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -12,6 +14,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
+import frc.robot.commands.drivetrain.ModuleIO;
+import frc.robot.commands.drivetrain.ModuleIOInputsAutoLogged;
 
 public class SwerveModule {
     public static enum Place {
@@ -54,10 +58,8 @@ public class SwerveModule {
     }
 
     public final Place place;
-
-    public final TalonFX azimuth;
-    public final TalonFX drive;
-    public final CANcoder encoder;
+    public final ModuleIO io;    
+    private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
 
     private final PIDController pid = Constants.Drivetrain.swerveAzimuthPID.createController();
 
@@ -66,36 +68,26 @@ public class SwerveModule {
     public Rotation2d target = new Rotation2d();
     public double targetVelocity = 0;
 
-    public SwerveModule(
-        final Place place,
-        final TalonFX azimuth,
-        final TalonFX drive,
-        final CANcoder encoder,
-        final double encoderOffset
-    ) {
+    public SwerveModule(final ModuleIO io, final Place place){
+        this.io = io;
         this.place = place;
-        this.azimuth = azimuth;
-        this.drive = drive;
-        this.encoder = encoder;
-
-        azimuth.setNeutralMode(NeutralModeValue.Brake);
-
-        drive.setNeutralMode(NeutralModeValue.Brake);
-
-        CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
-        encoderConfig.MagnetSensor.MagnetOffset = encoderOffset;
-        encoder.getConfigurator().apply(encoderConfig);
-
         this.pid.enableContinuousInput(-180, 180);
+        setBrakeMode(true);
     }
 
-    public SwerveModulePosition pos() {
+    public void setBrakeMode(boolean enabled) {
+        io.setDriveBrakeMode(enabled);
+        io.setTurnBrakeMode(enabled);
+    }
+    public SwerveModulePosition updateModulePosition() {
         return new SwerveModulePosition(
             Constants.Drivetrain.driveGearMotorToWheel
                 .forward(
-                    Constants.Drivetrain.motorEncoderToRotations.forward(this.drive.getRotorPosition().getValue())
+                    // Constants.Drivetrain.motorEncoderToRotations.forward(this.drive.getRotorPosition().getValue())
+                    Constants.Drivetrain.motorEncoderToRotations.forward(this.inputs.drivePositionRotations)
                 ),
-            Rotation2d.fromRotations(this.encoder.getAbsolutePosition().getValue())
+            // Rotation2d.fromRotations(this.encoder.getAbsolutePosition().getValue())
+            this.inputs.turnAbsolutePosition
         );
     }
 
@@ -106,13 +98,17 @@ public class SwerveModule {
         this.targetVelocity = ffw;
     }
 
-    public void halt() { this.drive.stopMotor(); }
+    public void stop() { 
+        io.setTurnVoltage(0.0);
+        io.setDriveVoltage(0.0);
+    }
 
     void update() {
-        SmartDashboard.putNumber(this.place.name() + " Angle", this.pos().angle.getDegrees());
-
+        SmartDashboard.putNumber(this.place.name() + " Angle", this.updateModulePosition().angle.getDegrees());
+        io.updateInputs(inputs);
+        Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
         this.backwards = Constants.Drivetrain.Flags.wheelOptimization
-            && Constants.angleDistance(this.target.getDegrees(), this.pos().angle.getDegrees()) > 90;
+            && Constants.angleDistance(this.target.getDegrees(), this.updateModulePosition().angle.getDegrees()) > 90;
         final double target = this.backwards
             ? Constants.angleNorm(this.target.getDegrees() + 180)
             : this.target.getDegrees();
@@ -121,12 +117,15 @@ public class SwerveModule {
         SmartDashboard
             .putNumber(
                 this.place.name() + " Distance From Target",
-                Constants.angleDistance(target, this.pos().angle.getDegrees())
+                Constants.angleDistance(target, this.updateModulePosition().angle.getDegrees())
             );
 
-        final double turn = this.pid.calculate(this.pos().angle.getDegrees(), target);
+        final double turn = this.pid.calculate(this.updateModulePosition().angle.getDegrees(), target);
 
-        this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
-        this.drive.set(this.backwards ? -this.targetVelocity : this.targetVelocity);
+       // this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
+        io.setTurnVoltage(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
+
+        // this.drive.set(this.backwards ? -this.targetVelocity : this.targetVelocity);
+        io.setDriveVoltage(this.backwards ? -this.targetVelocity : this.targetVelocity);
     }
 }
