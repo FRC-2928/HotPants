@@ -21,6 +21,12 @@ public class Robot extends LoggedRobot {
 	public Robot() {
 		super();
 		Robot.instance = this;
+	}
+
+	@Override
+	public void robotInit() {
+		ConduitApi.getInstance().configurePowerDistribution(Constants.CAN.pdh, ModuleType.kRev.value);
+
 		switch (Constants.currentMode) {
 			case REAL:
 				// Running on a real robot, log to a USB stick
@@ -40,12 +46,7 @@ public class Robot extends LoggedRobot {
 				Logger.setReplaySource(new WPILOGReader(logPath));
 				Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
 				break;
-			}
-	}
-
-	@Override
-	public void robotInit() {
-		ConduitApi.getInstance().configurePowerDistribution(Constants.CAN.pdh, ModuleType.kRev.value);
+		}
 
 		Logger.start();
 
