@@ -4,8 +4,6 @@ import java.util.Arrays;
 
 import org.littletonrobotics.junction.Logger;
 
-import com.ctre.phoenix6.hardware.*;
-
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,9 +14,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.commands.drivetrain.GyroIO;
-import frc.robot.commands.drivetrain.GyroIOInputsAutoLogged;
-import frc.robot.commands.drivetrain.ModuleIO;
 import frc.robot.subsystems.SwerveModule.Place;
 
 public class Drivetrain extends SubsystemBase {
@@ -26,24 +21,26 @@ public class Drivetrain extends SubsystemBase {
 	private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
 	private final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
-	public final SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
-		this.kinematics,
-		this.gyroInputs.yawPosition,
-		this.getModulePositions(),
-		new Pose2d() 	
-	);
+	public final SwerveDrivePoseEstimator poseEstimator;
 
 	public Drivetrain(
 		GyroIO gyroIO,
 		ModuleIO flModuleIO,
 		ModuleIO frModuleIO,
 		ModuleIO blModuleIO,
-		ModuleIO brModuleIO) {
+		ModuleIO brModuleIO) 
+  {
 		this.gyroIO = gyroIO;
 		modules[0] = new SwerveModule(flModuleIO, Place.FrontLeft);
 		modules[1] = new SwerveModule(frModuleIO, Place.FrontRight);
 		modules[2] = new SwerveModule(blModuleIO, Place.BackLeft);
 		modules[3] = new SwerveModule(brModuleIO, Place.BackRight);
+
+    poseEstimator = new SwerveDrivePoseEstimator( this.kinematics,
+                                                  this.gyroInputs.yawPosition,
+                                                  this.getModulePositions(),
+                                                  new Pose2d() 	
+                                                );
 	}
 
 	public SwerveModulePosition[] getModulePositions() {
@@ -70,6 +67,7 @@ public class Drivetrain extends SubsystemBase {
 				Rotation2d.fromRadians(original.omegaRadiansPerSecond * Constants.Drivetrain.thetaCompensationFactor)
 			);
 	}
+  
 	public void resetGyro() {
 		gyroIO.resetGyro();
 	}
@@ -84,6 +82,7 @@ public class Drivetrain extends SubsystemBase {
 		Logger.processInputs("Drive/Gyro", gyroInputs);
 		for(final SwerveModule swerve : this.modules)
 			swerve.update();
+
 		// Stop moving when disabled
 		if (DriverStation.isDisabled()) {
 			for (var module : modules) {

@@ -6,15 +6,15 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.commands.drivetrain.GyroIO;
-import frc.robot.commands.drivetrain.GyroIOPigeon2;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.commands.drivetrain.LockWheels;
-import frc.robot.commands.drivetrain.ModuleIO;
-import frc.robot.commands.drivetrain.ModuleIOSim;
-import frc.robot.commands.drivetrain.ModuleIOTalonFX;
 import frc.robot.oi.DriverOI;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.GyroIO;
+import frc.robot.subsystems.GyroIOPigeon2;
+import frc.robot.subsystems.ModuleIO;
+import frc.robot.subsystems.ModuleIOSim;
+import frc.robot.subsystems.ModuleIOTalonFX;
 
 public class RobotContainer {
 	public final LoggedDashboardChooser<
@@ -26,7 +26,7 @@ public class RobotContainer {
 	public final Drivetrain drivetrain;
 
 	public RobotContainer() { 
-		this.configureDriverControls(); 
+		
 		switch (Constants.currentMode) {
 			case REAL:
 				// Real robot, instantiate hardware IO implementations      
@@ -60,6 +60,8 @@ public class RobotContainer {
 						new ModuleIO() {});
 				break;
 		}
+
+		this.configureDriverControls(); 
 	}
 
 	private void configureDriverControls() {
