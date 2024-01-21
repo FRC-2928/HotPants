@@ -77,7 +77,7 @@ public class SwerveModule {
             Constants.Drivetrain.driveGearMotorToWheel
                 .forward(
                     // Constants.Drivetrain.motorEncoderToRotations.forward(this.drive.getRotorPosition().getValue())
-                    Constants.Drivetrain.motorEncoderToRotations.forward(this.inputs.drivePositionRotations)
+                    Constants.Drivetrain.motorEncoderToRotations.forward(this.inputs.driveRotorPosition)
                 ),
             // Rotation2d.fromRotations(this.encoder.getAbsolutePosition().getValue())
             this.inputs.turnAbsolutePosition

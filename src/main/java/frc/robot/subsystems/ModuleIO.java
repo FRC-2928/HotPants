@@ -22,7 +22,7 @@ public interface ModuleIO {
     public double drivePositionRad = 0.0;
     public double driveVelocityRadPerSec = 0.0;
     public double driveAppliedVolts = 0.0;
-    public double drivePositionRotations = 0.0;
+    public double driveRotorPosition = 0.0;
     public double[] driveCurrentAmps = new double[] {};
 
     public Rotation2d turnAbsolutePosition = new Rotation2d();

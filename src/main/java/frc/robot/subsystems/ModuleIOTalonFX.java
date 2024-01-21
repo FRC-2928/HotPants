@@ -56,8 +56,8 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final StatusSignal<Double> turnCurrent;
 
   // Gear ratios for SDS MK4i L2, adjust as necessary
-  private final double DRIVE_GEAR_RATIO = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0);
-  private final double TURN_GEAR_RATIO = 150.0 / 7.0;
+  private final double DRIVE_GEAR_RATIO = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0); // 6.746
+  private final double TURN_GEAR_RATIO = 150.0 / 7.0; // 21.43
 
   private final boolean isTurnMotorInverted = true;
   private final double absoluteEncoderOffset;
@@ -108,7 +108,9 @@ public class ModuleIOTalonFX implements ModuleIO {
     encoderConfig.MagnetSensor.MagnetOffset = absoluteEncoderOffset;
     cancoder.getConfigurator().apply(encoderConfig);
 
-
+    // ----------------------------------------------------------
+    // Inputs
+    // ----------------------------------------------------------
     drivePosition = driveTalon.getPosition();
     driveRotorPosition = driveTalon.getRotorPosition();
     driveVelocity = driveTalon.getVelocity();
@@ -156,7 +158,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         Units.rotationsToRadians(driveVelocity.getValueAsDouble()) / DRIVE_GEAR_RATIO;
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
     inputs.driveCurrentAmps = new double[] {driveCurrent.getValueAsDouble()};
-    inputs.drivePositionRotations = driveRotorPosition.getValueAsDouble();
+    inputs.driveRotorPosition = driveRotorPosition.getValueAsDouble();
     inputs.turnAbsolutePosition = Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble());
     inputs.turnPosition =
         Rotation2d.fromRotations(turnPosition.getValueAsDouble() / TURN_GEAR_RATIO);
@@ -166,6 +168,9 @@ public class ModuleIOTalonFX implements ModuleIO {
     inputs.turnCurrentAmps = new double[] {turnCurrent.getValueAsDouble()};
   }
 
+  // ----------------------------------------------------------
+  // Outputs
+  // ----------------------------------------------------------
   @Override
   public void setDriveVoltage(double volts) {
     driveTalon.setControl(new VoltageOut(volts));

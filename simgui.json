@@ -8,6 +8,18 @@
   },
   "NetworkTables": {
     "transitory": {
+      "AdvantageKit": {
+        "RealOutputs": {
+          "Odometry": {
+            "open": true
+          },
+          "OdometryEstimation": {
+            "open": true
+          },
+          "open": true
+        },
+        "open": true
+      },
       "SmartDashboard": {
         "open": true
       }
