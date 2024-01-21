@@ -26,17 +26,16 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
+import frc.robot.subsystems.SwerveModule.Place;
+
 /**
- * Module IO implementation for Talon FX drive motor controller, Talon FX turn motor controller, and
- * CANcoder
+ * Module IO implementation for Talon FX drive motor controller, Talon FX turn motor controller, and CANcoder
  *
- * <p>NOTE: This implementation should be used as a starting point and adapted to different hardware
- * configurations (e.g. If using an analog encoder, copy from "ModuleIOSparkMax")
+ * <p>
+ * NOTE: This implementation should be used as a starting point and adapted to different hardware configurations (e.g. If using an analog encoder, copy from "ModuleIOSparkMax")
  *
- * <p>To calibrate the absolute encoder offsets, point the modules straight (such that forward
- * motion on the drive motor will propel the robot forward) and copy the reported values from the
- * absolute encoders using AdvantageScope. These values are logged under
- * "/Drive/ModuleX/TurnAbsolutePositionRad"
+ * <p>
+ * To calibrate the absolute encoder offsets, point the modules straight (such that forward motion on the drive motor will propel the robot forward) and copy the reported values from the absolute encoders using AdvantageScope. These values are logged under "/Drive/ModuleX/TurnAbsolutePositionRad"
  */
 public class ModuleIOTalonFX implements ModuleIO {
   private final TalonFX driveTalon;
@@ -63,35 +62,35 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final double absoluteEncoderOffset;
 
   public ModuleIOTalonFX(int index) {
-    switch (index) {
-      case 0:
-        driveTalon = new TalonFX(Constants.CAN.swerveFrontLeftAzimuth, "canivore");
-        turnTalon = new TalonFX(Constants.CAN.swerveFrontLeftDrive, "canivore");
-        cancoder = new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore");
-        absoluteEncoderOffset = Constants.CAN.swerveFrontLeftOffset; // MUST BE CALIBRATED
-        break;
-      case 1:
-        driveTalon = new TalonFX(Constants.CAN.swerveFrontRightAzimuth, "canivore");
-        turnTalon = new TalonFX(Constants.CAN.swerveFrontRightDrive, "canivore");
-        cancoder = new CANcoder(Constants.CAN.swerveFrontRightEncoder, "canivore");
-        absoluteEncoderOffset = Constants.CAN.swerveFrontRightOffset; // MUST BE CALIBRATED
-        break;
-      case 2:
-        driveTalon = new TalonFX(Constants.CAN.swerveBackRightAzimuth, "canivore");
-        turnTalon = new TalonFX(Constants.CAN.swerveBackRightDrive, "canivore");
-        cancoder = new CANcoder(Constants.CAN.swerveBackRightEncoder, "canivore");
-        absoluteEncoderOffset = Constants.CAN.swerveBackRightOffset;
-        break;
-      case 3:
-        driveTalon = new TalonFX(Constants.CAN.swerveBackLeftAzimuth, "canivore");
-        turnTalon = new TalonFX(Constants.CAN.swerveBackLeftDrive, "canivore");
-        cancoder = new CANcoder(Constants.CAN.swerveBackLeftEncoder, "canivore");
-        absoluteEncoderOffset = Constants.CAN.swerveBackLeftOffset;// MUST BE CALIBRATED
-        break;
-      default:
-        throw new RuntimeException("Invalid module index");
+    switch(index) {
+    case 0:
+      driveTalon = new TalonFX(Constants.CAN.swerveFrontLeftAzimuth, "canivore");
+      turnTalon = new TalonFX(Constants.CAN.swerveFrontLeftDrive, "canivore");
+      cancoder = new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore");
+      absoluteEncoderOffset = Constants.CAN.swerveFrontLeftOffset; // MUST BE CALIBRATED
+      break;
+    case 1:
+      driveTalon = new TalonFX(Constants.CAN.swerveFrontRightAzimuth, "canivore");
+      turnTalon = new TalonFX(Constants.CAN.swerveFrontRightDrive, "canivore");
+      cancoder = new CANcoder(Constants.CAN.swerveFrontRightEncoder, "canivore");
+      absoluteEncoderOffset = Constants.CAN.swerveFrontRightOffset; // MUST BE CALIBRATED
+      break;
+    case 2:
+      driveTalon = new TalonFX(Constants.CAN.swerveBackRightAzimuth, "canivore");
+      turnTalon = new TalonFX(Constants.CAN.swerveBackRightDrive, "canivore");
+      cancoder = new CANcoder(Constants.CAN.swerveBackRightEncoder, "canivore");
+      absoluteEncoderOffset = Constants.CAN.swerveBackRightOffset;
+      break;
+    case 3:
+      driveTalon = new TalonFX(Constants.CAN.swerveBackLeftAzimuth, "canivore");
+      turnTalon = new TalonFX(Constants.CAN.swerveBackLeftDrive, "canivore");
+      cancoder = new CANcoder(Constants.CAN.swerveBackLeftEncoder, "canivore");
+      absoluteEncoderOffset = Constants.CAN.swerveBackLeftOffset;// MUST BE CALIBRATED
+      break;
+    default:
+      throw new RuntimeException("Invalid module index");
     }
-    
+
     var driveConfig = new TalonFXConfiguration();
     driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
     driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
@@ -103,6 +102,10 @@ public class ModuleIOTalonFX implements ModuleIO {
     turnConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     turnTalon.getConfigurator().apply(turnConfig);
     setTurnBrakeMode(true);
+
+    if(index == 0 || index == 3) {
+      driveTalon.setInverted(false);
+    }
 
     CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
     encoderConfig.MagnetSensor.MagnetOffset = absoluteEncoderOffset;
@@ -123,9 +126,9 @@ public class ModuleIOTalonFX implements ModuleIO {
     turnAppliedVolts = turnTalon.getMotorVoltage();
     turnCurrent = turnTalon.getStatorCurrent();
 
-    BaseStatusSignal.setUpdateFrequencyForAll(
-        100.0, drivePosition, driveRotorPosition, turnPosition); // Required for odometry, use faster rate
-    BaseStatusSignal.setUpdateFrequencyForAll(
+    BaseStatusSignal.setUpdateFrequencyForAll(100.0, drivePosition, driveRotorPosition, turnPosition); // Required for odometry, use faster rate
+    BaseStatusSignal
+      .setUpdateFrequencyForAll(
         50.0,
         driveVelocity,
         driveAppliedVolts,
@@ -133,14 +136,16 @@ public class ModuleIOTalonFX implements ModuleIO {
         turnAbsolutePosition,
         turnVelocity,
         turnAppliedVolts,
-        turnCurrent);
+        turnCurrent
+      );
     driveTalon.optimizeBusUtilization();
     turnTalon.optimizeBusUtilization();
   }
 
   @Override
   public void updateInputs(ModuleIOInputs inputs) {
-    BaseStatusSignal.refreshAll(
+    BaseStatusSignal
+      .refreshAll(
         drivePosition,
         driveVelocity,
         driveAppliedVolts,
@@ -150,36 +155,29 @@ public class ModuleIOTalonFX implements ModuleIO {
         turnPosition,
         turnVelocity,
         turnAppliedVolts,
-        turnCurrent);
+        turnCurrent
+      );
 
-    inputs.drivePositionRad =
-        Units.rotationsToRadians(drivePosition.getValueAsDouble()) / DRIVE_GEAR_RATIO;
-    inputs.driveVelocityRadPerSec =
-        Units.rotationsToRadians(driveVelocity.getValueAsDouble()) / DRIVE_GEAR_RATIO;
+    inputs.drivePositionRad = Units.rotationsToRadians(drivePosition.getValueAsDouble()) / DRIVE_GEAR_RATIO;
+    inputs.driveVelocityRadPerSec = Units.rotationsToRadians(driveVelocity.getValueAsDouble()) / DRIVE_GEAR_RATIO;
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
-    inputs.driveCurrentAmps = new double[] {driveCurrent.getValueAsDouble()};
+    inputs.driveCurrentAmps = new double[] { driveCurrent.getValueAsDouble() };
     inputs.driveRotorPosition = driveRotorPosition.getValueAsDouble();
     inputs.turnAbsolutePosition = Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble());
-    inputs.turnPosition =
-        Rotation2d.fromRotations(turnPosition.getValueAsDouble() / TURN_GEAR_RATIO);
-    inputs.turnVelocityRadPerSec =
-        Units.rotationsToRadians(turnVelocity.getValueAsDouble()) / TURN_GEAR_RATIO;
+    inputs.turnPosition = Rotation2d.fromRotations(turnPosition.getValueAsDouble() / TURN_GEAR_RATIO);
+    inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble()) / TURN_GEAR_RATIO;
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
-    inputs.turnCurrentAmps = new double[] {turnCurrent.getValueAsDouble()};
+    inputs.turnCurrentAmps = new double[] { turnCurrent.getValueAsDouble() };
   }
 
   // ----------------------------------------------------------
   // Outputs
   // ----------------------------------------------------------
   @Override
-  public void setDriveVoltage(double volts) {
-    driveTalon.setControl(new VoltageOut(volts));
-  }
+  public void setDriveVoltage(double volts) { driveTalon.setControl(new VoltageOut(volts)); }
 
   @Override
-  public void setTurnVoltage(double volts) {
-    turnTalon.setControl(new VoltageOut(volts));
-  }
+  public void setTurnVoltage(double volts) { turnTalon.setControl(new VoltageOut(volts)); }
 
   @Override
   public void setDriveBrakeMode(boolean enable) {
@@ -192,10 +190,7 @@ public class ModuleIOTalonFX implements ModuleIO {
   @Override
   public void setTurnBrakeMode(boolean enable) {
     var config = new MotorOutputConfigs();
-    config.Inverted =
-        isTurnMotorInverted
-            ? InvertedValue.Clockwise_Positive
-            : InvertedValue.CounterClockwise_Positive;
+    config.Inverted = isTurnMotorInverted ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
     config.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
     turnTalon.getConfigurator().apply(config);
   }
