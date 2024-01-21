@@ -27,25 +27,25 @@ public class Robot extends LoggedRobot {
 	public void robotInit() {
 		ConduitApi.getInstance().configurePowerDistribution(Constants.CAN.pdh, ModuleType.kRev.value);
 
-		switch (Constants.currentMode) {
-			case REAL:
-				// Running on a real robot, log to a USB stick
-				Logger.addDataReceiver(new WPILOGWriter("/U"));
-				Logger.addDataReceiver(new NT4Publisher());
-				break;
+		switch(Constants.currentMode) {
+		case REAL:
+			// Running on a real robot, log to a USB stick
+			// Logger.addDataReceiver(new WPILOGWriter("/U"));
+			Logger.addDataReceiver(new NT4Publisher());
+			break;
 
-			case SIM:
-				// Running a physics simulator, log to NT
-				Logger.addDataReceiver(new NT4Publisher());
-				break;
+		case SIM:
+			// Running a physics simulator, log to NT
+			Logger.addDataReceiver(new NT4Publisher());
+			break;
 
-			case REPLAY:
-				// Replaying a log, set up replay source
-				setUseTiming(false); // Run as fast as possible
-				String logPath = LogFileUtil.findReplayLog();
-				Logger.setReplaySource(new WPILOGReader(logPath));
-				Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
-				break;
+		case REPLAY:
+			// Replaying a log, set up replay source
+			setUseTiming(false); // Run as fast as possible
+			String logPath = LogFileUtil.findReplayLog();
+			Logger.setReplaySource(new WPILOGReader(logPath));
+			Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
+			break;
 		}
 
 		Logger.start();
