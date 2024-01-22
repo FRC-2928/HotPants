@@ -30,8 +30,12 @@ public class JoystickDrive extends Command {
 	public void execute() {
 		final double mul = MathUtil.interpolate(1, 0.5, this.oi.slow.get());
 
+		// 1. GET GAME STICK INPUTS
+		// 2. APPLY DEADBANDS
 		final double axial = -MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
 		final double lateral = MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
+
+		// 3. SQUARE INPUTS
 		final Rotation2d moveDirection = Rotation2d.fromRadians(Math.atan2(lateral, axial));
 		final double moveMagnitude = this.curve(MathUtil.clamp(Math.sqrt(lateral * lateral + axial * axial), 0, 1));
 
@@ -54,7 +58,7 @@ public class JoystickDrive extends Command {
 						.clamp(
 							this.absoluteController
 								.calculate(
-									// Constants.mod(this.drivetrain.gyroInputs.getRotation2d().unaryMinus().getRotations(), 1)
+									// Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1)
 									Constants.mod(this.drivetrain.getGyroRotations(),1)
 										- 0.5,
 									this.absoluteTarget.getRotations()
@@ -66,6 +70,7 @@ public class JoystickDrive extends Command {
 				);
 		} else theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
 
+		// 4 CONVERT TO CHASSIS SPEEDS
 		ChassisSpeeds desired = new ChassisSpeeds(
 			Math.cos(moveDirection.getRadians()) * moveMagnitude * Constants.Drivetrain.axialLateralSpeed * mul,
 			Math.sin(moveDirection.getRadians()) * moveMagnitude * Constants.Drivetrain.axialLateralSpeed * mul,
@@ -75,9 +80,13 @@ public class JoystickDrive extends Command {
 				* (Constants.Drivetrain.Flags.absoluteRotation ? this.absoluteTargetMagnitude : 1)
 		);
 
+		// Compensate for wheel rotation while driving and rotating
 		if(Constants.Drivetrain.Flags.thetaCompensation) desired = this.drivetrain.compensate(desired);
-		if(Constants.Drivetrain.Flags.fod) desired = this.drivetrain.fod(desired);
 
+		// Field-oriented drive
+		if(Constants.Drivetrain.Flags.fod) desired = this.drivetrain.fieldOrientedDrive(desired);
+
+		// Set the required speed and angle of each wheel.
 		this.drivetrain.swerve(this.drivetrain.kinematics.toSwerveModuleStates(desired));
 	}
 

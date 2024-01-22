@@ -54,7 +54,7 @@ public class SwerveModule {
     public final ModuleIO io;    
     private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
 
-    private final PIDController pid = Constants.Drivetrain.swerveAzimuthPID.createController();
+    private final PIDController turnPID = Constants.Drivetrain.swerveAzimuthPID.createController();
 
     private boolean backwards = false;
 
@@ -64,26 +64,47 @@ public class SwerveModule {
     public SwerveModule(final ModuleIO io, final Place place){
         this.io = io;
         this.place = place;
-        this.pid.enableContinuousInput(-180, 180);
+        this.turnPID.enableContinuousInput(-180, 180);
     }
 
     public SwerveModulePosition updateModulePosition() {
-        return new SwerveModulePosition(
+        return new SwerveModulePosition(getDistanceMeters(),getAngle());
+    }
+
+    /**
+     * Position of the motor rotor in rotation units. 
+     * This position is only affected by the RotorOffset config.
+     * 
+     * @return
+     */
+    public double getDistanceMeters() {
+        return 
             Constants.Drivetrain.driveGearMotorToWheel
                 .forward(
                     // Constants.Drivetrain.motorEncoderToRotations.forward(this.drive.getRotorPosition().getValue())
                     Constants.Drivetrain.motorEncoderToRotations.forward(this.inputs.driveRotorPosition)
-                ),
-            // Rotation2d.fromRotations(this.encoder.getAbsolutePosition().getValue())
-            this.inputs.turnAbsolutePosition
-        );
+                );
     }
 
+    /**
+     * Absolute Position of the device in rotations.
+     * 
+     * @return Rotation2d.fromRotations(cancoder.getAbsolutePosition().getValueAsDouble());
+     */
+    public Rotation2d getAngle() {
+        return  this.inputs.turnAbsolutePosition;
+    }
+
+    /**
+     * Calculates the feedforward for the drive velocity.
+     * 
+     * @param state - required speed in meters per/sec and the angle
+     */
     public void applyState(final SwerveModuleState state) {
         final double ffw = Constants.Drivetrain.driveFFW.calculate(state.speedMetersPerSecond);
-
-        this.target = state.angle.unaryMinus();
         this.targetVelocity = ffw;
+
+        this.target = state.angle.unaryMinus();  
     }
 
     public void stop() { 
@@ -95,6 +116,8 @@ public class SwerveModule {
         SmartDashboard.putNumber(this.place.name() + " Angle", this.updateModulePosition().angle.getDegrees());
         io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
+
+        // 8 WHEEL OPTIMIZATION
         this.backwards = Constants.Drivetrain.Flags.wheelOptimization
             && Constants.angleDistance(this.target.getDegrees(), this.updateModulePosition().angle.getDegrees()) > 90;
         final double target = this.backwards
@@ -108,8 +131,8 @@ public class SwerveModule {
                 Constants.angleDistance(target, this.updateModulePosition().angle.getDegrees())
             );
 
-        final double turn = this.pid.calculate(this.updateModulePosition().angle.getDegrees(), target);
-
+        // 9. APPLY POWER
+        final double turn = this.turnPID.calculate(this.updateModulePosition().angle.getDegrees(), target);
        // this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
         io.setTurnVoltage(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
 
