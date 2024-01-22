@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import java.util.Arrays;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -75,6 +76,12 @@ public class Drivetrain extends SubsystemBase {
 	public double getGyroRotations() {
 		return gyroInputs.rotations;
 	}
+
+  /** Returns the current odometry pose. */
+  @AutoLogOutput(key = "Odometry/Estimation")
+  public Pose2d getPoseEstimation() {
+    return this.poseEstimator.getEstimatedPosition();
+  }
 
 	@Override
 	public void periodic() {

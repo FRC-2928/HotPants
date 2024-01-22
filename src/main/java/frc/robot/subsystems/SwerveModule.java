@@ -65,13 +65,8 @@ public class SwerveModule {
         this.io = io;
         this.place = place;
         this.pid.enableContinuousInput(-180, 180);
-        setBrakeMode(true);
     }
 
-    public void setBrakeMode(boolean enabled) {
-        io.setDriveBrakeMode(enabled);
-        io.setTurnBrakeMode(enabled);
-    }
     public SwerveModulePosition updateModulePosition() {
         return new SwerveModulePosition(
             Constants.Drivetrain.driveGearMotorToWheel

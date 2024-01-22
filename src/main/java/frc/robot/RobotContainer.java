@@ -12,6 +12,7 @@ import frc.robot.oi.DriverOI;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.GyroIO;
 import frc.robot.subsystems.GyroIOPigeon2;
+import frc.robot.subsystems.SwerveModule;
 import frc.robot.subsystems.ModuleIO;
 import frc.robot.subsystems.ModuleIOSim;
 import frc.robot.subsystems.ModuleIOTalonFX;
@@ -32,10 +33,10 @@ public class RobotContainer {
 				// Real robot, instantiate hardware IO implementations      
 				drivetrain = new Drivetrain(
 					new GyroIOPigeon2(),
-					new ModuleIOTalonFX(0),
-					new ModuleIOTalonFX(1),
-					new ModuleIOTalonFX(2),
-					new ModuleIOTalonFX(3));
+					new ModuleIOTalonFX(SwerveModule.Place.FrontLeft),
+					new ModuleIOTalonFX(SwerveModule.Place.FrontRight),
+					new ModuleIOTalonFX(SwerveModule.Place.BackRight),
+					new ModuleIOTalonFX(SwerveModule.Place.BackLeft));
 				break;
 
 			case SIM:

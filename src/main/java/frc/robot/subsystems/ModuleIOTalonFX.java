@@ -61,28 +61,30 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final boolean isTurnMotorInverted = true;
   private final double absoluteEncoderOffset;
 
-  public ModuleIOTalonFX(int index) {
-    switch(index) {
-    case 0:
+  public ModuleIOTalonFX(Place place) {
+    switch(place) {
+    case FrontLeft:
       driveTalon = new TalonFX(Constants.CAN.swerveFrontLeftAzimuth, "canivore");
+      driveTalon.setInverted(false);
       turnTalon = new TalonFX(Constants.CAN.swerveFrontLeftDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore");
       absoluteEncoderOffset = Constants.CAN.swerveFrontLeftOffset; // MUST BE CALIBRATED
       break;
-    case 1:
+    case FrontRight:
       driveTalon = new TalonFX(Constants.CAN.swerveFrontRightAzimuth, "canivore");
       turnTalon = new TalonFX(Constants.CAN.swerveFrontRightDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveFrontRightEncoder, "canivore");
       absoluteEncoderOffset = Constants.CAN.swerveFrontRightOffset; // MUST BE CALIBRATED
       break;
-    case 2:
+    case BackRight:
       driveTalon = new TalonFX(Constants.CAN.swerveBackRightAzimuth, "canivore");
       turnTalon = new TalonFX(Constants.CAN.swerveBackRightDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveBackRightEncoder, "canivore");
       absoluteEncoderOffset = Constants.CAN.swerveBackRightOffset;
       break;
-    case 3:
+    case BackLeft:
       driveTalon = new TalonFX(Constants.CAN.swerveBackLeftAzimuth, "canivore");
+      driveTalon.setInverted(false);
       turnTalon = new TalonFX(Constants.CAN.swerveBackLeftDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveBackLeftEncoder, "canivore");
       absoluteEncoderOffset = Constants.CAN.swerveBackLeftOffset;// MUST BE CALIBRATED
@@ -91,21 +93,8 @@ public class ModuleIOTalonFX implements ModuleIO {
       throw new RuntimeException("Invalid module index");
     }
 
-    var driveConfig = new TalonFXConfiguration();
-    driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
-    driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-    driveTalon.getConfigurator().apply(driveConfig);
-    setDriveBrakeMode(true);
-
-    var turnConfig = new TalonFXConfiguration();
-    turnConfig.CurrentLimits.StatorCurrentLimit = 30.0;
-    turnConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-    turnTalon.getConfigurator().apply(turnConfig);
-    setTurnBrakeMode(true);
-
-    if(index == 0 || index == 3) {
-      driveTalon.setInverted(false);
-    }
+    driveTalon.setNeutralMode(NeutralModeValue.Brake);
+    turnTalon.setNeutralMode(NeutralModeValue.Brake);
 
     CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
     encoderConfig.MagnetSensor.MagnetOffset = absoluteEncoderOffset;
@@ -179,19 +168,19 @@ public class ModuleIOTalonFX implements ModuleIO {
   @Override
   public void setTurnVoltage(double volts) { turnTalon.setControl(new VoltageOut(volts)); }
 
-  @Override
-  public void setDriveBrakeMode(boolean enable) {
-    var config = new MotorOutputConfigs();
-    config.Inverted = InvertedValue.CounterClockwise_Positive;
-    config.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
-    driveTalon.getConfigurator().apply(config);
-  }
+  // @Override
+  // public void setDriveBrakeMode(boolean enable) {
+  //   var config = new MotorOutputConfigs();
+  //   config.Inverted = InvertedValue.CounterClockwise_Positive;
+  //   config.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
+  //   driveTalon.getConfigurator().apply(config);
+  // }
 
-  @Override
-  public void setTurnBrakeMode(boolean enable) {
-    var config = new MotorOutputConfigs();
-    config.Inverted = isTurnMotorInverted ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
-    config.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
-    turnTalon.getConfigurator().apply(config);
-  }
+  // @Override
+  // public void setTurnBrakeMode(boolean enable) {
+  //   var config = new MotorOutputConfigs();
+  //   config.Inverted = isTurnMotorInverted ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
+  //   config.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
+  //   turnTalon.getConfigurator().apply(config);
+  // }
 }
