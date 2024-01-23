@@ -86,9 +86,9 @@ public class SwerveModule {
             drive.setInverted(false);
         }
 
-        // CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
-        // encoderConfig.MagnetSensor.MagnetOffset = encoderOffset;
-        // encoder.getConfigurator().apply(encoderConfig);
+        CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
+        encoderConfig.MagnetSensor.MagnetOffset = encoderOffset;
+        encoder.getConfigurator().apply(encoderConfig);
 
         this.pid.enableContinuousInput(-180, 180);
     }
