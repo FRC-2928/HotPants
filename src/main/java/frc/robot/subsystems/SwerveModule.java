@@ -58,7 +58,7 @@ public class SwerveModule {
 
     private boolean backwards = false;
 
-    public Rotation2d target = new Rotation2d();
+    public Rotation2d targetAngle = new Rotation2d();
     public double targetVelocity = 0;
 
     public SwerveModule(final ModuleIO io, final Place place){
@@ -104,7 +104,7 @@ public class SwerveModule {
         final double ffw = Constants.Drivetrain.driveFFW.calculate(state.speedMetersPerSecond);
         this.targetVelocity = ffw;
 
-        this.target = state.angle.unaryMinus();  
+        this.targetAngle = state.angle.unaryMinus();  
     }
 
     public void stop() { 
@@ -117,22 +117,22 @@ public class SwerveModule {
         io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
 
-        // 8 WHEEL OPTIMIZATION
+        // 8. WHEEL DIRECTION OPTIMIZATION
         this.backwards = Constants.Drivetrain.Flags.wheelOptimization
-            && Constants.angleDistance(this.target.getDegrees(), this.updateModulePosition().angle.getDegrees()) > 90;
-        final double target = this.backwards
-            ? Constants.angleNorm(this.target.getDegrees() + 180)
-            : this.target.getDegrees();
+            && Constants.angleDistance(this.targetAngle.getDegrees(), this.updateModulePosition().angle.getDegrees()) > 90;
+        final double targetAngle = this.backwards
+            ? Constants.angleNorm(this.targetAngle.getDegrees() + 180)
+            : this.targetAngle.getDegrees();
 
-        SmartDashboard.putNumber(this.place.name() + " Target", target);
+        SmartDashboard.putNumber(this.place.name() + " Target Angle", targetAngle);
         SmartDashboard
             .putNumber(
                 this.place.name() + " Distance From Target",
-                Constants.angleDistance(target, this.updateModulePosition().angle.getDegrees())
+                Constants.angleDistance(targetAngle, this.updateModulePosition().angle.getDegrees())
             );
 
         // 9. APPLY POWER
-        final double turn = this.turnPID.calculate(this.updateModulePosition().angle.getDegrees(), target);
+        final double turn = this.turnPID.calculate(this.updateModulePosition().angle.getDegrees(), targetAngle);
        // this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
         io.setTurnVoltage(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
 
