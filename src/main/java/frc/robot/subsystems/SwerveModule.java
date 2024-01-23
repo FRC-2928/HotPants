@@ -1,6 +1,9 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -130,7 +133,12 @@ public class SwerveModule {
 
         final double turn = this.pid.calculate(this.pos().angle.getDegrees(), target);
 
-        this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
-        this.drive.set(this.backwards ? -this.targetVelocity : this.targetVelocity);
+        // this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
+        this.azimuth
+            .setControl(
+                new DutyCycleOut(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)))
+            );
+        // this.drive.set(this.backwards ? -this.targetVelocity : this.targetVelocity);
+        this.drive.setControl(new DutyCycleOut(this.backwards ? -this.targetVelocity : this.targetVelocity));
     }
 }
