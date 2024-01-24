@@ -19,13 +19,13 @@ public class LockWheels extends Command {
 
 	@Override
 	public void execute() {
-		this.drivetrain.swerve(SwerveModule.State.locked());
+		this.drivetrain.setModuleStates(SwerveModule.State.locked());
 		if(this.oi != null) this.oi.hid.setRumble(RumbleType.kBothRumble, 0.25);
 	}
 
 	@Override
 	public void end(final boolean interrupted) {
-		this.drivetrain.swerve(SwerveModule.State.forward());
+		this.drivetrain.setModuleStates(SwerveModule.State.forward());
 		if(this.oi != null) this.oi.hid.setRumble(RumbleType.kBothRumble, 0);
 	}
 }

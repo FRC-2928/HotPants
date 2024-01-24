@@ -4,6 +4,8 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.oi.DriverOI;
@@ -52,23 +54,18 @@ public class JoystickDrive extends Command {
 
 			this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;
 
-			theta = MathUtil
-				.applyDeadband(
-					MathUtil
-						.clamp(
-							this.absoluteController
-								.calculate(
-									// Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1)
-									Constants.mod(this.drivetrain.getGyroRotations(),1)
-										- 0.5,
-									this.absoluteTarget.getRotations()
-								),
-							-0.5,
-							0.5
-						),
-					command ? 0.075 : 0.25
-				);
-		} else theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
+			// Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1)
+			double measurement = Constants.mod(this.drivetrain.getHeading().unaryMinus().getRotations(),1) - 0.5;
+			double setpoint = this.absoluteTarget.getRotations();
+
+			theta = MathUtil.applyDeadband(
+						MathUtil
+							.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5),
+						command ? 0.075 : 0.25
+					);
+		} else {
+			theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
+		}		
 
 		// 4 CONVERT TO CHASSIS SPEEDS
 		ChassisSpeeds desired = new ChassisSpeeds(
@@ -86,8 +83,12 @@ public class JoystickDrive extends Command {
 		// Field-oriented drive
 		if(Constants.Drivetrain.Flags.fod) desired = this.drivetrain.fieldOrientedDrive(desired);
 
+		// Calculate module setpoints
+		// ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(desired, 0.02);
+		SwerveModuleState[] setpointStates = this.drivetrain.kinematics.toSwerveModuleStates(desired);
+
 		// Set the required speed and angle of each wheel.
-		this.drivetrain.swerve(this.drivetrain.kinematics.toSwerveModuleStates(desired));
+		this.drivetrain.setModuleStates(setpointStates);
 	}
 
 	// Input curve function

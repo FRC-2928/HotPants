@@ -22,6 +22,7 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -33,10 +34,14 @@ import frc.robot.subsystems.SwerveModule.Place;
  * Module IO implementation for Talon FX drive motor controller, Talon FX turn motor controller, and CANcoder
  *
  * <p>
- * NOTE: This implementation should be used as a starting point and adapted to different hardware configurations (e.g. If using an analog encoder, copy from "ModuleIOSparkMax")
+ * NOTE: This implementation should be used as a starting point and adapted to different 
+ * hardware configurations (e.g. If using an analog encoder, copy from "ModuleIOSparkMax")
  *
  * <p>
- * To calibrate the absolute encoder offsets, point the modules straight (such that forward motion on the drive motor will propel the robot forward) and copy the reported values from the absolute encoders using AdvantageScope. These values are logged under "/Drive/ModuleX/TurnAbsolutePositionRad"
+ * To calibrate the absolute encoder offsets, point the modules straight (such that forward 
+ * motion on the drive motor will propel the robot forward) and copy the reported values 
+ * from the absolute encoders using AdvantageScope. 
+ * These values are logged under "/Drive/ModuleX/TurnAbsolutePositionRad"
  */
 public class ModuleIOTalonFX implements ModuleIO {
   private final TalonFX driveTalon;
@@ -164,10 +169,16 @@ public class ModuleIOTalonFX implements ModuleIO {
   // Outputs
   // ----------------------------------------------------------
   @Override
-  public void setDriveVoltage(double volts) { driveTalon.setControl(new DutyCycleOut(volts)); }
+  public void setDriveVoltage(double volts) { driveTalon.setControl(new VoltageOut(volts)); }
 
   @Override
-  public void setTurnVoltage(double volts) { turnTalon.setControl(new DutyCycleOut(volts)); }
+  public void setTurnVoltage(double volts) { turnTalon.setControl(new VoltageOut(volts)); }
+
+  @Override
+  public void setDriveDutyCycle(double speed) { driveTalon.setControl(new DutyCycleOut(speed)); }
+
+  @Override
+  public void setTurnDutyCycle(double speed) { turnTalon.setControl(new DutyCycleOut(speed)); }
 
   // @Override
   // public void setDriveBrakeMode(boolean enable) {

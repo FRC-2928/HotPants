@@ -50,16 +50,16 @@ public class Drivetrain extends SubsystemBase {
 	// ----------------------------------------------------------
     // Control Input
     // ----------------------------------------------------------
+
 	/**
 	 * Set the required speed and angle of each wheel.
 	 * 
 	 * @param states - required speed in meters per/sec
-	* 				 - angle in degrees
-	 */
-	public void swerve(final SwerveModuleState[] states) {
+	 * 				 - angle in degrees
+	*/
+	public void setModuleStates(final SwerveModuleState[] states) {
 		// 6. DESATURATE WHEEL SPEEDS
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxWheelSpeed);
-
 
 		// 7. SET SPEED AND ANGLE FOR EACH WHEEL
 		// Also calculates the feedforward for the drive velocity
@@ -67,11 +67,11 @@ public class Drivetrain extends SubsystemBase {
 			this.modules[i].applyState(states[i]);
 	}
 
-	public void swerve(final SwerveModule.State state) { this.swerve(state.states); }
+	public void setModuleStates(final SwerveModule.State state) { this.setModuleStates(state.states); }
 
 	// Field-oriented drive
 	public ChassisSpeeds fieldOrientedDrive(final ChassisSpeeds field) {
-		return ChassisSpeeds.fromFieldRelativeSpeeds(field, this.gyroInputs.yawPosition);
+		return ChassisSpeeds.fromFieldRelativeSpeeds(field, getHeading().unaryMinus());
 	}
 
 	// Compensate for wheel rotation while driving and rotating
@@ -91,8 +91,35 @@ public class Drivetrain extends SubsystemBase {
 	// ----------------------------------------------------------
     // Control Input
     // ----------------------------------------------------------
+	/**
+	 * The angle is continuous; that is, it will continue from 360 to
+     * 361 degrees. 
+	 * 
+	 * @return heading of the robot as a Rotation2d.
+	 */
+	@AutoLogOutput(key = "Gyro/Heading")
+	public Rotation2d getHeading() {
+		return this.gyroInputs.heading;
+	}
+
+	/**
+	 * 
+	 * @return the number of times the robot has rotated thru 360 degrees
+	 */
+	@AutoLogOutput(key = "Gyro/Rotations")
 	public double getGyroRotations() {
-		return gyroInputs.rotations;
+		return getHeading().unaryMinus().getRotations();
+	}
+
+	/**
+	 * Current reported yaw of the Pigeon2 in degrees
+	 * Constructs and returns a Rotation2d
+	 * 
+	 * @return current angle of the robot
+	 */
+	@AutoLogOutput(key = "Gyro/YawPosition")
+	public Rotation2d getRobotAngle() {
+		return this.gyroInputs.yawPosition;
 	}
 
 	/** Returns the current odometry pose. */
@@ -109,9 +136,8 @@ public class Drivetrain extends SubsystemBase {
 		gyroIO.updateInputs(gyroInputs);
 		Logger.processInputs("Drive/Gyro", gyroInputs);
 
-		
-		for(final SwerveModule swerve : this.modules)
-			swerve.update();
+		for(final SwerveModule module : this.modules)
+			module.update();
 
 		// Stop moving when disabled
 		if (DriverStation.isDisabled()) {
