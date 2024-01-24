@@ -47,6 +47,8 @@ public class Drive extends Command {
 			if(command) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(-rotX, rotY));
 
 			this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;
+			double measurement = Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1) - 0.5;
+			double setpoint = this.absoluteTarget.getRotations();
 
 			theta = MathUtil
 				.applyDeadband(
