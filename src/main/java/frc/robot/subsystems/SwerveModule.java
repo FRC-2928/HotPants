@@ -200,7 +200,7 @@ public class SwerveModule {
 
         // this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
         // io.setTurnDutyCycle(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
-        io.setTurnDutyCycle(dutyCycle);
+        io.setTurnDutyCycle(dutyCycle * 0.2);
 
         // this.drive.set(this.backwards ? -this.targetVelocity : this.targetVelocity);
         io.setDriveDutyCycle(this.backwards ? -this.targetVelocity : this.targetVelocity);

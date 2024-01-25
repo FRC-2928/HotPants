@@ -107,6 +107,10 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveTalon.setNeutralMode(NeutralModeValue.Brake);
     turnTalon.setNeutralMode(NeutralModeValue.Brake);
 
+    if(place == Place.FrontRight || place == Place.BackRight) {
+        driveTalon.setInverted(false);
+    }
+
     // CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
     // encoderConfig.MagnetSensor.MagnetOffset = absoluteEncoderOffset;
     // cancoder.getConfigurator().apply(encoderConfig);
