@@ -65,7 +65,8 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final double TURN_GEAR_RATIO = 150.0 / 7.0; // 21.43
 
   private final boolean isTurnMotorInverted = true;
-  private final double absoluteEncoderOffset;
+  // private final double absoluteEncoderOffset;
+  private final Rotation2d absoluteEncoderOffset;
 
   public ModuleIOTalonFX(Place place) {
     switch(place) {
@@ -74,26 +75,32 @@ public class ModuleIOTalonFX implements ModuleIO {
       driveTalon.setInverted(false);
       turnTalon = new TalonFX(Constants.CAN.swerveFrontLeftDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore");
-      absoluteEncoderOffset = Constants.CAN.swerveFrontLeftOffset; // MUST BE CALIBRATED
+      absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontLeftOffset)); // MUST BE CALIBRATED
+      // absoluteEncoderOffset = Constants.CAN.swerveFrontLeftOffset; // MUST BE CALIBRATED
       break;
     case FrontRight:
       driveTalon = new TalonFX(Constants.CAN.swerveFrontRightAzimuth, "canivore");
+      driveTalon.setInverted(true);
       turnTalon = new TalonFX(Constants.CAN.swerveFrontRightDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveFrontRightEncoder, "canivore");
-      absoluteEncoderOffset = Constants.CAN.swerveFrontRightOffset; // MUST BE CALIBRATED
+      absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontRightOffset)); // MUST BE CALIBRATED
+      // absoluteEncoderOffset = Constants.CAN.swerveFrontRightOffset; // MUST BE CALIBRATED
       break;
     case BackRight:
       driveTalon = new TalonFX(Constants.CAN.swerveBackRightAzimuth, "canivore");
+      driveTalon.setInverted(true);
       turnTalon = new TalonFX(Constants.CAN.swerveBackRightDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveBackRightEncoder, "canivore");
-      absoluteEncoderOffset = Constants.CAN.swerveBackRightOffset;
+      absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackRightOffset)); // MUST BE CALIBRATED
+      // absoluteEncoderOffset = Constants.CAN.swerveBackRightOffset;
       break;
     case BackLeft:
       driveTalon = new TalonFX(Constants.CAN.swerveBackLeftAzimuth, "canivore");
       driveTalon.setInverted(false);
       turnTalon = new TalonFX(Constants.CAN.swerveBackLeftDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveBackLeftEncoder, "canivore");
-      absoluteEncoderOffset = Constants.CAN.swerveBackLeftOffset;// MUST BE CALIBRATED
+      absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackLeftOffset)); // MUST BE CALIBRATED
+      // absoluteEncoderOffset = Constants.CAN.swerveBackLeftOffset;// MUST BE CALIBRATED
       break;
     default:
       throw new RuntimeException("Invalid module index");
@@ -102,9 +109,9 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveTalon.setNeutralMode(NeutralModeValue.Brake);
     turnTalon.setNeutralMode(NeutralModeValue.Brake);
 
-    CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
-    encoderConfig.MagnetSensor.MagnetOffset = absoluteEncoderOffset;
-    cancoder.getConfigurator().apply(encoderConfig);
+    // CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
+    // encoderConfig.MagnetSensor.MagnetOffset = absoluteEncoderOffset;
+    // cancoder.getConfigurator().apply(encoderConfig);
 
     // ----------------------------------------------------------
     // Inputs
@@ -158,6 +165,9 @@ public class ModuleIOTalonFX implements ModuleIO {
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
     inputs.driveCurrentAmps = new double[] { driveCurrent.getValueAsDouble() };
     inputs.driveRotorPosition = driveRotorPosition.getValueAsDouble();
+    // inputs.turnAbsolutePosition =
+    //     Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble())
+    //         .minus(absoluteEncoderOffset);
     inputs.turnAbsolutePosition = Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble());
     inputs.turnPosition = Rotation2d.fromRotations(turnPosition.getValueAsDouble() / TURN_GEAR_RATIO);
     inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble()) / TURN_GEAR_RATIO;

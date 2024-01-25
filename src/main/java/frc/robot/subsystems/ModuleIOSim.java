@@ -13,6 +13,8 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.controls.DutyCycleOut;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -63,5 +65,17 @@ public class ModuleIOSim implements ModuleIO {
   public void setTurnVoltage(double volts) {
     turnAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
     turnSim.setInputVoltage(turnAppliedVolts);
+  }
+
+  /** Run the drive motor at the specified duty cycle (-1 to 1). */
+  public void setDriveDutyCycle(double speed) {
+    double volts = 12.0 * speed;
+    setDriveVoltage(volts);
+  }
+
+  /** Run the drive motor at the specified duty cycle (-1 to 1). */
+  public void setTurnDutyCycle(double speed) {
+    double volts = 12.0 * speed;
+    setTurnVoltage(volts);
   }
 }

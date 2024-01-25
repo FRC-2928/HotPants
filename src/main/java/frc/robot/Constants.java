@@ -131,6 +131,8 @@ public class Constants {
 		public static final Ratio motorEncoderToRotations = new Ratio(2048, 1);
 		public static final Ratio driveGearMotorToWheel = new Ratio(6.75, 1); // 6.75:1 (motor:wheel)
 		public static final Ratio azimuthGearMotorToWheel = new Ratio(150.0 / 7.0, 1); // (150 / 7):1 (motor:wheel)
+		public static final double driveGearRatio = 6.75;
+		public static final double azimuthGearRatio = 150.0 / 7.0;
 
 		public static final double wheelRadius = 2.0 * 0.0254; // m
 

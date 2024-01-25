@@ -162,9 +162,9 @@ public class SwerveModule {
      * 
      * @return Rotation2d.fromRotations(cancoder.getAbsolutePosition().getValueAsDouble());
      */
-    public Rotation2d getAngle() {
-        return  this.inputs.turnAbsolutePosition;
-    }
+    // public Rotation2d getAngle() {
+    //     return  this.inputs.turnAbsolutePosition;
+    // }
     
     /**
      * Calculates the feedforward for the drive velocity.
@@ -187,34 +187,49 @@ public class SwerveModule {
         return new SwerveModulePosition(getDrivePositionMeters(),getCancoderAbsolutePosition());
     }
 
-    void update() {
-        SmartDashboard.putNumber(this.place.name() + " Angle", this.updateModulePosition().angle.getDegrees());
+    void update() {     
         io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
+
+        SmartDashboard.putNumber(this.place.name() + " Angle", this.updateModulePosition().angle.getDegrees());
+        SmartDashboard.putNumber(this.place.name() + " Angle Target", this.targetAngle.getDegrees());
 
         // 8. WHEEL DIRECTION OPTIMIZATION
         this.backwards = Constants.Drivetrain.Flags.wheelOptimization
             && Constants.angleDistance(this.targetAngle.getDegrees(), this.updateModulePosition().angle.getDegrees()) > 90;
+
         final double targetAngle = this.backwards
             ? Constants.angleNorm(this.targetAngle.getDegrees() + 180)
             : this.targetAngle.getDegrees();
 
-        SmartDashboard.putNumber(this.place.name() + " Target Angle", targetAngle);
+        SmartDashboard.putNumber(this.place.name() + " Angle Target Optimized", targetAngle);
         SmartDashboard
             .putNumber(
-                this.place.name() + " Distance From Target",
+                this.place.name() + " Angle Error",
                 Constants.angleDistance(targetAngle, this.updateModulePosition().angle.getDegrees())
             );
 
-        // 9. APPLY POWER
-        final double turn = this.turnPID.calculate(this.updateModulePosition().angle.getDegrees(), targetAngle);
-       // this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
-        // io.setTurnDutyCycle(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
-        io.setTurnVoltage(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
+        // 9. APPLY POWER    
 
+        // Calculate power required to reach the setpoint
+        double measurement = this.updateModulePosition().angle.getDegrees();
+        double setpoint = targetAngle;
+        final double turn = this.turnPID.calculate(measurement, setpoint);
+        
+        // Restrict the turn angle and reverse the direction
+        final double turnPower = MathUtil.clamp(turn, -90, 90); // MAY NEED TO SWITCH turn NEGATIVE
+        SmartDashboard.putNumber(this.place.name() + " turnPower", turnPower);
+
+        // Calculate the dutyCycle (-1 to 1) taking account of the turn motor gear ratio
+        final double dutyCycle = turnPower / Constants.Drivetrain.azimuthGearRatio;
+        SmartDashboard.putNumber(this.place.name() + " DutyCycle", dutyCycle);
+        
+        // this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
+        // io.setTurnDutyCycle(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
+        io.setTurnDutyCycle(dutyCycle);
+        
         // this.drive.set(this.backwards ? -this.targetVelocity : this.targetVelocity);
-        // io.setDriveDutyCycle(this.backwards ? -this.targetVelocity : this.targetVelocity);
-        io.setDriveVoltage(this.backwards ? -this.targetVelocity : this.targetVelocity);
+        io.setDriveDutyCycle(this.backwards ? -this.targetVelocity : this.targetVelocity);
     }
 
     // public void turnControl() {

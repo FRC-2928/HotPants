@@ -13,6 +13,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.SwerveModule.Place;
@@ -61,6 +62,7 @@ public class Drivetrain extends SubsystemBase {
 		// 6. DESATURATE WHEEL SPEEDS
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxWheelSpeed);
 
+		SmartDashboard.putNumber(" Angle theta", states[0].angle.getDegrees());
 		// 7. SET SPEED AND ANGLE FOR EACH WHEEL
 		// Also calculates the feedforward for the drive velocity
 		for(int i = 0; i < this.modules.length; i++)
