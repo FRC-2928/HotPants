@@ -51,7 +51,7 @@ public class SwerveModule {
     }
 
     public final Place place;
-    public final ModuleIO io;    
+    public final ModuleIO io;
     private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
 
     private final PIDController turnPID = Constants.Drivetrain.swerveAzimuthPID.createController();
@@ -61,101 +61,73 @@ public class SwerveModule {
     public Rotation2d targetAngle = new Rotation2d();
     public double targetVelocity = 0;
 
-    public SwerveModule(final ModuleIO io, final Place place){
+    public SwerveModule(final ModuleIO io, final Place place) {
         this.io = io;
         this.place = place;
         this.turnPID.enableContinuousInput(-180, 180);
     }
 
     /**
-     * Position of the motor rotor in rotations. 
-     * This position is only affected by the RotorOffset config.
+     * Position of the motor rotor in rotations. This position is only affected by the RotorOffset config.
      * 
      * @return Position of the drive motor rotor in rotations.
      */
-    public double getDriveRotorPosition() {
-        return this.inputs.driveRotorPosition;
-    }
+    public double getDriveRotorPosition() { return this.inputs.driveRotorPosition; }
 
     /**
-     * Position of the device in mechanism rotations.
-     * Converts device rotations to radians and then 
-     * applies the drive gear ratio to get wheel radians
+     * Position of the device in mechanism rotations. Converts device rotations to radians and then applies the drive gear ratio to get wheel radians
      * 
      * @return drive position of the module in radians
      */
-    public double getDrivePosition() {
-        return this.inputs.drivePositionRad;
-    }
-
-    /** 
-     * Should be equivalent to getDistanceMeters()
-     * 
-     * @return current drive position of the module in meters. 
-    */
-    public double getDrivePositionMeters() {
-        return getDrivePosition() * Constants.Drivetrain.wheelRadius;
-    }
+    public double getDrivePosition() { return this.inputs.drivePositionRad; }
 
     /**
-     * Position of the motor rotor in rotation units. 
-     * This position is only affected by the RotorOffset config.
+     * Should be equivalent to getDistanceMeters()
+     * 
+     * @return current drive position of the module in meters.
+     */
+    public double getDrivePositionMeters() { return getDrivePosition() * Constants.Drivetrain.wheelRadius; }
+
+    /**
+     * Position of the motor rotor in rotation units. This position is only affected by the RotorOffset config.
      * 
      * @return
      */
     public double getDistanceMeters() {
-        return 
-            Constants.Drivetrain.driveGearMotorToWheel
-                .forward(
-                    // Constants.Drivetrain.motorEncoderToRotations.forward(this.drive.getRotorPosition().getValue())
-                    Constants.Drivetrain.motorEncoderToRotations.forward(this.inputs.driveRotorPosition)
-                );
+        return Constants.Drivetrain.driveGearMotorToWheel
+            .forward(
+                // Constants.Drivetrain.motorEncoderToRotations.forward(this.drive.getRotorPosition().getValue())
+                Constants.Drivetrain.motorEncoderToRotations.forward(this.inputs.driveRotorPosition)
+            );
     }
 
     /**
-     * Velocity of the motor in mechanism rotations per second.
-     * Converts motor rotations to radians and then applies 
-     * the drive gear ratio to get wheel radians per/sec
+     * Velocity of the motor in mechanism rotations per second. Converts motor rotations to radians and then applies the drive gear ratio to get wheel radians per/sec
      * 
      * @return drive velocity in radians per/sec
      */
-    public double getDriveVelocity() {
-        return this.inputs.driveVelocityRadPerSec;
-    }
+    public double getDriveVelocity() { return this.inputs.driveVelocityRadPerSec; }
 
     /**
-     * Position of the turn motor in mechanism rotations.
-     * Converts motor rotations to radians and applies
-     * the turn gear ratio, then converts to Rotation2d
+     * Position of the turn motor in mechanism rotations. Converts motor rotations to radians and applies the turn gear ratio, then converts to Rotation2d
      * 
      * @return position of the turn motor as a Rotation2d
      */
-    public Rotation2d getTurnPosition() {
-        return this.inputs.turnPosition;
-    }
+    public Rotation2d getTurnPosition() { return this.inputs.turnPosition; }
 
     /**
-     * Velocity of the turn motor in mechanism rotations per second.
-     * Converts motor rotations to radians and then applies 
-     * the turn gear ratio to get wheel radians per/sec
+     * Velocity of the turn motor in mechanism rotations per second. Converts motor rotations to radians and then applies the turn gear ratio to get wheel radians per/sec
      * 
      * @return turn motor velocity in radians per/sec
      */
-    public double getTurnVelocity() {
-        return this.inputs.turnVelocityRadPerSec;
-    }
+    public double getTurnVelocity() { return this.inputs.turnVelocityRadPerSec; }
 
     /**
-     * Starts with the Absolute Position of the cancoder in rotations.
-     * Min Value: -0.5  Max Value: 0.999755859375 converted to radians 
-     * and then creates a Rotation2d object.
-     * Rotation2d.fromRotations(cancoder.getAbsolutePosition().getValueAsDouble())
+     * Starts with the Absolute Position of the cancoder in rotations. Min Value: -0.5 Max Value: 0.999755859375 converted to radians and then creates a Rotation2d object. Rotation2d.fromRotations(cancoder.getAbsolutePosition().getValueAsDouble())
      * 
      * @return Absolute Position of the cancoder as Rotation2d
      */
-    public Rotation2d getCancoderAbsolutePosition() {
-        return this.inputs.turnAbsolutePosition;
-    }
+    public Rotation2d getCancoderAbsolutePosition() { return this.inputs.turnAbsolutePosition; }
 
     /**
      * Absolute Position of the device in rotations.
@@ -165,29 +137,30 @@ public class SwerveModule {
     // public Rotation2d getAngle() {
     //     return  this.inputs.turnAbsolutePosition;
     // }
-    
+
     /**
      * Calculates the feedforward for the drive velocity.
      * 
-     * @param state - required speed in meters per/sec and the angle
+     * @param state
+     *                  - required speed in meters per/sec and the angle
      */
     public void applyState(final SwerveModuleState state) {
         final double ffw = Constants.Drivetrain.driveFFW.calculate(state.speedMetersPerSecond);
         this.targetVelocity = ffw;
 
-        this.targetAngle = state.angle.unaryMinus();  
+        this.targetAngle = state.angle.unaryMinus();
     }
 
-    public void stop() { 
+    public void stop() {
         io.setTurnVoltage(0.0);
         io.setDriveVoltage(0.0);
     }
 
     public SwerveModulePosition updateModulePosition() {
-        return new SwerveModulePosition(getDrivePositionMeters(),getCancoderAbsolutePosition());
+        return new SwerveModulePosition(getDrivePositionMeters(), getCancoderAbsolutePosition());
     }
 
-    void update() {     
+    void update() {
         io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
 
@@ -196,7 +169,8 @@ public class SwerveModule {
 
         // 8. WHEEL DIRECTION OPTIMIZATION
         this.backwards = Constants.Drivetrain.Flags.wheelOptimization
-            && Constants.angleDistance(this.targetAngle.getDegrees(), this.updateModulePosition().angle.getDegrees()) > 90;
+            && Constants
+                .angleDistance(this.targetAngle.getDegrees(), this.updateModulePosition().angle.getDegrees()) > 90;
 
         final double targetAngle = this.backwards
             ? Constants.angleNorm(this.targetAngle.getDegrees() + 180)
@@ -215,19 +189,19 @@ public class SwerveModule {
         double measurement = this.updateModulePosition().angle.getDegrees();
         double setpoint = targetAngle;
         final double turn = this.turnPID.calculate(measurement, setpoint);
-        
+
         // Restrict the turn angle and reverse the direction
-        final double turnPower = MathUtil.clamp(turn, -90, 90); // MAY NEED TO SWITCH turn NEGATIVE
+        final double turnPower = MathUtil.clamp(-turn, -90, 90); // MAY NEED TO SWITCH turn NEGATIVE
         SmartDashboard.putNumber(this.place.name() + " turnPower", turnPower);
 
         // Calculate the dutyCycle (-1 to 1) taking account of the turn motor gear ratio
         final double dutyCycle = turnPower / Constants.Drivetrain.azimuthGearRatio;
         SmartDashboard.putNumber(this.place.name() + " DutyCycle", dutyCycle);
-        
+
         // this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
         // io.setTurnDutyCycle(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
         io.setTurnDutyCycle(dutyCycle);
-        
+
         // this.drive.set(this.backwards ? -this.targetVelocity : this.targetVelocity);
         io.setDriveDutyCycle(this.backwards ? -this.targetVelocity : this.targetVelocity);
     }
@@ -237,7 +211,7 @@ public class SwerveModule {
     //     if (angleSetpoint != null) {
     //         io.setTurnVoltage(
     //             turnFeedback.calculate(getAngle().getRadians(), angleSetpoint.getRadians()));
-    
+
     //         // Run closed loop drive control
     //         // Only allowed if closed loop turn control is running
     //         if (speedSetpoint != null) {
@@ -247,7 +221,7 @@ public class SwerveModule {
     //         // towards the setpoint, its velocity should increase. This is achieved by
     //         // taking the component of the velocity in the direction of the setpoint.
     //         double adjustSpeedSetpoint = speedSetpoint * Math.cos(turnFeedback.getPositionError());
-    
+
     //         // Run drive controller
     //         double velocityRadPerSec = adjustSpeedSetpoint / WHEEL_RADIUS;
     //         io.setDriveVoltage(
