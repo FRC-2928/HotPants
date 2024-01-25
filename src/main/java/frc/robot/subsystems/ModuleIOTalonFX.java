@@ -65,8 +65,8 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final double TURN_GEAR_RATIO = 150.0 / 7.0; // 21.43
 
   private final boolean isTurnMotorInverted = true;
-  // private final double absoluteEncoderOffset;
-  private final Rotation2d absoluteEncoderOffset;
+  private final double absoluteEncoderOffset;
+  // private final Rotation2d absoluteEncoderOffset;
 
   public ModuleIOTalonFX(Place place) {
     switch(place) {
@@ -74,46 +74,53 @@ public class ModuleIOTalonFX implements ModuleIO {
       driveTalon = new TalonFX(Constants.CAN.swerveFrontLeftAzimuth, "canivore");
       turnTalon = new TalonFX(Constants.CAN.swerveFrontLeftDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore");
-      absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontLeftOffset)); // MUST BE CALIBRATED
-      // absoluteEncoderOffset = Constants.CAN.swerveFrontLeftOffset; // MUST BE CALIBRATED
+      // absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontLeftOffset)); // MUST BE CALIBRATED
+      absoluteEncoderOffset = Constants.CAN.swerveFrontLeftOffset; // MUST BE CALIBRATED
       break;
     case FrontRight:
       driveTalon = new TalonFX(Constants.CAN.swerveFrontRightAzimuth, "canivore");
       turnTalon = new TalonFX(Constants.CAN.swerveFrontRightDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveFrontRightEncoder, "canivore");
-      absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontRightOffset)); // MUST BE CALIBRATED
-      // absoluteEncoderOffset = Constants.CAN.swerveFrontRightOffset; // MUST BE CALIBRATED
+      // absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontRightOffset)); // MUST BE CALIBRATED
+      absoluteEncoderOffset = Constants.CAN.swerveFrontRightOffset; // MUST BE CALIBRATED
       break;
     case BackRight:
       driveTalon = new TalonFX(Constants.CAN.swerveBackRightAzimuth, "canivore");
       turnTalon = new TalonFX(Constants.CAN.swerveBackRightDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveBackRightEncoder, "canivore");
-      absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackRightOffset)); // MUST BE CALIBRATED
-      // absoluteEncoderOffset = Constants.CAN.swerveBackRightOffset;
+      // absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackRightOffset)); // MUST BE CALIBRATED
+      absoluteEncoderOffset = Constants.CAN.swerveBackRightOffset;
       break;
     case BackLeft:
       driveTalon = new TalonFX(Constants.CAN.swerveBackLeftAzimuth, "canivore");
       turnTalon = new TalonFX(Constants.CAN.swerveBackLeftDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveBackLeftEncoder, "canivore");
-      absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackLeftOffset)); // MUST BE CALIBRATED
-      // absoluteEncoderOffset = Constants.CAN.swerveBackLeftOffset;// MUST BE CALIBRATED
+      // absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackLeftOffset)); // MUST BE CALIBRATED
+      absoluteEncoderOffset = Constants.CAN.swerveBackLeftOffset;// MUST BE CALIBRATED
       break;
     default:
       throw new RuntimeException("Invalid module index");
     }
 
-    driveTalon.getConfigurator().apply(new TalonFXConfiguration()); 
-    turnTalon.getConfigurator().apply(new TalonFXConfiguration()); 
-    driveTalon.setNeutralMode(NeutralModeValue.Brake);
+    var azimuthConfig = new TalonFXConfiguration();
+    azimuthConfig.CurrentLimits.StatorCurrentLimit = 30.0;
+    azimuthConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    turnTalon.getConfigurator().apply(azimuthConfig); 
     turnTalon.setNeutralMode(NeutralModeValue.Brake);
 
-    if(place == Place.FrontRight || place == Place.BackRight) {
-        driveTalon.setInverted(false);
+    var driveConfig = new TalonFXConfiguration();
+    driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
+    driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    driveTalon.getConfigurator().apply(driveConfig);
+    driveTalon.setNeutralMode(NeutralModeValue.Brake);
+
+    if(place == Place.FrontLeft || place == Place.BackLeft) {
+        driveTalon.setInverted(true); // Clockwise_Positive
     }
 
-    // CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
-    // encoderConfig.MagnetSensor.MagnetOffset = absoluteEncoderOffset;
-    // cancoder.getConfigurator().apply(encoderConfig);
+    CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
+    encoderConfig.MagnetSensor.MagnetOffset = absoluteEncoderOffset;
+    cancoder.getConfigurator().apply(encoderConfig);
 
     // ----------------------------------------------------------
     // Inputs
