@@ -72,7 +72,6 @@ public class ModuleIOTalonFX implements ModuleIO {
     switch(place) {
     case FrontLeft:
       driveTalon = new TalonFX(Constants.CAN.swerveFrontLeftAzimuth, "canivore");
-      driveTalon.setInverted(false);
       turnTalon = new TalonFX(Constants.CAN.swerveFrontLeftDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore");
       absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontLeftOffset)); // MUST BE CALIBRATED
@@ -80,7 +79,6 @@ public class ModuleIOTalonFX implements ModuleIO {
       break;
     case FrontRight:
       driveTalon = new TalonFX(Constants.CAN.swerveFrontRightAzimuth, "canivore");
-      driveTalon.setInverted(true);
       turnTalon = new TalonFX(Constants.CAN.swerveFrontRightDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveFrontRightEncoder, "canivore");
       absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontRightOffset)); // MUST BE CALIBRATED
@@ -88,7 +86,6 @@ public class ModuleIOTalonFX implements ModuleIO {
       break;
     case BackRight:
       driveTalon = new TalonFX(Constants.CAN.swerveBackRightAzimuth, "canivore");
-      driveTalon.setInverted(true);
       turnTalon = new TalonFX(Constants.CAN.swerveBackRightDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveBackRightEncoder, "canivore");
       absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackRightOffset)); // MUST BE CALIBRATED
@@ -96,7 +93,6 @@ public class ModuleIOTalonFX implements ModuleIO {
       break;
     case BackLeft:
       driveTalon = new TalonFX(Constants.CAN.swerveBackLeftAzimuth, "canivore");
-      driveTalon.setInverted(false);
       turnTalon = new TalonFX(Constants.CAN.swerveBackLeftDrive, "canivore");
       cancoder = new CANcoder(Constants.CAN.swerveBackLeftEncoder, "canivore");
       absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackLeftOffset)); // MUST BE CALIBRATED
@@ -106,6 +102,8 @@ public class ModuleIOTalonFX implements ModuleIO {
       throw new RuntimeException("Invalid module index");
     }
 
+    driveTalon.getConfigurator().apply(new TalonFXConfiguration()); 
+    turnTalon.getConfigurator().apply(new TalonFXConfiguration()); 
     driveTalon.setNeutralMode(NeutralModeValue.Brake);
     turnTalon.setNeutralMode(NeutralModeValue.Brake);
 
