@@ -82,15 +82,17 @@ public class SwerveModule {
         this.drive = drive;
         this.encoder = encoder;
 
-        azimuth.getConfigurator().apply(new TalonFXConfiguration()); 
+        var azimuthConfig = new TalonFXConfiguration();
+        azimuthConfig.CurrentLimits.StatorCurrentLimit = 30.0;
+        azimuthConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+        azimuth.getConfigurator().apply(azimuthConfig); 
         azimuth.setNeutralMode(NeutralModeValue.Brake);
 
-        drive.getConfigurator().apply(new TalonFXConfiguration()); 
+        var driveConfig = new TalonFXConfiguration();
+        driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
+        driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+        drive.getConfigurator().apply(driveConfig);
         drive.setNeutralMode(NeutralModeValue.Brake);
-
-        // if(place == Place.FrontLeft || place == Place.BackLeft) {
-        //     drive.setInverted(false);
-        // }
 
         CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
         encoderConfig.MagnetSensor.MagnetOffset = encoderOffset;
