@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -81,13 +82,15 @@ public class SwerveModule {
         this.drive = drive;
         this.encoder = encoder;
 
+        azimuth.getConfigurator().apply(new TalonFXConfiguration()); 
         azimuth.setNeutralMode(NeutralModeValue.Brake);
 
+        drive.getConfigurator().apply(new TalonFXConfiguration()); 
         drive.setNeutralMode(NeutralModeValue.Brake);
 
-        if(place == Place.FrontLeft || place == Place.BackLeft) {
-            drive.setInverted(false);
-        }
+        // if(place == Place.FrontLeft || place == Place.BackLeft) {
+        //     drive.setInverted(false);
+        // }
 
         CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
         encoderConfig.MagnetSensor.MagnetOffset = encoderOffset;
