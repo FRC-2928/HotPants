@@ -56,7 +56,7 @@ public class JoystickDrive extends Command {
 			this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;
 
 			// Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1)
-			double measurement = Constants.mod(this.drivetrain.getHeading().unaryMinus().getRotations(),1) - 0.5;
+			double measurement = Constants.mod(this.drivetrain.getGyroRotations(),1) - 0.5;
 			double setpoint = this.absoluteTarget.getRotations();
 
 			theta = MathUtil.applyDeadband(
@@ -81,7 +81,7 @@ public class JoystickDrive extends Command {
 		// Compensate for wheel rotation while driving and rotating
 		if(Constants.Drivetrain.Flags.thetaCompensation) desired = this.drivetrain.compensate(desired);
 
-		// Field-oriented drive
+		// Convert field-relative ChassisSpeeds to robot-relative ChassisSpeeds.
 		if(Constants.Drivetrain.Flags.fod) desired = this.drivetrain.fieldOrientedDrive(desired);
 
 		// Calculate module setpoints

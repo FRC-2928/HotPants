@@ -67,8 +67,8 @@ public class RobotContainer {
 
 	private void configureDriverControls() {
 		// this.driverOI.resetFOD.whileTrue(new RunCommand(() -> this.drivetrain.gyro.setYaw(0)));
-		this.driverOI.resetFOD.whileTrue(new RunCommand(() -> this.drivetrain.resetGyro()));
-		this.driverOI.lock.whileTrue(new LockWheels(this.drivetrain, this.driverOI));
+		this.driverOI.resetFOD.whileTrue(new RunCommand(() -> this.drivetrain.resetGyro())); // Y Button
+		this.driverOI.lock.whileTrue(new LockWheels(this.drivetrain, this.driverOI)); // Left Bumper
 	}
 	
 	public void teleop() { this.drivetrain.setDefaultCommand(new JoystickDrive(this.drivetrain, this.driverOI)); }

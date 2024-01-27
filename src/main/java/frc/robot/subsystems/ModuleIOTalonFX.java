@@ -107,6 +107,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     azimuthConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     turnTalon.getConfigurator().apply(azimuthConfig); 
     turnTalon.setNeutralMode(NeutralModeValue.Brake);
+    turnTalon.setInverted(true);
 
     var driveConfig = new TalonFXConfiguration();
     driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;

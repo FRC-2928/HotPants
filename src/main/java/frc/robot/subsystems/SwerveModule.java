@@ -164,13 +164,15 @@ public class SwerveModule {
         io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
 
-        SmartDashboard.putNumber(this.place.name() + " Angle", this.updateModulePosition().angle.getDegrees());
+        double currentAngle = this.updateModulePosition().angle.getDegrees();
+
+        SmartDashboard.putNumber(this.place.name() + " Angle", currentAngle);
         SmartDashboard.putNumber(this.place.name() + " Angle Target", this.targetAngle.getDegrees());
 
-        // 8. WHEEL DIRECTION OPTIMIZATION
+        // 9. WHEEL DIRECTION OPTIMIZATION
         this.backwards = Constants.Drivetrain.Flags.wheelOptimization
             && Constants
-                .angleDistance(this.targetAngle.getDegrees(), this.updateModulePosition().angle.getDegrees()) > 90;
+                .angleDistance(this.targetAngle.getDegrees(), currentAngle) > 90;
 
         final double targetAngle = this.backwards
             ? Constants.angleNorm(this.targetAngle.getDegrees() + 180)
@@ -180,18 +182,17 @@ public class SwerveModule {
         SmartDashboard
             .putNumber(
                 this.place.name() + " Angle Error",
-                Constants.angleDistance(targetAngle, this.updateModulePosition().angle.getDegrees())
+                Constants.angleDistance(targetAngle, currentAngle)
             );
 
-        // 9. APPLY POWER    
+        // 10. APPLY POWER    
 
         // Calculate power required to reach the setpoint
-        double measurement = this.updateModulePosition().angle.getDegrees();
         double setpoint = targetAngle;
-        final double turn = this.turnPID.calculate(measurement, setpoint);
+        final double turn = this.turnPID.calculate(currentAngle, setpoint);
 
-        // Restrict the turn angle and reverse the direction
-        final double turnPower = MathUtil.clamp(-turn, -90, 90); // MAY NEED TO SWITCH turn NEGATIVE
+        // Restrict the turn power and reverse the direction
+        final double turnPower = MathUtil.clamp(-turn, -90, 90); // MAY NEED TO SWITCH turn POSITIVE
         SmartDashboard.putNumber(this.place.name() + " turnPower", turnPower);
 
         // Calculate the dutyCycle (-1 to 1) taking account of the turn motor gear ratio
@@ -205,42 +206,5 @@ public class SwerveModule {
         // this.drive.set(this.backwards ? -this.targetVelocity : this.targetVelocity);
         io.setDriveDutyCycle(this.backwards ? -this.targetVelocity : this.targetVelocity);
     }
-
-    // public void turnControl() {
-    //     // Run closed loop turn control
-    //     if (angleSetpoint != null) {
-    //         io.setTurnVoltage(
-    //             turnFeedback.calculate(getAngle().getRadians(), angleSetpoint.getRadians()));
-
-    //         // Run closed loop drive control
-    //         // Only allowed if closed loop turn control is running
-    //         if (speedSetpoint != null) {
-    //         // Scale velocity based on turn error
-    //         //
-    //         // When the error is 90°, the velocity setpoint should be 0. As the wheel turns
-    //         // towards the setpoint, its velocity should increase. This is achieved by
-    //         // taking the component of the velocity in the direction of the setpoint.
-    //         double adjustSpeedSetpoint = speedSetpoint * Math.cos(turnFeedback.getPositionError());
-
-    //         // Run drive controller
-    //         double velocityRadPerSec = adjustSpeedSetpoint / WHEEL_RADIUS;
-    //         io.setDriveVoltage(
-    //             driveFeedforward.calculate(velocityRadPerSec)
-    //                 + driveFeedback.calculate(inputs.driveVelocityRadPerSec, velocityRadPerSec));
-    //         }
-    //     }
-    // }
-
-    // /** Runs the module with the specified setpoint state. Returns the optimized state. */
-    // public SwerveModuleState runSetpoint(SwerveModuleState state) {
-    //     // Optimize state based on current angle
-    //     // Controllers run in "periodic" when the setpoint is not null
-    //     var optimizedState = SwerveModuleState.optimize(state, getAngle());
-
-    //     // Update setpoints, controllers run in "periodic"
-    //     angleSetpoint = optimizedState.angle;
-    //     speedSetpoint = optimizedState.speedMetersPerSecond;
-
-    //     return optimizedState;
-    // }
+    
 }

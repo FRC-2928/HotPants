@@ -10,7 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 public class Constants {
 	private Constants() { throw new IllegalCallerException("Cannot instantiate `Constants`"); }
 
-	public static final Mode currentMode = Mode.SIM;
+	public static final Mode currentMode = Mode.REAL;
 
 	public static enum Mode {
 		/** Running on a real robot. */
@@ -94,6 +94,7 @@ public class Constants {
 
 		// todo: tune
 		// public static final PIDValues swerveAzimuthPID = new PIDValues(0.3, 0.01, 0.003, 0);
+		// public static final PIDValues swerveAzimuthPID = new PIDValues(0.1, 0.0, 0, 0);
 		public static final PIDValues swerveAzimuthPID = new PIDValues(0.25, 0.75, 0, 0); // todo: test this more, see how it feels and inspect wheel motion, compare to above
 		public static final PIDValues absoluteRotationPID = new PIDValues(2.75, 0, 0.2, 0);
 
