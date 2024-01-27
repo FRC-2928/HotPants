@@ -35,8 +35,8 @@ public class RobotContainer {
 					new GyroIOPigeon2(),
 					new ModuleIOTalonFX(SwerveModule.Place.FrontLeft),
 					new ModuleIOTalonFX(SwerveModule.Place.FrontRight),
-					new ModuleIOTalonFX(SwerveModule.Place.BackRight),
-					new ModuleIOTalonFX(SwerveModule.Place.BackLeft));
+					new ModuleIOTalonFX(SwerveModule.Place.BackLeft),
+					new ModuleIOTalonFX(SwerveModule.Place.BackRight));
 				break;
 
 			case SIM:
