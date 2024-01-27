@@ -33,7 +33,8 @@ public class JoystickDrive extends Command {
 	public void execute() {
 		final double mul = MathUtil.interpolate(1, 0.5, this.oi.slow.get());
 
-		// 1. GET GAME STICK INPUTS
+		// Left Axis 
+		// 1. GET GAME STICK INPUTS 
 		// 2. APPLY DEADBANDS
 		final double axial = -MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
 		final double lateral = MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
@@ -42,8 +43,8 @@ public class JoystickDrive extends Command {
 		final Rotation2d moveDirection = Rotation2d.fromRadians(Math.atan2(lateral, axial));
 		final double moveMagnitude = this.curve(MathUtil.clamp(Math.sqrt(lateral * lateral + axial * axial), 0, 1));
 
+		// Right Axis
 		final double theta;
-
 		if(Constants.Drivetrain.Flags.absoluteRotation) {
 			final double rotX = this.oi.moveRotationX.get();
 			final double rotY = this.oi.moveRotationY.get();
@@ -81,10 +82,10 @@ public class JoystickDrive extends Command {
 		// Compensate for wheel rotation while driving and rotating
 		if(Constants.Drivetrain.Flags.thetaCompensation) desired = this.drivetrain.compensate(desired);
 
-		// Convert field-relative ChassisSpeeds to robot-relative ChassisSpeeds.
+		// 5. CONVERT FROM FIELD RELATIVE SPEED TO ROBOT RELATIVE CHASSIS SPEEDS
 		if(Constants.Drivetrain.Flags.fod) desired = this.drivetrain.fieldOrientedDrive(desired);
 
-		// Calculate module setpoints
+		// 6. CONVERT CHASSIS SPEEDS TO MODULE SPEEDS
 		// ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(desired, 0.02);
 		SwerveModuleState[] setpointStates = this.drivetrain.kinematics.toSwerveModuleStates(desired);
 

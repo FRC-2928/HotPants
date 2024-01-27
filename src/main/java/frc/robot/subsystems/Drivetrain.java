@@ -72,7 +72,7 @@ public class Drivetrain extends SubsystemBase {
 
 	public void setModuleStates(final SwerveModule.State state) { this.setModuleStates(state.states); }
 
-	// 5. CONVERT FROM FIELD RELATIVE SPEED TO ROBOT RELATIVE CHASSIS SPEEDS
+	// Convert field-relative ChassisSpeeds to robot-relative ChassisSpeeds.
 	public ChassisSpeeds fieldOrientedDrive(final ChassisSpeeds field) {
 		return ChassisSpeeds.fromFieldRelativeSpeeds(field, getHeading().unaryMinus());
 	}
@@ -120,13 +120,12 @@ public class Drivetrain extends SubsystemBase {
 	 * Takes the negative of the current angular value
 	 * and converts given radians to rotations.
 	 * 
-	 * @return the number of times the robot has rotated thru 360 degrees
+	 * @return the continuous rotations and partial rotations
 	 */
 	@AutoLogOutput(key = "Gyro/Rotations")
 	public double getGyroRotations() {
 		return getHeading().unaryMinus().getRotations();
 	}
-
 
 	/** Returns the current odometry pose. */
 	@AutoLogOutput(key = "Odometry/Estimation")
