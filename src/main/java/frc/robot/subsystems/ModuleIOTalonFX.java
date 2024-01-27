@@ -50,7 +50,7 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final StatusSignal<Double> driveCurrent;
   private final StatusSignal<Double> driveRotorPosition;
 
-  private final StatusSignal<Double> turnAbsolutePosition;
+  private final StatusSignal<Double> cancoderAbsolutePosition;
   private final StatusSignal<Double> turnPosition;
   private final StatusSignal<Double> turnVelocity;
   private final StatusSignal<Double> turnAppliedVolts;
@@ -128,7 +128,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveAppliedVolts = driveTalon.getMotorVoltage();
     driveCurrent = driveTalon.getStatorCurrent();
 
-    turnAbsolutePosition = cancoder.getAbsolutePosition();
+    cancoderAbsolutePosition = cancoder.getAbsolutePosition();
     turnPosition = turnTalon.getPosition();
     turnVelocity = turnTalon.getVelocity();
     turnAppliedVolts = turnTalon.getMotorVoltage();
@@ -141,7 +141,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         driveVelocity,
         driveAppliedVolts,
         driveCurrent,
-        turnAbsolutePosition,
+        cancoderAbsolutePosition,
         turnVelocity,
         turnAppliedVolts,
         turnCurrent
@@ -159,7 +159,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         driveAppliedVolts,
         driveCurrent,
         driveRotorPosition,
-        turnAbsolutePosition,
+        cancoderAbsolutePosition,
         turnPosition,
         turnVelocity,
         turnAppliedVolts,
@@ -171,10 +171,10 @@ public class ModuleIOTalonFX implements ModuleIO {
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
     inputs.driveCurrentAmps = new double[] { driveCurrent.getValueAsDouble() };
     inputs.driveRotorPosition = driveRotorPosition.getValueAsDouble();
-    // inputs.turnAbsolutePosition =
-    //     Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble())
+    // inputs.cancoderAbsolutePosition =
+    //     Rotation2d.fromRotations(cancoderAbsolutePosition.getValueAsDouble())
     //         .minus(absoluteEncoderOffset);
-    inputs.turnAbsolutePosition = Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble());
+    inputs.cancoderAbsolutePosition = Rotation2d.fromRotations(cancoderAbsolutePosition.getValueAsDouble());
     inputs.turnPosition = Rotation2d.fromRotations(turnPosition.getValueAsDouble() / TURN_GEAR_RATIO);
     inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble()) / TURN_GEAR_RATIO;
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();

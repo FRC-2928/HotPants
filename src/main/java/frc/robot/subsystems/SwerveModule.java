@@ -127,7 +127,7 @@ public class SwerveModule {
      * 
      * @return Absolute Position of the cancoder as Rotation2d
      */
-    public Rotation2d getCancoderAbsolutePosition() { return this.inputs.turnAbsolutePosition; }
+    public Rotation2d getCancoderAbsolutePosition() { return this.inputs.cancoderAbsolutePosition; }
 
     /**
      * Absolute Position of the device in rotations.
