@@ -152,8 +152,8 @@ public class SwerveModule {
     }
 
     public void stop() {
-        io.setTurnVoltage(0.0);
-        io.setDriveVoltage(0.0);
+        this.io.setTurnVoltage(0.0);
+        this.io.setDriveVoltage(0.0);
     }
 
     public SwerveModulePosition updateModulePosition() {
@@ -161,7 +161,7 @@ public class SwerveModule {
     }
 
     void update() {
-        io.updateInputs(inputs);
+        this.io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
 
         double currentAngle = this.updateModulePosition().angle.getDegrees();
@@ -200,11 +200,11 @@ public class SwerveModule {
         SmartDashboard.putNumber(this.place.name() + " DutyCycle", dutyCycle);
 
         // this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
-        // io.setTurnDutyCycle(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
-        io.setTurnDutyCycle(dutyCycle * 0.2);
+        // this.io.setTurnDutyCycle(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
+        this.io.setTurnDutyCycle(dutyCycle * 0.2);
 
         // this.drive.set(this.backwards ? -this.targetVelocity : this.targetVelocity);
-        io.setDriveDutyCycle(this.backwards ? -this.targetVelocity : this.targetVelocity);
+        this.io.setDriveDutyCycle(this.backwards ? -this.targetVelocity : this.targetVelocity);
     }
     
 }

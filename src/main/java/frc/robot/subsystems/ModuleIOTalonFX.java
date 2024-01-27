@@ -34,14 +34,10 @@ import frc.robot.subsystems.SwerveModule.Place;
  * Module IO implementation for Talon FX drive motor controller, Talon FX turn motor controller, and CANcoder
  *
  * <p>
- * NOTE: This implementation should be used as a starting point and adapted to different 
- * hardware configurations (e.g. If using an analog encoder, copy from "ModuleIOSparkMax")
+ * NOTE: This implementation should be used as a starting point and adapted to different hardware configurations (e.g. If using an analog encoder, copy from "ModuleIOSparkMax")
  *
  * <p>
- * To calibrate the absolute encoder offsets, point the modules straight (such that forward 
- * motion on the drive motor will propel the robot forward) and copy the reported values 
- * from the absolute encoders using AdvantageScope. 
- * These values are logged under "/Drive/ModuleX/TurnAbsolutePositionRad"
+ * To calibrate the absolute encoder offsets, point the modules straight (such that forward motion on the drive motor will propel the robot forward) and copy the reported values from the absolute encoders using AdvantageScope. These values are logged under "/Drive/ModuleX/TurnAbsolutePositionRad"
  */
 public class ModuleIOTalonFX implements ModuleIO {
   private final TalonFX driveTalon;
@@ -71,32 +67,32 @@ public class ModuleIOTalonFX implements ModuleIO {
   public ModuleIOTalonFX(Place place) {
     switch(place) {
     case FrontLeft:
-      driveTalon = new TalonFX(Constants.CAN.swerveFrontLeftAzimuth, "canivore");
-      turnTalon = new TalonFX(Constants.CAN.swerveFrontLeftDrive, "canivore");
-      cancoder = new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore");
-      // absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontLeftOffset)); // MUST BE CALIBRATED
-      absoluteEncoderOffset = Constants.CAN.swerveFrontLeftOffset; // MUST BE CALIBRATED
+      this.driveTalon = new TalonFX(Constants.CAN.swerveFrontLeftAzimuth, "canivore");
+      this.turnTalon = new TalonFX(Constants.CAN.swerveFrontLeftDrive, "canivore");
+      this.cancoder = new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore");
+      // this.absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontLeftOffset)); // MUST BE CALIBRATED
+      this.absoluteEncoderOffset = Constants.CAN.swerveFrontLeftOffset; // MUST BE CALIBRATED
       break;
     case FrontRight:
-      driveTalon = new TalonFX(Constants.CAN.swerveFrontRightAzimuth, "canivore");
-      turnTalon = new TalonFX(Constants.CAN.swerveFrontRightDrive, "canivore");
-      cancoder = new CANcoder(Constants.CAN.swerveFrontRightEncoder, "canivore");
-      // absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontRightOffset)); // MUST BE CALIBRATED
-      absoluteEncoderOffset = Constants.CAN.swerveFrontRightOffset; // MUST BE CALIBRATED
+      this.driveTalon = new TalonFX(Constants.CAN.swerveFrontRightAzimuth, "canivore");
+      this.turnTalon = new TalonFX(Constants.CAN.swerveFrontRightDrive, "canivore");
+      this.cancoder = new CANcoder(Constants.CAN.swerveFrontRightEncoder, "canivore");
+      // this.absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontRightOffset)); // MUST BE CALIBRATED
+      this.absoluteEncoderOffset = Constants.CAN.swerveFrontRightOffset; // MUST BE CALIBRATED
       break;
     case BackRight:
-      driveTalon = new TalonFX(Constants.CAN.swerveBackRightAzimuth, "canivore");
-      turnTalon = new TalonFX(Constants.CAN.swerveBackRightDrive, "canivore");
-      cancoder = new CANcoder(Constants.CAN.swerveBackRightEncoder, "canivore");
-      // absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackRightOffset)); // MUST BE CALIBRATED
-      absoluteEncoderOffset = Constants.CAN.swerveBackRightOffset;
+      this.driveTalon = new TalonFX(Constants.CAN.swerveBackRightAzimuth, "canivore");
+      this.turnTalon = new TalonFX(Constants.CAN.swerveBackRightDrive, "canivore");
+      this.cancoder = new CANcoder(Constants.CAN.swerveBackRightEncoder, "canivore");
+      // this.absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackRightOffset)); // MUST BE CALIBRATED
+      this.absoluteEncoderOffset = Constants.CAN.swerveBackRightOffset;
       break;
     case BackLeft:
-      driveTalon = new TalonFX(Constants.CAN.swerveBackLeftAzimuth, "canivore");
-      turnTalon = new TalonFX(Constants.CAN.swerveBackLeftDrive, "canivore");
-      cancoder = new CANcoder(Constants.CAN.swerveBackLeftEncoder, "canivore");
-      // absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackLeftOffset)); // MUST BE CALIBRATED
-      absoluteEncoderOffset = Constants.CAN.swerveBackLeftOffset;// MUST BE CALIBRATED
+      this.driveTalon = new TalonFX(Constants.CAN.swerveBackLeftAzimuth, "canivore");
+      this.turnTalon = new TalonFX(Constants.CAN.swerveBackLeftDrive, "canivore");
+      this.cancoder = new CANcoder(Constants.CAN.swerveBackLeftEncoder, "canivore");
+      // this.absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackLeftOffset)); // MUST BE CALIBRATED
+      this.absoluteEncoderOffset = Constants.CAN.swerveBackLeftOffset;// MUST BE CALIBRATED
       break;
     default:
       throw new RuntimeException("Invalid module index");
@@ -105,7 +101,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     var azimuthConfig = new TalonFXConfiguration();
     azimuthConfig.CurrentLimits.StatorCurrentLimit = 30.0;
     azimuthConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-    turnTalon.getConfigurator().apply(azimuthConfig); 
+    turnTalon.getConfigurator().apply(azimuthConfig);
     turnTalon.setNeutralMode(NeutralModeValue.Brake);
     turnTalon.setInverted(true);
 
@@ -116,7 +112,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveTalon.setNeutralMode(NeutralModeValue.Brake);
 
     if(place == Place.FrontLeft || place == Place.BackLeft) {
-        driveTalon.setInverted(true); // Clockwise_Positive
+      driveTalon.setInverted(true); // Clockwise_Positive
     }
 
     CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
