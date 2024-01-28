@@ -3,6 +3,7 @@ package frc.robot;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -65,6 +66,7 @@ public class RobotContainer {
 		}
 
 		this.autonomousChooser = AutonomousRoutines.createAutonomousChooser(this.drivetrain);
+		SmartDashboard.putData("Autonomous Routine", this.autonomousChooser);
 
 		this.configureDriverControls(); 
 	}
