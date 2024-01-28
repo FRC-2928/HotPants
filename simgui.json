@@ -4,6 +4,13 @@
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Auto Choices": "String Chooser",
       "/SmartDashboard/Autonomous Routine": "String Chooser"
+    },
+    "windows": {
+      "/SmartDashboard/Autonomous Routine": {
+        "window": {
+          "visible": true
+        }
+      }
     }
   },
   "NetworkTables": {
