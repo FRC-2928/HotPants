@@ -37,7 +37,10 @@ public final class AutonomousRoutines {
 	public static Command runTrajectory(String trajectoryName, Drivetrain drivetrain) {
 
 		ChoreoTrajectory traj = Choreo.getTrajectory(trajectoryName);
+		SmartDashboard.putString("Traj Name", trajectoryName);
 		SmartDashboard.putNumber("Linear X", traj.getInitialPose().getX());
+		SmartDashboard.putNumber("Linear Y", traj.getInitialPose().getY());
+		
 		var thetaController = new PIDController(0.1, 0, 0);
 		thetaController.enableContinuousInput(-Math.PI, Math.PI);
 		

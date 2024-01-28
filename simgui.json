@@ -16,6 +16,9 @@
   "NetworkTables": {
     "transitory": {
       "AdvantageKit": {
+        ".schema": {
+          "open": true
+        },
         "RealOutputs": {
           "Gyro": {
             "open": true
