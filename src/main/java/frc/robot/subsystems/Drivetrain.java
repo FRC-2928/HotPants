@@ -54,6 +54,24 @@ public class Drivetrain extends SubsystemBase {
     // ----------------------------------------------------------
 
 	/**
+	 * Method to drive the robot using joystick info.
+	 *
+	 * @param xSpeed Speed of the robot in the x direction (forward).
+	 * @param ySpeed Speed of the robot in the y direction (sideways).
+	 * @param rot Angular rate of the robot.
+	 * @param fieldRelative Whether the provided x and y speeds are relative to the field.
+	 */
+	public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
+		var swerveModuleStates =
+			kinematics.toSwerveModuleStates(
+				fieldRelative
+					? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, getHeading())
+					: new ChassisSpeeds(xSpeed, ySpeed, rot));
+
+		setModuleStates(swerveModuleStates);
+	}
+
+	/**
 	 * Set the required speed and angle of each wheel.
 	 * 
 	 * @param states - required speed in meters per/sec
@@ -89,6 +107,18 @@ public class Drivetrain extends SubsystemBase {
   
 	public void resetGyro() {
 		gyroIO.resetGyro();
+	}
+
+	/**
+	 * Resets the odometry to the specified pose.
+	 *
+	 * @param pose The pose to which to set the odometry.
+	 */
+	public void resetOdometry(Pose2d pose) {
+		this.poseEstimator.resetPosition(
+			this.gyroInputs.yawPosition,
+			this.getModulePositions(),
+			pose);
 	}
 	
 	// ----------------------------------------------------------

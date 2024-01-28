@@ -18,6 +18,8 @@ import frc.robot.subsystems.ModuleIOSim;
 import frc.robot.subsystems.ModuleIOTalonFX;
 
 public class RobotContainer {
+
+	private final SendableChooser<Command> autonomousChooser;
 	public final LoggedDashboardChooser<
 		Command> autoChooser = new LoggedDashboardChooser<>("Autonomous Routine", new SendableChooser<>());
 
@@ -62,6 +64,8 @@ public class RobotContainer {
 				break;
 		}
 
+		this.autonomousChooser = AutonomousRoutines.createAutonomousChooser(this.drivetrain);
+
 		this.configureDriverControls(); 
 	}
 
@@ -72,5 +76,14 @@ public class RobotContainer {
 	}
 	
 	public void teleop() { this.drivetrain.setDefaultCommand(new JoystickDrive(this.drivetrain, this.driverOI)); }
+
+	/**
+	 * Use this to pass the autonomous command to the main {@link Robot} class.
+	 *
+	 * @return the command to run in autonomous
+	 */
+	public Command getAutonomousCommand() {
+		return this.autonomousChooser.getSelected();
+	}
 
 }
