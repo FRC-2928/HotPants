@@ -36,6 +36,7 @@ public class Constants {
 	public static record PIDValues(double p, double i, double d, double f) {
 		public final PIDController createController() { return new PIDController(this.p, this.i, this.d); }
 	}
+	
 
 	public static record Ratio(double factor) {
 		public Ratio(final double from, final double to) { this(to / from); }
@@ -77,6 +78,10 @@ public class Constants {
 
 	public static final class Drivetrain {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
+
+		public final static PIDController drivePID = new PIDController(0.2, 0, 0);
+
+		public final static double pi = 3.14159;
 
 		public static final class Flags {
 			private Flags() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain.Flags`"); }

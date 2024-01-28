@@ -106,7 +106,9 @@ public class SwerveModule {
      * 
      * @return drive velocity in radians per/sec
      */
-    public double getDriveVelocity() { return this.inputs.driveVelocityRadPerSec; }
+    public double getDriveVelocity() {
+        return (this.inputs.driveVelocityRadPerSec / (2 * Constants.Drivetrain.pi)) * Constants.Drivetrain.wheelRadius;
+    }
 
     /**
      * Position of the turn motor in mechanism rotations. Converts motor rotations to radians and applies the turn gear ratio, then converts to Rotation2d
@@ -145,8 +147,9 @@ public class SwerveModule {
      *                  - required speed in meters per/sec and the angle
      */
     public void applyState(final SwerveModuleState state) {
-        final double ffw = Constants.Drivetrain.driveFFW.calculate(state.speedMetersPerSecond);
-        this.targetVelocity = ffw;
+        // final double ffw = Constants.Drivetrain.driveFFW.calculate(state.speedMetersPerSecond);
+
+        this.targetVelocity = state.speedMetersPerSecond;
 
         this.targetAngle = state.angle.unaryMinus();
     }
@@ -171,8 +174,7 @@ public class SwerveModule {
 
         // 9. WHEEL DIRECTION OPTIMIZATION
         this.backwards = Constants.Drivetrain.Flags.wheelOptimization
-            && Constants
-                .angleDistance(this.targetAngle.getDegrees(), currentAngle) > 90;
+            && Constants.angleDistance(this.targetAngle.getDegrees(), currentAngle) > 90;
 
         final double targetAngle = this.backwards
             ? Constants.angleNorm(this.targetAngle.getDegrees() + 180)
@@ -180,10 +182,7 @@ public class SwerveModule {
 
         SmartDashboard.putNumber(this.place.name() + " Angle Target Optimized", targetAngle);
         SmartDashboard
-            .putNumber(
-                this.place.name() + " Angle Error",
-                Constants.angleDistance(targetAngle, currentAngle)
-            );
+            .putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngle));
 
         // 10. APPLY POWER    
 
@@ -198,13 +197,16 @@ public class SwerveModule {
         // Calculate the dutyCycle (-1 to 1) taking account of the turn motor gear ratio
         final double dutyCycle = turnPower / Constants.Drivetrain.azimuthGearRatio;
         SmartDashboard.putNumber(this.place.name() + " DutyCycle", dutyCycle);
-
-        // this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
-        // this.io.setTurnDutyCycle(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
         this.io.setTurnDutyCycle(dutyCycle);
 
-        // this.drive.set(this.backwards ? -this.targetVelocity : this.targetVelocity);
-        this.io.setDriveDutyCycle(this.backwards ? -this.targetVelocity : this.targetVelocity);
+        final double ffw = Constants.Drivetrain.driveFFW.calculate(this.targetVelocity);
+        final double output = Constants.Drivetrain.drivePID.calculate(getDriveVelocity(), this.targetVelocity);
+        final double driveDutyCycle = MathUtil.clamp(ffw + output, -1, 1);
+        SmartDashboard.putNumber("Output Value", output);
+        SmartDashboard.putNumber("FFW Value", ffw);
+        SmartDashboard.putNumber("Duty Cyvle", driveDutyCycle);
+        this.io.setDriveDutyCycle(this.backwards ? -driveDutyCycle : driveDutyCycle);
+
     }
-    
+
 }

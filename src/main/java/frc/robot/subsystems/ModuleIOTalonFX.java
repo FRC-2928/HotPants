@@ -108,6 +108,8 @@ public class ModuleIOTalonFX implements ModuleIO {
     var driveConfig = new TalonFXConfiguration();
     driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
     driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    driveConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
+
     driveTalon.getConfigurator().apply(driveConfig);
     driveTalon.setNeutralMode(NeutralModeValue.Brake);
 
