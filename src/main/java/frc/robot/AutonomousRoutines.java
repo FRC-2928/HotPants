@@ -3,6 +3,7 @@ package frc.robot;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.subsystems.Drivetrain;
 
@@ -36,7 +37,7 @@ public final class AutonomousRoutines {
 	public static Command runTrajectory(String trajectoryName, Drivetrain drivetrain) {
 
 		ChoreoTrajectory traj = Choreo.getTrajectory(trajectoryName);
-
+		SmartDashboard.putNumber("Linear X", traj.getInitialPose().getX());
 		var thetaController = new PIDController(0.1, 0, 0);
 		thetaController.enableContinuousInput(-Math.PI, Math.PI);
 		

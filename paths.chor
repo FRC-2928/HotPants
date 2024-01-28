@@ -1,0 +1,124 @@
+{
+    "version": "v0.2",
+    "robotConfiguration": {
+        "mass": 24.69599233436398,
+        "rotationalInertia": 6,
+        "motorMaxTorque": 0.7299610894941635,
+        "motorMaxVelocity": 5104,
+        "gearing": 6.75,
+        "wheelbase": 0.5460997051061592,
+        "trackWidth": 0.5460997051061592,
+        "bumperLength": 0.8635995336562519,
+        "bumperWidth": 0.8635995336562519,
+        "wheelRadius": 0.050799972568014815
+    },
+    "paths": {
+        "test": {
+            "waypoints": [
+                {
+                    "x": 1,
+                    "y": 5.3677239418029785,
+                    "heading": 0,
+                    "isInitialGuess": false,
+                    "translationConstrained": true,
+                    "headingConstrained": false,
+                    "controlIntervalCount": 6
+                },
+                {
+                    "x": 2,
+                    "y": 5.3677239418029785,
+                    "heading": 0,
+                    "isInitialGuess": false,
+                    "translationConstrained": true,
+                    "headingConstrained": false,
+                    "controlIntervalCount": 40
+                }
+            ],
+            "trajectory": [
+                {
+                    "x": 1,
+                    "y": 5.3677239418029785,
+                    "heading": -4.6261415871215094e-14,
+                    "angularVelocity": 6.50660376623144e-38,
+                    "velocityX": 2.221485986545929e-38,
+                    "velocityY": 4.0015357903280947e-50,
+                    "timestamp": 0
+                },
+                {
+                    "x": 1.111111121706061,
+                    "y": 5.3677239418029785,
+                    "heading": -4.626141587988206e-14,
+                    "angularVelocity": -1.0305506710912332e-22,
+                    "velocityX": 1.3211906566410487,
+                    "velocityY": -1.687194369722929e-34,
+                    "timestamp": 0.0840992336325968
+                },
+                {
+                    "x": 1.3333333545240376,
+                    "y": 5.3677239418029785,
+                    "heading": -4.626141591384449e-14,
+                    "angularVelocity": -4.038333987147786e-22,
+                    "velocityX": 2.6423811873101313,
+                    "velocityY": -3.366119983409044e-34,
+                    "timestamp": 0.1681984672651936
+                },
+                {
+                    "x": 1.6666666454759624,
+                    "y": 5.3677239418029785,
+                    "heading": -4.626141642310658e-14,
+                    "angularVelocity": -6.055489562657136e-21,
+                    "velocityX": 3.963571088033425,
+                    "velocityY": -8.798647206027335e-34,
+                    "timestamp": 0.2522977008977904
+                },
+                {
+                    "x": 1.8888888782939388,
+                    "y": 5.3677239418029785,
+                    "heading": -4.626141672951498e-14,
+                    "angularVelocity": -3.643417061777553e-21,
+                    "velocityX": 2.6423811873101313,
+                    "velocityY": 6.824852570776687e-34,
+                    "timestamp": 0.3363969345303872
+                },
+                {
+                    "x": 2,
+                    "y": 5.3677239418029785,
+                    "heading": -4.626141685109102e-14,
+                    "angularVelocity": -1.4456275379646033e-21,
+                    "velocityX": 1.321190656641049,
+                    "velocityY": 1.8173972146454995e-34,
+                    "timestamp": 0.420496168162984
+                },
+                {
+                    "x": 2,
+                    "y": 5.3677239418029785,
+                    "heading": -4.626141685109102e-14,
+                    "angularVelocity": 1.4354358198232304e-38,
+                    "velocityX": -6.977828968834749e-38,
+                    "velocityY": -3.1325575258876724e-44,
+                    "timestamp": 0.5045954017955808
+                }
+            ],
+            "constraints": [
+                {
+                    "scope": [
+                        "first"
+                    ],
+                    "type": "StopPoint",
+                    "uuid": "dd8330d9-2cf4-4582-abd4-de5e56d0e7e4"
+                },
+                {
+                    "scope": [
+                        "last"
+                    ],
+                    "type": "StopPoint",
+                    "uuid": "657156bc-d109-47f7-b0fa-680460cda291"
+                }
+            ],
+            "usesControlIntervalGuessing": true,
+            "defaultControlIntervalCount": 40,
+            "usesDefaultFieldObstacles": true,
+            "circleObstacles": []
+        }
+    }
+}
