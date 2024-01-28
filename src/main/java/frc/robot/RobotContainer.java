@@ -20,9 +20,9 @@ import frc.robot.subsystems.ModuleIOTalonFX;
 
 public class RobotContainer {
 
-	private final SendableChooser<Command> autonomousChooser;
-	public final LoggedDashboardChooser<
-		Command> autoChooser = new LoggedDashboardChooser<>("Autonomous Routine", new SendableChooser<>());
+	public final SendableChooser<Command> autonomousChooser;
+	// public final LoggedDashboardChooser<
+	// 	Command> autoChooser = new LoggedDashboardChooser<>("Autonomous Routine", new SendableChooser<>());
 
 	public final DriverOI driverOI = new DriverOI(new CommandXboxController(0));
 	// public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));

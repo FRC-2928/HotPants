@@ -73,7 +73,7 @@ public class Robot extends LoggedRobot {
 		CommandScheduler.getInstance().cancelAll();
 
 		// Get selected routine from the SmartDashboard
-		this.autonomousCommand = this.container.autoChooser.get();
+		this.autonomousCommand = this.container.getAutonomousCommand();
 
 		// schedule the autonomous command (example)
 		if(this.autonomousCommand != null) {
