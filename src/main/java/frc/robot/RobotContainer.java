@@ -20,9 +20,7 @@ import frc.robot.subsystems.ModuleIOTalonFX;
 
 public class RobotContainer {
 
-	public final SendableChooser<Command> autonomousChooser;
-	// public final LoggedDashboardChooser<
-	// 	Command> autoChooser = new LoggedDashboardChooser<>("Autonomous Routine", new SendableChooser<>());
+	public final LoggedDashboardChooser<Command> autonomousChooser; 
 
 	public final DriverOI driverOI = new DriverOI(new CommandXboxController(0));
 	// public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
@@ -65,9 +63,8 @@ public class RobotContainer {
 				break;
 		}
 
-		this.autonomousChooser = AutonomousRoutines.createAutonomousChooser(this.drivetrain);
-		SmartDashboard.putData("Autonomous Routine", this.autonomousChooser);
-
+		this.autonomousChooser = new LoggedDashboardChooser<>("Autonomous Routine", AutonomousRoutines.createAutonomousChooser(this.drivetrain));
+		
 		this.configureDriverControls(); 
 	}
 
@@ -85,7 +82,7 @@ public class RobotContainer {
 	 * @return the command to run in autonomous
 	 */
 	public Command getAutonomousCommand() {
-		return this.autonomousChooser.getSelected();
+		return this.autonomousChooser.get();
 	}
 
 }

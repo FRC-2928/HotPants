@@ -133,6 +133,7 @@ public class Constants {
 
 		// todo: find
 		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 1, 0);
+		// public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0.1, 0.13, 0);
 
 		public static final Ratio motorEncoderToRotations = new Ratio(2048, 1);
 		public static final Ratio driveGearMotorToWheel = new Ratio(6.75, 1); // 6.75:1 (motor:wheel)
@@ -143,7 +144,8 @@ public class Constants {
 		public static final double wheelRadius = 2.0 * 0.0254; // m
 
 		// todo: find
-		public static final double maxWheelSpeed = 10.0;
+		// public static final double maxWheelSpeed = 10.0;
+		public static final double maxWheelSpeed = 5.0; // m/s
 
 		// todo: choose
 		public static final double axialLateralSpeed = 1; // m/s

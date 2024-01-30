@@ -20,7 +20,7 @@ public final class AutonomousRoutines {
 			"Drive test trajectory",
 			new SequentialCommandGroup(
 				// new WaitCommand(.75)
-				runTrajectory("test", drivetrain)
+				runTrajectory("PathB", drivetrain)
 			)
 		);
 
@@ -43,19 +43,20 @@ public final class AutonomousRoutines {
 		
 		var thetaController = new PIDController(0.5, 0, 0);
 		thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+		// Whether or not to mirror the path based on alliance
+		// Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
+		// 		mirror = alliance.isPresent() && alliance.get() == Alliance.Red;
 	
 		Command swerveCommand = Choreo.choreoSwerveCommand(
 			traj, // Choreo trajectory from above
-			drivetrain::getPoseEstimation, // A function that returns the current field-relative pose of the robot: your
-								// wheel or vision odometry
-			new PIDController(1, 0.0, 0.0), // PIDController for field-relative X
-																					// translation (input: X error in meters,
-																					// output: m/s).
-			new PIDController(1, 0.0, 0.0), // PIDController for field-relative Y
-																					// translation (input: Y error in meters,
-																					// output: m/s).
-			thetaController, // PID constants to correct for rotation
-							// error
+			drivetrain::getPose, // A function that returns the current field-relative pose of the robot: 
+								// your wheel (getPose) or vision odometry (getPoseEstimation)
+			new PIDController(0.1, 0.0, 0.0), // PIDController for field-relative X
+													// translation (input: X error in meters,// output: m/s).
+			new PIDController(0.1, 0.0, 0.0), // PIDController for field-relative Y
+													// translation (input: Y error in meters, output: m/s).
+			thetaController, // PID constants to correct for rotation error
 			(ChassisSpeeds speeds) -> drivetrain.drive( // needs to be robot-relative
 				speeds.vxMetersPerSecond,
 				speeds.vyMetersPerSecond,

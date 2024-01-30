@@ -58,8 +58,9 @@ public class SwerveModule {
 
     private boolean backwards = false;
 
-    public Rotation2d targetAngle = new Rotation2d();
-    public double targetVelocity = 0;
+    public Rotation2d targetAngle = new Rotation2d(); // Setpoint for the module angle
+    public double targetVelocity = 0; // Setpoint for the velocity in meters per/sec
+    private double lastPositionMeters = 0.0; // Used for delta calculation
 
     public SwerveModule(final ModuleIO io, final Place place) {
         this.io = io;
@@ -102,23 +103,27 @@ public class SwerveModule {
     }
 
     /**
-     * Velocity of the motor in mechanism rotations per second. Converts motor rotations to radians and then applies the drive gear ratio to get wheel radians per/sec
+     * Starts with velocity of the motor in rotations per second. 
+     * Converts motor rotations to radians and then applies the drive gear ratio to get wheel radians per/sec
+     * Finally, computes meters per/sec by applying the robot's wheel radius.
      * 
-     * @return drive velocity in radians per/sec
+     * @return drive velocity in meters per/sec
      */
     public double getDriveVelocity() {
         return (this.inputs.driveVelocityRadPerSec / (2 * Constants.Drivetrain.pi)) * Constants.Drivetrain.wheelRadius;
     }
 
     /**
-     * Position of the turn motor in mechanism rotations. Converts motor rotations to radians and applies the turn gear ratio, then converts to Rotation2d
+     * Position of the turn motor in rotations. 
+     * Converts motor rotations to radians and applies the turn gear ratio.
      * 
      * @return position of the turn motor as a Rotation2d
      */
     public Rotation2d getTurnPosition() { return this.inputs.turnPosition; }
 
     /**
-     * Velocity of the turn motor in mechanism rotations per second. Converts motor rotations to radians and then applies the turn gear ratio to get wheel radians per/sec
+     * Velocity of the turn motor in mechanism rotations per second. 
+     * Converts motor rotations to radians and then applies the turn gear ratio to get wheel radians per/sec
      * 
      * @return turn motor velocity in radians per/sec
      */
@@ -131,26 +136,13 @@ public class SwerveModule {
      */
     public Rotation2d getCancoderAbsolutePosition() { return this.inputs.cancoderAbsolutePosition; }
 
+    
     /**
-     * Absolute Position of the device in rotations.
      * 
-     * @return Rotation2d.fromRotations(cancoder.getAbsolutePosition().getValueAsDouble());
-     */
-    // public Rotation2d getAngle() {
-    //     return  this.inputs.turnAbsolutePosition;
-    // }
-
-    /**
-     * Calculates the feedforward for the drive velocity.
-     * 
-     * @param state
-     *                  - required speed in meters per/sec and the angle
+     * @param state - required speed in meters per/sec and the angle in radians
      */
     public void applyState(final SwerveModuleState state) {
-        // final double ffw = Constants.Drivetrain.driveFFW.calculate(state.speedMetersPerSecond);
-
         this.targetVelocity = state.speedMetersPerSecond;
-
         this.targetAngle = state.angle.unaryMinus();
     }
 
@@ -163,6 +155,16 @@ public class SwerveModule {
         return new SwerveModulePosition(getDrivePositionMeters(), getCancoderAbsolutePosition());
     }
 
+    /** Returns the module position delta since the last call to this method. */
+    public SwerveModulePosition getPositionDelta() {
+        var delta = new SwerveModulePosition(getDrivePositionMeters() - lastPositionMeters, getTurnPosition());
+        lastPositionMeters = getDrivePositionMeters();
+        return delta;
+    }
+
+    // ----------------------------------------------------------
+    // Process Logic
+    // ----------------------------------------------------------
     void update() {
         this.io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
@@ -180,31 +182,30 @@ public class SwerveModule {
             ? Constants.angleNorm(this.targetAngle.getDegrees() + 180)
             : this.targetAngle.getDegrees();
 
-        SmartDashboard.putNumber(this.place.name() + " Angle Target Optimized", targetAngle);
+        // SmartDashboard.putNumber(this.place.name() + " Angle Target Optimized", targetAngle);
         SmartDashboard
             .putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngle));
 
         // 10. APPLY POWER    
 
         // Calculate power required to reach the setpoint
-        double setpoint = targetAngle;
-        final double turn = this.turnPID.calculate(currentAngle, setpoint);
+        final double turn = this.turnPID.calculate(currentAngle, targetAngle);
 
         // Restrict the turn power and reverse the direction
         final double turnPower = MathUtil.clamp(-turn, -90, 90); // MAY NEED TO SWITCH turn POSITIVE
         SmartDashboard.putNumber(this.place.name() + " turnPower", turnPower);
 
         // Calculate the dutyCycle (-1 to 1) taking account of the turn motor gear ratio
-        final double dutyCycle = turnPower / Constants.Drivetrain.azimuthGearRatio;
-        SmartDashboard.putNumber(this.place.name() + " DutyCycle", dutyCycle);
-        this.io.setTurnDutyCycle(dutyCycle);
+        final double turnDutyCycle = turnPower / Constants.Drivetrain.azimuthGearRatio;
+        SmartDashboard.putNumber(this.place.name() + " Turn DutyCycle", turnDutyCycle);
+        this.io.setTurnDutyCycle(turnDutyCycle);
 
         final double ffw = Constants.Drivetrain.driveFFW.calculate(this.targetVelocity);
         final double output = Constants.Drivetrain.drivePID.calculate(getDriveVelocity(), this.targetVelocity);
         final double driveDutyCycle = MathUtil.clamp(ffw + output, -1, 1);
-        SmartDashboard.putNumber("Output Value", output);
-        SmartDashboard.putNumber("FFW Value", ffw);
-        SmartDashboard.putNumber("Duty Cyvle", driveDutyCycle);
+        SmartDashboard.putNumber(this.place.name() + " Drive Output", output);
+        SmartDashboard.putNumber(this.place.name() + " Drive FFW", ffw);
+        SmartDashboard.putNumber(this.place.name() + " Drive DutyCycle", driveDutyCycle);
         this.io.setDriveDutyCycle(this.backwards ? -driveDutyCycle : driveDutyCycle);
 
     }

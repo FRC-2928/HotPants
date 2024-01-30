@@ -8,6 +8,7 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -23,7 +24,11 @@ public class Drivetrain extends SubsystemBase {
 	private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
 	private final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
+
+	// Used to track odometry
 	public final SwerveDrivePoseEstimator poseEstimator;
+	private Pose2d pose = new Pose2d(); 
+	private Rotation2d lastGyroRotation = new Rotation2d(); 
 
 	// ----------------------------------------------------------
     // Initialization
@@ -62,6 +67,9 @@ public class Drivetrain extends SubsystemBase {
 	 * @param fieldRelative Whether the provided x and y speeds are relative to the field.
 	 */
 	public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
+		SmartDashboard.putNumber("xSpeed", xSpeed);
+		SmartDashboard.putNumber("ySpeed", ySpeed);
+		SmartDashboard.putNumber("rotation", rot);
 		var swerveModuleStates =
 			kinematics.toSwerveModuleStates(
 				fieldRelative
@@ -82,8 +90,8 @@ public class Drivetrain extends SubsystemBase {
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxWheelSpeed);
 
 		SmartDashboard.putNumber(" Angle theta", states[0].angle.getDegrees());
+
 		// 8. SET SPEED AND ANGLE FOR EACH WHEEL
-		// Also calculates the feedforward for the drive velocity
 		for(int i = 0; i < this.modules.length; i++)
 			this.modules[i].applyState(states[i]);
 	}
@@ -163,13 +171,49 @@ public class Drivetrain extends SubsystemBase {
 		return this.poseEstimator.getEstimatedPosition();
 	}
 
-	public SwerveModule[] getSwerveModules() {
-		return this.modules;
+	public SwerveModule[] getSwerveModules() {return this.modules;}
+
+	public SwerveDriveKinematics getKinematics() {return this.kinematics;}
+
+	// ----------------------------------------------------------
+    // Odometry
+    // ----------------------------------------------------------
+	public SwerveModulePosition[] getModulePositions() {
+		return Arrays.stream(this.modules).map(SwerveModule::updateModulePosition).toArray(SwerveModulePosition[]::new);
 	}
 
-	public SwerveDriveKinematics getKinematics() {
-        return this.kinematics;
-    }
+	/** Returns the current odometry pose. */
+	@AutoLogOutput(key = "Odometry/Robot")
+	public Pose2d getPose() {
+	  	return pose;
+	}
+
+	/** Resets the current odometry pose. */
+	public void setPose(Pose2d pose) {
+		this.pose = pose;
+	}
+
+	public void updateOdometry() {
+		// Update odometry
+		SwerveModulePosition[] wheelDeltas = new SwerveModulePosition[4];
+		for (int i = 0; i < 4; i++) {
+		wheelDeltas[i] = modules[i].getPositionDelta();
+		}
+		// The twist represents the motion of the robot since the last
+		// loop cycle in x, y, and theta based only on the modules,
+		// without the gyro. The gyro is always disconnected in simulation.
+		var twist = kinematics.toTwist2d(wheelDeltas);
+		if (gyroInputs.connected) {
+		// If the gyro is connected, replace the theta component of the twist
+		// with the change in angle since the last loop cycle.
+		twist =
+			new Twist2d(
+				twist.dx, twist.dy, gyroInputs.yawPosition.minus(lastGyroRotation).getRadians());
+		lastGyroRotation = gyroInputs.yawPosition;
+		}
+		// Apply the twist (change since last loop cycle) to the current pose
+    	pose = pose.exp(twist);
+	}
 
 	// ----------------------------------------------------------
     // Process Logic
@@ -195,15 +239,8 @@ public class Drivetrain extends SubsystemBase {
 			Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
 			
 		}
-		// this.est.update(this.gyro.getRotation2d(), this.getModulePosition());
+		
 		this.poseEstimator.update(this.gyroInputs.yawPosition, this.getModulePositions());
-	}
-
-	// ----------------------------------------------------------
-    // Odometry
-    // ----------------------------------------------------------
-	public SwerveModulePosition[] getModulePositions() {
-		return Arrays.stream(this.modules).map(SwerveModule::updateModulePosition).toArray(SwerveModulePosition[]::new);
 	}
 
 }
