@@ -174,7 +174,7 @@ public class SwerveModule {
         SmartDashboard.putNumber(this.place.name() + " Angle", currentAngle);
         SmartDashboard.putNumber(this.place.name() + " Angle Target", this.targetAngle.getDegrees());
 
-        // 9. WHEEL DIRECTION OPTIMIZATION
+        // 7. WHEEL DIRECTION OPTIMIZATION
         this.backwards = Constants.Drivetrain.Flags.wheelOptimization
             && Constants.angleDistance(this.targetAngle.getDegrees(), currentAngle) > 90;
 
@@ -186,7 +186,7 @@ public class SwerveModule {
         SmartDashboard
             .putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngle));
 
-        // 10. APPLY POWER    
+        // 8. APPLY POWER    
 
         // Calculate power required to reach the setpoint
         final double turn = this.turnPID.calculate(currentAngle, targetAngle);

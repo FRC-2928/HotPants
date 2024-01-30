@@ -35,29 +35,27 @@ public class JoystickDrive extends Command {
 	@Override
 	public void execute() {
 		final double mul = MathUtil.interpolate(1, 0.5, this.oi.slow.get());
-		Translation2d linearVelocity = getSpeeds(mul);
+
+		// 1. CONVERT JOYSTICK VALUES
+		Translation2d linearVelocity = getSpeeds(mul); // Meters per/sec
 		// Translation2d linearVelocity = getLinearVelocity();
-		double theta = getTheta(mul);
+		double theta = getTheta(mul); // Radians per/sec
 		// double theta = getOmega();
 
-		// 4 CONVERT TO CHASSIS SPEEDS
+		// 2 CONVERT TO CHASSIS SPEEDS
 		ChassisSpeeds desired = new ChassisSpeeds(
 			linearVelocity.getX(),
 			linearVelocity.getY(),
 			theta
-			// theta
-			// 	* Math.toRadians(Constants.Drivetrain.thetaSpeed)
-			// 	* mul
-			// 	* (Constants.Drivetrain.Flags.absoluteRotation ? this.absoluteTargetMagnitude : 1)
 		);
 
 		// Compensate for wheel rotation while driving and rotating
 		if(Constants.Drivetrain.Flags.thetaCompensation) desired = this.drivetrain.compensate(desired);
 
-		// 5. CONVERT FROM FIELD RELATIVE SPEED TO ROBOT RELATIVE CHASSIS SPEEDS
+		// 3. CONVERT FROM FIELD RELATIVE SPEED TO ROBOT RELATIVE CHASSIS SPEEDS
 		if(Constants.Drivetrain.Flags.fod) desired = this.drivetrain.fieldOrientedDrive(desired);
 
-		// 6. CONVERT CHASSIS SPEEDS TO MODULE SPEEDS
+		// 4. CONVERT CHASSIS SPEEDS TO MODULE SPEEDS
 		// ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(desired, 0.02);
 		SwerveModuleState[] setpointStates = this.drivetrain.kinematics.toSwerveModuleStates(desired);
 

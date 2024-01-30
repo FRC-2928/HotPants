@@ -86,12 +86,10 @@ public class Drivetrain extends SubsystemBase {
 	 * 				 - angle in degrees
 	*/
 	public void setModuleStates(final SwerveModuleState[] states) {
-		// 7. DESATURATE WHEEL SPEEDS
+		// 5. DESATURATE WHEEL SPEEDS
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxWheelSpeed);
 
-		SmartDashboard.putNumber(" Angle theta", states[0].angle.getDegrees());
-
-		// 8. SET SPEED AND ANGLE FOR EACH WHEEL
+		// 6. SET SPEED AND ANGLE FOR EACH WHEEL
 		for(int i = 0; i < this.modules.length; i++)
 			this.modules[i].applyState(states[i]);
 	}
