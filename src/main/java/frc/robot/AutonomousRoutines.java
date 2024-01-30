@@ -20,7 +20,7 @@ public final class AutonomousRoutines {
 			"Drive test trajectory",
 			new SequentialCommandGroup(
 				// new WaitCommand(.75)
-				runTrajectory("PathB", drivetrain)
+				runTrajectory("test", drivetrain)
 			)
 		);
 
