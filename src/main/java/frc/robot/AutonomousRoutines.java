@@ -19,10 +19,17 @@ public final class AutonomousRoutines {
 		chooser.addOption(
 			"Drive test trajectory",
 			new SequentialCommandGroup(
-				// new WaitCommand(.75)
 				runTrajectory("test", drivetrain)
 			)
 		);
+
+		// chooser.addOption(
+		// 	"Drive testorig trajectory",
+		// 	new SequentialCommandGroup(
+		// 		// new WaitCommand(.75)
+		// 		runTrajectory("testorig", drivetrain)
+		// 	)
+		// );
 
 		chooser.setDefaultOption(
 			"Wait do nothing",

@@ -67,14 +67,14 @@ public class Drivetrain extends SubsystemBase {
 	 * @param fieldRelative Whether the provided x and y speeds are relative to the field.
 	 */
 	public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
-		SmartDashboard.putNumber("xSpeed", xSpeed);
+		SmartDashboard.putNumber("xSpeed", -xSpeed);
 		SmartDashboard.putNumber("ySpeed", ySpeed);
 		SmartDashboard.putNumber("rotation", rot);
 		var swerveModuleStates =
 			kinematics.toSwerveModuleStates(
 				fieldRelative
-					? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, getHeading())
-					: new ChassisSpeeds(xSpeed, ySpeed, rot));
+					? ChassisSpeeds.fromFieldRelativeSpeeds(-xSpeed, ySpeed, rot, getHeading())
+					: new ChassisSpeeds(-xSpeed, ySpeed, rot));
 
 		setModuleStates(swerveModuleStates);
 	}
