@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
@@ -60,7 +61,6 @@ public class SwerveModule {
 
     public Rotation2d targetAngle = new Rotation2d(); // Setpoint for the module angle
     public double targetVelocity = 0; // Setpoint for the velocity in meters per/sec
-    private double lastPositionMeters = 0.0; // Used for delta calculation
 
     public SwerveModule(final ModuleIO io, final Place place) {
         this.io = io;
@@ -76,31 +76,18 @@ public class SwerveModule {
     public double getDriveRotorPosition() { return this.inputs.driveRotorPosition; }
 
     /**
-     * Position of the device in mechanism rotations. Converts device rotations to radians and then applies the drive gear ratio to get wheel radians
+     * Position of the device in motor rotations.  Converts device rotations to 
+     * radians and then applies the drive gear ratio to get wheel radians
      * 
      * @return drive position of the module in radians
      */
     public double getDrivePosition() { return this.inputs.drivePositionRad; }
 
     /**
-     * Should be equivalent to getDistanceMeters()
      * 
      * @return current drive position of the module in meters.
      */
     public double getDrivePositionMeters() { return getDrivePosition() * Constants.Drivetrain.wheelRadius; }
-
-    /**
-     * Position of the motor rotor in rotation units. This position is only affected by the RotorOffset config.
-     * 
-     * @return
-     */
-    public double getDistanceMeters() {
-        return Constants.Drivetrain.driveGearMotorToWheel
-            .forward(
-                // Constants.Drivetrain.motorEncoderToRotations.forward(this.drive.getRotorPosition().getValue())
-                Constants.Drivetrain.motorEncoderToRotations.forward(this.inputs.driveRotorPosition)
-            );
-    }
 
     /**
      * Starts with velocity of the motor in rotations per second. 
@@ -110,7 +97,7 @@ public class SwerveModule {
      * @return drive velocity in meters per/sec
      */
     public double getDriveVelocity() {
-        return (this.inputs.driveVelocityRadPerSec / (2 * Constants.Drivetrain.pi)) * Constants.Drivetrain.wheelRadius;
+        return (this.inputs.driveVelocityRadPerSec / (2 * Math.PI)) * Constants.Drivetrain.wheelRadius;
     }
 
     /**
@@ -130,12 +117,13 @@ public class SwerveModule {
     public double getTurnVelocity() { return this.inputs.turnVelocityRadPerSec; }
 
     /**
-     * Starts with the Absolute Position of the cancoder in rotations. Min Value: -0.5 Max Value: 0.999755859375 converted to radians and then creates a Rotation2d object. Rotation2d.fromRotations(cancoder.getAbsolutePosition().getValueAsDouble())
+     * Starts with the Absolute Position of the cancoder in rotations. using 
+     * cancoder.getAbsolutePosition() Min Value: -0.5 Max Value: 0.999755859375 
+     * converted to radians and then creates a Rotation2d object. 
      * 
      * @return Absolute Position of the cancoder as Rotation2d
      */
     public Rotation2d getCancoderAbsolutePosition() { return this.inputs.cancoderAbsolutePosition; }
-
     
     /**
      * 
@@ -153,13 +141,6 @@ public class SwerveModule {
 
     public SwerveModulePosition updateModulePosition() {
         return new SwerveModulePosition(getDrivePositionMeters(), getCancoderAbsolutePosition());
-    }
-
-    /** Returns the module position delta since the last call to this method. */
-    public SwerveModulePosition getPositionDelta() {
-        var delta = new SwerveModulePosition(getDrivePositionMeters() - lastPositionMeters, getTurnPosition());
-        lastPositionMeters = getDrivePositionMeters();
-        return delta;
     }
 
     // ----------------------------------------------------------
@@ -182,9 +163,7 @@ public class SwerveModule {
             ? Constants.angleNorm(this.targetAngle.getDegrees() + 180)
             : this.targetAngle.getDegrees();
 
-        // SmartDashboard.putNumber(this.place.name() + " Angle Target Optimized", targetAngle);
-        SmartDashboard
-            .putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngle));
+        SmartDashboard.putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngle));
 
         // 8. APPLY POWER    
 
@@ -192,22 +171,27 @@ public class SwerveModule {
         final double turn = this.turnPID.calculate(currentAngle, targetAngle);
 
         // Restrict the turn power and reverse the direction
-        final double turnPower = MathUtil.clamp(-turn, -90, 90); // MAY NEED TO SWITCH turn POSITIVE
+        final double turnPower = MathUtil.clamp(-turn, -10, 10); // MAY NEED TO SWITCH turn POSITIVE
         SmartDashboard.putNumber(this.place.name() + " turnPower", turnPower);
 
         // Calculate the dutyCycle (-1 to 1) taking account of the turn motor gear ratio
         final double turnDutyCycle = turnPower / Constants.Drivetrain.azimuthGearRatio;
         SmartDashboard.putNumber(this.place.name() + " Turn DutyCycle", turnDutyCycle);
         this.io.setTurnDutyCycle(turnDutyCycle);
+        // this.io.setTurnVoltage(turnPower);
 
+        
         final double ffw = Constants.Drivetrain.driveFFW.calculate(this.targetVelocity);
+        SmartDashboard.putNumber(this.place.name() + " Drive Target Velocity", this.targetVelocity);
+
         final double output = Constants.Drivetrain.drivePID.calculate(getDriveVelocity(), this.targetVelocity);
-        final double driveDutyCycle = MathUtil.clamp(ffw + output, -1, 1);
+        final double driveDutyCycle = MathUtil.clamp(ffw + output, -10, 10);
         SmartDashboard.putNumber(this.place.name() + " Drive Output", output);
         SmartDashboard.putNumber(this.place.name() + " Drive FFW", ffw);
         SmartDashboard.putNumber(this.place.name() + " Drive DutyCycle", driveDutyCycle);
-        this.io.setDriveDutyCycle(this.backwards ? -driveDutyCycle : driveDutyCycle);
 
+        // this.io.setDriveDutyCycle(this.backwards ? -driveDutyCycle : driveDutyCycle);
+        this.io.setDriveVoltage(this.backwards ? -driveDutyCycle : driveDutyCycle);
     }
 
 }

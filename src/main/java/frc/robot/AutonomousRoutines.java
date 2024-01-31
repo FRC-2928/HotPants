@@ -48,7 +48,7 @@ public final class AutonomousRoutines {
 		SmartDashboard.putNumber("Linear X", traj.getInitialPose().getX());
 		SmartDashboard.putNumber("Linear Y", traj.getInitialPose().getY());
 		
-		var thetaController = new PIDController(0.5, 0, 0);
+		var thetaController = new PIDController(1, 0, 0);
 		thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
 		// Whether or not to mirror the path based on alliance

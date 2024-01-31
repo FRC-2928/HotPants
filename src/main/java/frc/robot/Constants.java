@@ -79,9 +79,7 @@ public class Constants {
 	public static final class Drivetrain {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
-		public final static PIDController drivePID = new PIDController(0.2, 0, 0);
-
-		public final static double pi = 3.14159;
+		public final static PIDController drivePID = new PIDController(0.5, 0, 0);
 
 		public static final class Flags {
 			private Flags() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain.Flags`"); }
@@ -132,7 +130,7 @@ public class Constants {
 		);
 
 		// todo: find
-		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 1, 0);
+		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(1, 1, 0);
 		// public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0.1, 0.13, 0);
 
 		public static final Ratio motorEncoderToRotations = new Ratio(2048, 1);
