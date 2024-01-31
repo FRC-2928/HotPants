@@ -166,32 +166,45 @@ public class SwerveModule {
         SmartDashboard.putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngle));
 
         // 8. APPLY POWER    
+        applyPower(currentAngle, targetAngle);
+    }
 
-        // Calculate power required to reach the setpoint
+    /**
+     * Computes the voltage output required and sends it to the motors
+     * 
+     * @param currentAngle - in degrees
+     * @param targetAngle - in degrees
+     */
+    public void applyPower(double currentAngle, double targetAngle) {
+        // Calculate turn power required to reach the setpoint
         final double turn = this.turnPID.calculate(currentAngle, targetAngle);
 
         // Restrict the turn power and reverse the direction
-        final double turnPower = MathUtil.clamp(-turn, -10, 10); // MAY NEED TO SWITCH turn POSITIVE
-        SmartDashboard.putNumber(this.place.name() + " turnPower", turnPower);
+        final double turnVolts = MathUtil.clamp(-turn, -12, 12);
+        SmartDashboard.putNumber(this.place.name() + " turnPower", turnVolts);
 
         // Calculate the dutyCycle (-1 to 1) taking account of the turn motor gear ratio
-        final double turnDutyCycle = turnPower / Constants.Drivetrain.azimuthGearRatio;
-        SmartDashboard.putNumber(this.place.name() + " Turn DutyCycle", turnDutyCycle);
-        this.io.setTurnDutyCycle(turnDutyCycle);
-        // this.io.setTurnVoltage(turnPower);
+        // final double turnDutyCycle = turnPower / Constants.Drivetrain.azimuthGearRatio;
+        // SmartDashboard.putNumber(this.place.name() + " Turn DutyCycle", turnDutyCycle);
 
-        
+        // this.io.setTurnDutyCycle(turnDutyCycle);
+        this.io.setTurnVoltage(turnVolts);
+
+        // Calculate drive power
         final double ffw = Constants.Drivetrain.driveFFW.calculate(this.targetVelocity);
         SmartDashboard.putNumber(this.place.name() + " Drive Target Velocity", this.targetVelocity);
 
         final double output = Constants.Drivetrain.drivePID.calculate(getDriveVelocity(), this.targetVelocity);
-        final double driveDutyCycle = MathUtil.clamp(ffw + output, -10, 10);
+        final double driveVolts = MathUtil.clamp(ffw + output, -10, 10);
         SmartDashboard.putNumber(this.place.name() + " Drive Output", output);
         SmartDashboard.putNumber(this.place.name() + " Drive FFW", ffw);
-        SmartDashboard.putNumber(this.place.name() + " Drive DutyCycle", driveDutyCycle);
+        SmartDashboard.putNumber(this.place.name() + " Drive Volts", driveVolts);
 
         // this.io.setDriveDutyCycle(this.backwards ? -driveDutyCycle : driveDutyCycle);
-        this.io.setDriveVoltage(this.backwards ? -driveDutyCycle : driveDutyCycle);
+        this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
     }
 
+    public void applyPowerPhoenix(double currentAngle, double targetAngle) {
+
+    }
 }

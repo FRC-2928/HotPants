@@ -61,9 +61,10 @@ public class ModuleIOSim implements ModuleIO {
     driveSim.setInputVoltage(driveAppliedVolts);
   }
 
+  // Voltage is reversed since turn motors isInverted is false
   @Override
   public void setTurnVoltage(double volts) {
-    turnAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
+    turnAppliedVolts = MathUtil.clamp(-volts, -12.0, 12.0);
     turnSim.setInputVoltage(turnAppliedVolts);
   }
 
@@ -75,7 +76,7 @@ public class ModuleIOSim implements ModuleIO {
 
   /** Run the drive motor at the specified duty cycle (-1 to 1). */
   public void setTurnDutyCycle(double speed) {
-    double volts = 12.0 * -speed;
+    double volts = 12.0 * speed;
     setTurnVoltage(volts);
   }
 }

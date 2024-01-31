@@ -41,18 +41,17 @@ public class JoystickDrive extends Command {
 		SmartDashboard.putNumber("Speeds X", linearVelocity.getX());
 		SmartDashboard.putNumber("Speeds Y", linearVelocity.getY());
 
-		double theta = getTheta(mul); // Radians per/sec
-		SmartDashboard.putNumber("Theta", theta);
+		double omegaRadPerSec = getTheta(mul); // Radians per/sec
+		SmartDashboard.putNumber("Omega", omegaRadPerSec);
 
 		// 2 CONVERT TO CHASSIS SPEEDS
-		// Convert to metersPerSecond
-		ChassisSpeeds desired = new ChassisSpeeds(
-			linearVelocity.getX() * Constants.Drivetrain.maxWheelSpeed,
-			linearVelocity.getY() * Constants.Drivetrain.maxWheelSpeed,
-			theta
-		);
+		// Convert to meters per second
+		double xMetersPerSec = linearVelocity.getX() * Constants.Drivetrain.maxWheelSpeed;
+		double yMetersPerSec = linearVelocity.getY() * Constants.Drivetrain.maxWheelSpeed;
 
-		// Compensate for wheel rotation while driving and rotating. Rotate 0.35 radians.
+		ChassisSpeeds desired = new ChassisSpeeds(xMetersPerSec, yMetersPerSec,omegaRadPerSec);
+
+		// Compensate for wheel rotation while driving and rotating. Rotate 0.35 radians (20 degrees).
 		if(Constants.Drivetrain.Flags.thetaCompensation) desired = this.drivetrain.compensate(desired);
 
 		// 3. CONVERT FROM FIELD RELATIVE SPEED TO ROBOT RELATIVE CHASSIS SPEEDS
