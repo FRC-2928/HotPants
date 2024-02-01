@@ -150,23 +150,48 @@ public class SwerveModule {
         this.io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
 
-        double currentAngle = this.updateModulePosition().angle.getDegrees();
+        Rotation2d rotationAngle = this.updateModulePosition().angle;
+        double currentAngle = rotationAngle.getDegrees();
 
         SmartDashboard.putNumber(this.place.name() + " Angle", currentAngle);
         SmartDashboard.putNumber(this.place.name() + " Angle Target", this.targetAngle.getDegrees());
 
         // 7. WHEEL DIRECTION OPTIMIZATION
+        SwerveModuleState optimizedState = optimizeWheelDirection(rotationAngle);
+
+        // this.backwards = Constants.Drivetrain.Flags.wheelOptimization
+        //     && Constants.angleDistance(this.targetAngle.getDegrees(), currentAngle) > 90;
+
+        // final double targetAngle = this.backwards
+        //     ? Constants.angleNorm(this.targetAngle.getDegrees() + 180)
+        //     : this.targetAngle.getDegrees();
+
+        // 8. APPLY POWER    
+        applyPowerVolts(currentAngle, optimizedState.angle.getDegrees());
+        // applyPowerVelocity(optimizedState);
+    }
+
+    private SwerveModuleState optimizeWheelDirection(Rotation2d currentAngle) {
         this.backwards = Constants.Drivetrain.Flags.wheelOptimization
-            && Constants.angleDistance(this.targetAngle.getDegrees(), currentAngle) > 90;
+            && Constants.angleDistance(this.targetAngle.getDegrees(), currentAngle.getDegrees()) > 90;
 
         final double targetAngle = this.backwards
             ? Constants.angleNorm(this.targetAngle.getDegrees() + 180)
             : this.targetAngle.getDegrees();
 
-        SmartDashboard.putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngle));
+        SmartDashboard.putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngle.getDegrees()));
 
-        // 8. APPLY POWER    
-        applyPower(currentAngle, targetAngle);
+        SwerveModuleState optimizedState = new SwerveModuleState(this.targetVelocity, this.targetAngle);
+        return optimizedState;
+    }
+
+    private SwerveModuleState optimize(Rotation2d currentAngle) {
+        SwerveModuleState desiredState = new SwerveModuleState(this.targetVelocity, this.targetAngle);
+        if (Constants.Drivetrain.Flags.wheelOptimization) {
+            return SwerveModuleState.optimize(desiredState, currentAngle);
+        } else {
+            return desiredState;
+        }
     }
 
     /**
@@ -175,7 +200,7 @@ public class SwerveModule {
      * @param currentAngle - in degrees
      * @param targetAngle - in degrees
      */
-    public void applyPower(double currentAngle, double targetAngle) {
+    public void applyPowerVolts(double currentAngle, double targetAngle) {
         // Calculate turn power required to reach the setpoint
         final double turn = this.turnPID.calculate(currentAngle, targetAngle);
 
@@ -204,7 +229,12 @@ public class SwerveModule {
         this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
     }
 
-    public void applyPowerPhoenix(double currentAngle, double targetAngle) {
-
+    /**
+     * Computes the velocity output required and sends it to the motors
+     * Uses the closed loop functions of the Phoenix motors
+     */
+    public void applyPowerVelocity(SwerveModuleState desiredState) {
+        this.io.setTargetDriveVelocity(desiredState.speedMetersPerSecond);
+        this.io.setTargetTurnPosition(desiredState.angle.getRotations());
     }
 }

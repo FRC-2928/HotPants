@@ -1,5 +1,7 @@
 package frc.robot;
 
+import com.ctre.phoenix6.configs.Slot0Configs;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -94,6 +96,31 @@ public class Constants {
 			/// Compensate for wheel rotation while driving and rotating
 			public static final boolean thetaCompensation = true;
 		}
+
+		/* Voltage-based velocity requires a feed forward to account for the back-emf of the motor */
+		// kP = 0.11 An error of 1 rotation per second results in 2V output
+		// kI = 0.5 An error of 1 rotation per second increases output by 0.5V every second
+		// kD = 0.0001 A change of 1 rotation per second squared results in 0.01 volts output
+		// 0.12 Falcon 500 is a 500kV motor, 500rpm per V = 8.333 rps per V, 1/8.33 = 0.12 
+		public static final Slot0Configs driveGains = new Slot0Configs()
+			.withKP(0.11).withKI(0.5).withKD(0.0001)
+			.withKS(0).withKV(0.12).withKA(0);
+
+		// When using closed-loop control, the drive motor uses the control
+		// output type specified by SwerveModuleConstants.DriveMotorClosedLoopOutput
+			// .withKP(3).withKI(0).withKD(0)
+			// .withKS(0).withKV(0).withKA(0);
+
+		// An error of 0.5 rotations results in 1.2 volts output
+		// A change of 1 rotation per second results in 0.1 volts output
+		public static final Slot0Configs turnGains = new Slot0Configs()
+			.withKP(2.4).withKI(0).withKD(0.1)
+			.withKS(0).withKV(0).withKA(0);
+
+		// The steer motor uses any SwerveModule.SteerRequestType control request with the
+		// output type specified by SwerveModuleConstants.SteerMotorClosedLoopOutput
+			// .withKP(100).withKI(0).withKD(0.05)
+			// .withKS(0).withKV(1.5).withKA(0);
 
 		// todo: tune
 		// public static final PIDValues swerveAzimuthPID = new PIDValues(0.3, 0.01, 0.003, 0);

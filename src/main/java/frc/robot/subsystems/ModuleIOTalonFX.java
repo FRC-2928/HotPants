@@ -17,11 +17,15 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.ClosedLoopOutputType;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -64,6 +68,18 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final double absoluteEncoderOffset;
   // private final Rotation2d absoluteEncoderOffset;
 
+  // Target Variables. Used only for data logging
+  private double targetVelocityMetersPerSeconds = 0;
+  private double targetSteerPositionRad = 0;
+
+  // The closed-loop output type to use for the steer motors;
+    // This affects the PID/FF gains for the steer motors
+    private static final ClosedLoopOutputType steerClosedLoopOutput = ClosedLoopOutputType.Voltage;
+    // The closed-loop output type to use for the drive motors;
+    // This affects the PID/FF gains for the drive motors
+    private static final ClosedLoopOutputType driveClosedLoopOutput = ClosedLoopOutputType.Voltage;
+
+
   public ModuleIOTalonFX(Place place) {
     switch(place) {
     case FrontLeft:
@@ -99,18 +115,33 @@ public class ModuleIOTalonFX implements ModuleIO {
     }
 
     var azimuthConfig = new TalonFXConfiguration();
-    azimuthConfig.CurrentLimits.StatorCurrentLimit = 30.0;
+      // Peak output of 40 amps
+    azimuthConfig.CurrentLimits.StatorCurrentLimit = 40.0;
     azimuthConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    azimuthConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
+    azimuthConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
+
+    azimuthConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
+    azimuthConfig.Slot0 = Constants.Drivetrain.turnGains;
     turnTalon.getConfigurator().apply(azimuthConfig);
+
     turnTalon.setNeutralMode(NeutralModeValue.Brake);
-    // turnTalon.setInverted(true);
 
     var driveConfig = new TalonFXConfiguration();
+      // Peak output of 40 amps
     driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
     driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    driveConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
+    driveConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
+    // Peak output of 8 volts
+    driveConfig.Voltage.PeakForwardVoltage = 8;
+    driveConfig.Voltage.PeakReverseVoltage = -8;
+
     driveConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
 
+    driveConfig.Slot0 = Constants.Drivetrain.driveGains;
     driveTalon.getConfigurator().apply(driveConfig);
+
     driveTalon.setNeutralMode(NeutralModeValue.Brake);
 
     if(place == Place.FrontRight || place == Place.BackRight) {
@@ -173,11 +204,13 @@ public class ModuleIOTalonFX implements ModuleIO {
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
     inputs.driveCurrentAmps = new double[] { driveCurrent.getValueAsDouble() };
     inputs.driveRotorPosition = driveRotorPosition.getValueAsDouble();
+    inputs.targetDriveVelocityMetersPerSec = targetVelocityMetersPerSeconds;
     
     inputs.turnPosition = Rotation2d.fromRotations(turnPosition.getValueAsDouble() / TURN_GEAR_RATIO);
     inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble()) / TURN_GEAR_RATIO;
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
     inputs.turnCurrentAmps = new double[] { turnCurrent.getValueAsDouble() };
+    inputs.targetSteerPositionRad = targetSteerPositionRad;
 
     inputs.cancoderAbsolutePosition = Rotation2d.fromRotations(cancoderAbsolutePosition.getValueAsDouble());
   }
@@ -197,19 +230,20 @@ public class ModuleIOTalonFX implements ModuleIO {
   @Override
   public void setTurnDutyCycle(double speed) { turnTalon.setControl(new DutyCycleOut(speed)); }
 
-  // @Override
-  // public void setDriveBrakeMode(boolean enable) {
-  //   var config = new MotorOutputConfigs();
-  //   config.Inverted = InvertedValue.CounterClockwise_Positive;
-  //   config.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
-  //   driveTalon.getConfigurator().apply(config);
-  // }
+  @Override
+    public void setTargetTurnPosition(double targetSteerPositionRad) {
+      /* Start at position 0, enable FOC, no feed forward, use slot 0 */
+      PositionVoltage voltagePosition = new PositionVoltage(0, 0, true, 0, 0, false, false, false);
+      turnTalon.setControl(voltagePosition.withPosition(targetSteerPositionRad));
+      this.targetSteerPositionRad = targetSteerPositionRad;
+    }
 
-  // @Override
-  // public void setTurnBrakeMode(boolean enable) {
-  //   var config = new MotorOutputConfigs();
-  //   config.Inverted = isTurnMotorInverted ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
-  //   config.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
-  //   turnTalon.getConfigurator().apply(config);
-  // }
+    @Override
+    public void setTargetDriveVelocity(double targetDriveVelocityMetersPerSec) {
+      /* Start at velocity 0, enable FOC, no feed forward, use slot 0 */
+      VelocityVoltage voltageVelocity = new VelocityVoltage(0, 0, true, 0, 0, false, false, false);
+      driveTalon.setControl(voltageVelocity.withVelocity(targetDriveVelocityMetersPerSec));
+      this.targetVelocityMetersPerSeconds = targetDriveVelocityMetersPerSec;
+    }
+
 }

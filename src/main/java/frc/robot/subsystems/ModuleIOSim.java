@@ -14,6 +14,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
@@ -35,6 +36,15 @@ public class ModuleIOSim implements ModuleIO {
   private final Rotation2d turnAbsoluteInitPosition = new Rotation2d();
   private double driveAppliedVolts = 0.0;
   private double turnAppliedVolts = 0.0;
+
+  /**
+     * PID Controller for drive motor. Will do our target drive velocity to voltage calculation
+     */
+    private final PIDController driveFeedback = new PIDController(10, 0, 0);
+    /**
+     * PID Controller for steer motor. Will do our target angular position to voltage calculation
+     */
+    private final PIDController steerFeedback = new PIDController(10, 0, 0);
 
   @Override
   public void updateInputs(ModuleIOInputs inputs) {
@@ -79,4 +89,17 @@ public class ModuleIOSim implements ModuleIO {
     double volts = 12.0 * speed;
     setTurnVoltage(volts);
   }
+
+  @Override
+    public void setTargetDriveVelocity(double targetDriveVelocityMetersPerSec) {
+        driveFeedback.setSetpoint(
+                targetDriveVelocityMetersPerSec); // Setting the target point for the PID controller to calculate the
+        // voltage to
+    }
+
+    @Override
+    public void setTargetTurnPosition(double targetSteerPositionRad) {
+        steerFeedback.setSetpoint(
+                targetSteerPositionRad); // Setting the target point for the PID controller to calculate the voltage to
+    }
 }

@@ -23,6 +23,7 @@ public interface ModuleIO {
     public double driveVelocityRadPerSec = 0.0;
     public double driveAppliedVolts = 0.0;
     public double driveRotorPosition = 0.0;
+    public double targetDriveVelocityMetersPerSec = 0.0;
     public double[] driveCurrentAmps = new double[] {};
 
     public Rotation2d cancoderAbsolutePosition = new Rotation2d();
@@ -30,6 +31,7 @@ public interface ModuleIO {
     public Rotation2d turnPosition = new Rotation2d();
     public double turnVelocityRadPerSec = 0.0;
     public double turnAppliedVolts = 0.0;
+    public double targetSteerPositionRad = 0.0;
     public double[] turnCurrentAmps = new double[] {};
   }
 
@@ -53,4 +55,10 @@ public interface ModuleIO {
 
   /** Enable or disable brake mode on the turn motor. */
   public default void setTurnBrakeMode(boolean enable) {}
+
+  /** Run closed loop position control on the turn motor. */
+  public default void setTargetTurnPosition(double targetSteerPositionRad) {}
+
+  /** Run closed loop velocity control on the drive motor. */
+  public default void setTargetDriveVelocity(double targetDriveVelocityMetersPerSec) {}
 }
