@@ -159,14 +159,8 @@ public class SwerveModule {
         // 7. WHEEL DIRECTION OPTIMIZATION
         SwerveModuleState optimizedState = optimizeWheelDirection(rotationAngle);
 
-        // this.backwards = Constants.Drivetrain.Flags.wheelOptimization
-        //     && Constants.angleDistance(this.targetAngle.getDegrees(), currentAngle) > 90;
-
-        // final double targetAngle = this.backwards
-        //     ? Constants.angleNorm(this.targetAngle.getDegrees() + 180)
-        //     : this.targetAngle.getDegrees();
-
-        // 8. APPLY POWER    
+        // 8. APPLY POWER          
+        // applyPowerVolts(currentAngle, targetAngle);
         applyPowerVolts(currentAngle, optimizedState.angle.getDegrees());
         // applyPowerVelocity(optimizedState);
     }
@@ -180,8 +174,8 @@ public class SwerveModule {
             : this.targetAngle.getDegrees();
 
         SmartDashboard.putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngle.getDegrees()));
-
-        SwerveModuleState optimizedState = new SwerveModuleState(this.targetVelocity, this.targetAngle);
+        Rotation2d angle = Rotation2d.fromDegrees(targetAngle);
+        SwerveModuleState optimizedState = new SwerveModuleState(this.targetVelocity, angle);
         return optimizedState;
     }
 
@@ -205,15 +199,16 @@ public class SwerveModule {
         final double turn = this.turnPID.calculate(currentAngle, targetAngle);
 
         // Restrict the turn power and reverse the direction
-        final double turnVolts = MathUtil.clamp(-turn, -12, 12);
+        final double turnVolts = MathUtil.clamp(-turn, -90, 90);
+        // final double turnVolts = MathUtil.clamp(-turn, -12, 12);
         SmartDashboard.putNumber(this.place.name() + " turnPower", turnVolts);
 
         // Calculate the dutyCycle (-1 to 1) taking account of the turn motor gear ratio
-        // final double turnDutyCycle = turnPower / Constants.Drivetrain.azimuthGearRatio;
+        final double turnDutyCycle = turnVolts / Constants.Drivetrain.azimuthGearRatio;
         // SmartDashboard.putNumber(this.place.name() + " Turn DutyCycle", turnDutyCycle);
 
-        // this.io.setTurnDutyCycle(turnDutyCycle);
-        this.io.setTurnVoltage(turnVolts);
+        this.io.setTurnDutyCycle(turnDutyCycle);
+        // this.io.setTurnVoltage(turnVolts);
 
         // Calculate drive power
         final double ffw = Constants.Drivetrain.driveFFW.calculate(this.targetVelocity);
@@ -221,12 +216,13 @@ public class SwerveModule {
 
         final double output = Constants.Drivetrain.drivePID.calculate(getDriveVelocity(), this.targetVelocity);
         final double driveVolts = MathUtil.clamp(ffw + output, -10, 10);
+        final double driveDutyCycle = MathUtil.clamp(ffw + output, -1, 1);
         SmartDashboard.putNumber(this.place.name() + " Drive Output", output);
         SmartDashboard.putNumber(this.place.name() + " Drive FFW", ffw);
         SmartDashboard.putNumber(this.place.name() + " Drive Volts", driveVolts);
 
-        // this.io.setDriveDutyCycle(this.backwards ? -driveDutyCycle : driveDutyCycle);
-        this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
+        this.io.setDriveDutyCycle(this.backwards ? -driveDutyCycle : driveDutyCycle);
+        // this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
     }
 
     /**

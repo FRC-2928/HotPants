@@ -49,7 +49,13 @@ public class JoystickDrive extends Command {
 		double xMetersPerSec = linearVelocity.getX() * Constants.Drivetrain.maxWheelSpeed;
 		double yMetersPerSec = linearVelocity.getY() * Constants.Drivetrain.maxWheelSpeed;
 
-		ChassisSpeeds desired = new ChassisSpeeds(xMetersPerSec, yMetersPerSec,omegaRadPerSec);
+		// ChassisSpeeds desired = new ChassisSpeeds(xMetersPerSec, yMetersPerSec,omegaRadPerSec);
+		ChassisSpeeds desired = new ChassisSpeeds(
+			linearVelocity.getX(),
+			linearVelocity.getY(),
+			omegaRadPerSec
+		);
+
 
 		// Compensate for wheel rotation while driving and rotating. Rotate 0.35 radians (20 degrees).
 		if(Constants.Drivetrain.Flags.thetaCompensation) desired = this.drivetrain.compensate(desired);
