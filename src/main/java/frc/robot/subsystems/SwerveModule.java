@@ -221,8 +221,8 @@ public class SwerveModule {
         SmartDashboard.putNumber(this.place.name() + " Drive FFW", ffw);
         SmartDashboard.putNumber(this.place.name() + " Drive Volts", driveVolts);
 
-        this.io.setDriveDutyCycle(this.backwards ? -driveDutyCycle : driveDutyCycle);
-        // this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
+        // this.io.setDriveDutyCycle(this.backwards ? -driveDutyCycle : driveDutyCycle);
+        this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
     }
 
     /**
