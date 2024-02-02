@@ -44,18 +44,11 @@ public class JoystickDrive extends Command {
 		double omegaRadPerSec = getTheta(mul); // Radians per/sec
 		SmartDashboard.putNumber("Omega", omegaRadPerSec);
 
-		// 2 CONVERT TO CHASSIS SPEEDS
-		// Convert to meters per second
-		double xMetersPerSec = linearVelocity.getX() * Constants.Drivetrain.maxWheelSpeed;
-		double yMetersPerSec = linearVelocity.getY() * Constants.Drivetrain.maxWheelSpeed;
+		// 2 CONVERT TO CHASSIS SPEEDS	
+		double xMetersPerSec = linearVelocity.getX() * Constants.Drivetrain.maxWheelSpeed; // Convert to meters/sec
+		double yMetersPerSec = linearVelocity.getY() * Constants.Drivetrain.maxWheelSpeed; // Convert to meters/sec
 
 		ChassisSpeeds desired = new ChassisSpeeds(xMetersPerSec, yMetersPerSec,omegaRadPerSec);
-		// ChassisSpeeds desired = new ChassisSpeeds(
-		// 	linearVelocity.getX(),
-		// 	linearVelocity.getY(),
-		// 	omegaRadPerSec
-		// );
-
 
 		// Compensate for wheel rotation while driving and rotating. Rotate 0.35 radians (20 degrees).
 		if(Constants.Drivetrain.Flags.thetaCompensation) desired = this.drivetrain.compensate(desired);

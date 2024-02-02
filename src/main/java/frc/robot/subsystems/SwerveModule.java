@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
@@ -160,7 +159,6 @@ public class SwerveModule {
         SwerveModuleState optimizedState = optimizeWheelDirection(rotationAngle);
 
         // 8. APPLY POWER          
-        // applyPowerVolts(currentAngle, targetAngle);
         applyPowerVolts(currentAngle, optimizedState.angle.getDegrees());
         // applyPowerVelocity(optimizedState);
     }
@@ -199,15 +197,9 @@ public class SwerveModule {
         final double turn = this.turnPID.calculate(currentAngle, targetAngle);
 
         // Restrict the turn power and reverse the direction
-        // final double turnVolts = MathUtil.clamp(-turn, -90, 90);
         final double turnVolts = MathUtil.clamp(-turn, -12, 12);
-        SmartDashboard.putNumber(this.place.name() + " turnPower", turnVolts);
+        SmartDashboard.putNumber(this.place.name() + " turnVolts", turnVolts);
 
-        // Calculate the dutyCycle (-1 to 1) taking account of the turn motor gear ratio
-        final double turnDutyCycle = turnVolts / Constants.Drivetrain.azimuthGearRatio;
-        SmartDashboard.putNumber(this.place.name() + " Turn Volts", turnVolts);
-
-        // this.io.setTurnDutyCycle(turnDutyCycle);
         this.io.setTurnVoltage(turnVolts);
 
         // Calculate drive power
@@ -216,12 +208,11 @@ public class SwerveModule {
 
         final double output = Constants.Drivetrain.drivePID.calculate(getDriveVelocity(), this.targetVelocity);
         final double driveVolts = MathUtil.clamp(ffw + output, -10, 10);
-        // final double driveDutyCycle = MathUtil.clamp(ffw + output, -1, 1);
-        SmartDashboard.putNumber(this.place.name() + " Drive Output", output);
-        SmartDashboard.putNumber(this.place.name() + " Drive FFW", ffw);
+        
+        // SmartDashboard.putNumber(this.place.name() + " Drive Output", output);
+        // SmartDashboard.putNumber(this.place.name() + " Drive FFW", ffw);
         SmartDashboard.putNumber(this.place.name() + " Drive Volts", driveVolts);
 
-        // this.io.setDriveDutyCycle(this.backwards ? -driveDutyCycle : driveDutyCycle);
         this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
     }
 
@@ -230,7 +221,8 @@ public class SwerveModule {
      * Uses the closed loop functions of the Phoenix motors
      */
     public void applyPowerVelocity(SwerveModuleState desiredState) {
-        this.io.setTargetDriveVelocity(desiredState.speedMetersPerSecond);
+        // this.io.setTargetDriveVelocity(desiredState.speedMetersPerSecond);
+        this.io.setTargetDriveTorque(desiredState.speedMetersPerSecond);
         this.io.setTargetTurnPosition(desiredState.angle.getRotations());
     }
 }

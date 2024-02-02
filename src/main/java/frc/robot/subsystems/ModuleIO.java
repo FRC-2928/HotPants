@@ -31,7 +31,7 @@ public interface ModuleIO {
     public Rotation2d turnPosition = new Rotation2d();
     public double turnVelocityRadPerSec = 0.0;
     public double turnAppliedVolts = 0.0;
-    public double targetSteerPositionRad = 0.0;
+    public double targetTurnPositionRad = 0.0;
     public double[] turnCurrentAmps = new double[] {};
   }
 
@@ -61,4 +61,7 @@ public interface ModuleIO {
 
   /** Run closed loop velocity control on the drive motor. */
   public default void setTargetDriveVelocity(double targetDriveVelocityMetersPerSec) {}
+
+  /** Run closed loop torque control on the drive motor. */
+  public default void setTargetDriveTorque(double targetDriveVelocityMetersPerSec) {}
 }

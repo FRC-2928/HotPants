@@ -16,18 +16,15 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.ClosedLoopOutputType;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -70,7 +67,7 @@ public class ModuleIOTalonFX implements ModuleIO {
 
   // Target Variables. Used only for data logging
   private double targetVelocityMetersPerSeconds = 0;
-  private double targetSteerPositionRad = 0;
+  private double targetTurnPositionRad = 0;
 
   // The closed-loop output type to use for the steer motors;
     // This affects the PID/FF gains for the steer motors
@@ -86,28 +83,24 @@ public class ModuleIOTalonFX implements ModuleIO {
       this.turnTalon = new TalonFX(Constants.CAN.swerveFrontLeftAzimuth, "canivore");
       this.driveTalon = new TalonFX(Constants.CAN.swerveFrontLeftDrive, "canivore");
       this.cancoder = new CANcoder(Constants.CAN.swerveFrontLeftEncoder, "canivore");
-      // this.absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontLeftOffset)); // MUST BE CALIBRATED
       this.absoluteEncoderOffset = Constants.CAN.swerveFrontLeftOffset; // MUST BE CALIBRATED
       break;
     case FrontRight:
       this.turnTalon = new TalonFX(Constants.CAN.swerveFrontRightAzimuth, "canivore");
       this.driveTalon = new TalonFX(Constants.CAN.swerveFrontRightDrive, "canivore");
       this.cancoder = new CANcoder(Constants.CAN.swerveFrontRightEncoder, "canivore");
-      // this.absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveFrontRightOffset)); // MUST BE CALIBRATED
       this.absoluteEncoderOffset = Constants.CAN.swerveFrontRightOffset; // MUST BE CALIBRATED
       break;
     case BackRight:
       this.turnTalon = new TalonFX(Constants.CAN.swerveBackRightAzimuth, "canivore");
       this.driveTalon = new TalonFX(Constants.CAN.swerveBackRightDrive, "canivore");
       this.cancoder = new CANcoder(Constants.CAN.swerveBackRightEncoder, "canivore");
-      // this.absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackRightOffset)); // MUST BE CALIBRATED
       this.absoluteEncoderOffset = Constants.CAN.swerveBackRightOffset;
       break;
     case BackLeft:
       this.turnTalon = new TalonFX(Constants.CAN.swerveBackLeftAzimuth, "canivore");
       this.driveTalon = new TalonFX(Constants.CAN.swerveBackLeftDrive, "canivore");
       this.cancoder = new CANcoder(Constants.CAN.swerveBackLeftEncoder, "canivore");
-      // this.absoluteEncoderOffset = new Rotation2d(Units.rotationsToRadians(Constants.CAN.swerveBackLeftOffset)); // MUST BE CALIBRATED
       this.absoluteEncoderOffset = Constants.CAN.swerveBackLeftOffset;// MUST BE CALIBRATED
       break;
     default:
@@ -122,7 +115,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     azimuthConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
 
     azimuthConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
-    azimuthConfig.Slot0 = Constants.Drivetrain.turnGains;
+    azimuthConfig.Slot0 = Constants.Drivetrain.turnGainsSlot0;
     turnTalon.getConfigurator().apply(azimuthConfig);
 
     turnTalon.setNeutralMode(NeutralModeValue.Brake);
@@ -139,7 +132,8 @@ public class ModuleIOTalonFX implements ModuleIO {
 
     driveConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
 
-    driveConfig.Slot0 = Constants.Drivetrain.driveGains;
+    driveConfig.Slot0 = Constants.Drivetrain.driveGainsSlot0;
+    driveConfig.Slot1 = Constants.Drivetrain.driveGainsSlot1;
     driveTalon.getConfigurator().apply(driveConfig);
 
     driveTalon.setNeutralMode(NeutralModeValue.Brake);
@@ -210,7 +204,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble()) / TURN_GEAR_RATIO;
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
     inputs.turnCurrentAmps = new double[] { turnCurrent.getValueAsDouble() };
-    inputs.targetSteerPositionRad = targetSteerPositionRad;
+    inputs.targetTurnPositionRad = targetTurnPositionRad;
 
     inputs.cancoderAbsolutePosition = Rotation2d.fromRotations(cancoderAbsolutePosition.getValueAsDouble());
   }
@@ -231,18 +225,30 @@ public class ModuleIOTalonFX implements ModuleIO {
   public void setTurnDutyCycle(double speed) { turnTalon.setControl(new DutyCycleOut(speed)); }
 
   @Override
-    public void setTargetTurnPosition(double targetSteerPositionRad) {
+    public void setTargetTurnPosition(double targetTurnPositionRad) {
       /* Start at position 0, enable FOC, no feed forward, use slot 0 */
-      PositionVoltage voltagePosition = new PositionVoltage(0, 0, true, 0, 0, false, false, false);
-      turnTalon.setControl(voltagePosition.withPosition(targetSteerPositionRad));
-      this.targetSteerPositionRad = targetSteerPositionRad;
+      final PositionVoltage voltagePosition = new PositionVoltage(0, 0, true, 0, 0, false, false, false);
+      turnTalon.setControl(voltagePosition.withPosition(targetTurnPositionRad));
+      this.targetTurnPositionRad = targetTurnPositionRad;
     }
 
     @Override
     public void setTargetDriveVelocity(double targetDriveVelocityMetersPerSec) {
       /* Start at velocity 0, enable FOC, no feed forward, use slot 0 */
-      VelocityVoltage voltageVelocity = new VelocityVoltage(0, 0, true, 0, 0, false, false, false);
+      final VelocityVoltage voltageVelocity = new VelocityVoltage(0, 0, true, 0, 0, false, false, false);
       driveTalon.setControl(voltageVelocity.withVelocity(targetDriveVelocityMetersPerSec));
+      this.targetVelocityMetersPerSeconds = targetDriveVelocityMetersPerSec;
+    }
+
+    @Override
+    public void setTargetDriveTorque(double targetDriveVelocityMetersPerSec) {  
+      /* Start at velocity 0, no feed forward, use slot 1 */
+      final VelocityTorqueCurrentFOC torqueVelocity = new VelocityTorqueCurrentFOC(0, 0, 0, 1, false, false, false);
+      
+      // To account for friction, we add this to the arbitrary feed forward
+      final double friction_torque = (targetDriveVelocityMetersPerSec > 0) ? 1 : -1; 
+
+      driveTalon.setControl(torqueVelocity.withVelocity(targetDriveVelocityMetersPerSec).withFeedForward(friction_torque));
       this.targetVelocityMetersPerSeconds = targetDriveVelocityMetersPerSec;
     }
 

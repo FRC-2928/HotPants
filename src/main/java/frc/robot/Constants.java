@@ -1,6 +1,7 @@
 package frc.robot;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.Slot1Configs;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -95,23 +96,31 @@ public class Constants {
 			public static final boolean thetaCompensation = true;
 		}
 
-		/* Voltage-based velocity requires a feed forward to account for the back-emf of the motor */
+		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the 
+			rotor up to the desired velocity by itself */
+		// kP = 5 An error of 1 rotation per second results in 5 amps output
+		// kI = 0.1 An error of 1 rotation per second increases output by 0.1 amps every second
+		// kD = 0.001 A change of 1000 rotation per second squared results in 1 amp output
+		public static final Slot1Configs driveGainsSlot1 = new Slot1Configs()
+			.withKP(5).withKI(0.1).withKD(0.001)
+			.withKS(0).withKV(0).withKA(0);
+	
+
+		/* VOLTAGE-based velocity requires a feed forward to account for the back-emf of the motor */
 		// kP = 0.11 An error of 1 rotation per second results in 2V output
 		// kI = 0.5 An error of 1 rotation per second increases output by 0.5V every second
 		// kD = 0.0001 A change of 1 rotation per second squared results in 0.01 volts output
 		// 0.12 Falcon 500 is a 500kV motor, 500rpm per V = 8.333 rps per V, 1/8.33 = 0.12 
-		public static final Slot0Configs driveGains = new Slot0Configs()
+		public static final Slot0Configs driveGainsSlot0 = new Slot0Configs()
 			.withKP(0.11).withKI(0.5).withKD(0.0001)
 			.withKS(0).withKV(0.12).withKA(0);
-
-		// When using closed-loop control, the drive motor uses the control
-		// output type specified by SwerveModuleConstants.DriveMotorClosedLoopOutput
 			// .withKP(3).withKI(0).withKD(0)
 			// .withKS(0).withKV(0).withKA(0);
 
+		// POSITION Closed-loop control
 		// An error of 0.5 rotations results in 1.2 volts output
 		// A change of 1 rotation per second results in 0.1 volts output
-		public static final Slot0Configs turnGains = new Slot0Configs()
+		public static final Slot0Configs turnGainsSlot0 = new Slot0Configs()
 			.withKP(2.4).withKI(0).withKD(0.1)
 			.withKS(0).withKV(0).withKA(0);
 
