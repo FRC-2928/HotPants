@@ -126,8 +126,7 @@ public class JoystickDrive extends Command {
 		double omega = theta * mul
 					* (Constants.Drivetrain.Flags.absoluteRotation ? this.absoluteTargetMagnitude : 1);
 
-		double omegaRadPerSec = omega * Constants.Drivetrain.maxAngularVelocityRadPerSec;
-		return omegaRadPerSec;
+		return omega * Constants.Drivetrain.maxAngularVelocityRadPerSec;
 	}
 
 	// Square values

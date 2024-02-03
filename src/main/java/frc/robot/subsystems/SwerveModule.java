@@ -238,6 +238,6 @@ public class SwerveModule {
 
     // Will use the CANcoder as the feedback device.  See turn motor config.
     public void applyTurnPosition(Rotation2d requiredAngle) {
-        this.io.setTargetTurnPosition(requiredAngle.getRotations());
+        this.io.setTargetTurnPosition(requiredAngle.getRadians());
     }
 }
