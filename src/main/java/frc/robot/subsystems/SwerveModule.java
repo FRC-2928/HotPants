@@ -168,57 +168,6 @@ public class SwerveModule {
         }
     }
 
-    void update() {
-        this.io.updateInputs(inputs);
-        Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
-
-        Rotation2d rotationAngle = this.updateModulePosition().angle;
-        double currentAngle = rotationAngle.getDegrees();
-        SmartDashboard.putNumber(this.place.name() + " Angle", currentAngle);
-        SmartDashboard.putNumber(this.place.name() + " Angle Target", this.targetAngle.getDegrees());
-
-        // 7. WHEEL DIRECTION OPTIMIZATION
-        SwerveModuleState optimizedState = optimizeWheelDirection(rotationAngle);
-
-        // 8. APPLY POWER          
-        applyDriveVolts();
-        applyTurnVolts(currentAngle, optimizedState.angle.getDegrees());
-
-        // applyDriveVelocity(optimizedState.speedMetersPerSecond);
-        // // applyDriveTorque(optimizedState.speedMetersPerSecond);
-        // applyTurnPosition(optimizedState.angle);
-    }
-
-    /**
-     * Computes the voltage output required and sends it to the motors
-     * 
-     * @param currentAngle - in degrees
-     * @param targetAngle - in degrees
-     */
-    // public void applyPowerVolts(double currentAngle, double targetAngle) {
-    //     // Calculate turn power required to reach the setpoint
-    //     final double turn = this.turnPID.calculate(currentAngle, targetAngle);
-
-    //     // Restrict the turn power and reverse the direction
-    //     final double turnVolts = MathUtil.clamp(-turn, -12, 12);
-    //     SmartDashboard.putNumber(this.place.name() + " turnVolts", turnVolts);
-
-    //     this.io.setTurnVoltage(turnVolts);
-
-    //     // Calculate drive power
-    //     final double ffw = Constants.Drivetrain.driveFFW.calculate(this.targetVelocity);
-    //     SmartDashboard.putNumber(this.place.name() + " Drive Target Velocity", this.targetVelocity);
-
-    //     final double output = Constants.Drivetrain.drivePID.calculate(getDriveVelocity(), this.targetVelocity);
-    //     final double driveVolts = MathUtil.clamp(ffw + output, -10, 10);
-        
-    //     // SmartDashboard.putNumber(this.place.name() + " Drive Output", output);
-    //     // SmartDashboard.putNumber(this.place.name() + " Drive FFW", ffw);
-    //     SmartDashboard.putNumber(this.place.name() + " Drive Volts", driveVolts);
-
-    //     this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
-    // }
-
     /**
      * Computes the voltage output required and sends it to the turn motor
      * 
@@ -252,6 +201,27 @@ public class SwerveModule {
         SmartDashboard.putNumber(this.place.name() + " Drive Volts", driveVolts);
 
         this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
+    }
+
+    void update() {
+        this.io.updateInputs(inputs);
+        Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
+
+        Rotation2d rotationAngle = this.updateModulePosition().angle;
+        double currentAngle = rotationAngle.getDegrees();
+        SmartDashboard.putNumber(this.place.name() + " Angle", currentAngle);
+        SmartDashboard.putNumber(this.place.name() + " Angle Target", this.targetAngle.getDegrees());
+
+        // 7. WHEEL DIRECTION OPTIMIZATION
+        SwerveModuleState optimizedState = optimizeWheelDirection(rotationAngle);
+
+        // 8. APPLY POWER          
+        applyDriveVolts();
+        applyTurnVolts(currentAngle, optimizedState.angle.getDegrees());
+
+        // applyDriveVelocity(optimizedState.speedMetersPerSecond);
+        // // applyDriveTorque(optimizedState.speedMetersPerSecond);
+        // applyTurnPosition(optimizedState.angle);
     }
 
     /**
