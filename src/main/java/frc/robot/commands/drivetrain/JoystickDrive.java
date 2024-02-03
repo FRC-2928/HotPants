@@ -2,12 +2,12 @@ package frc.robot.commands.drivetrain;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -23,6 +23,10 @@ public class JoystickDrive extends Command {
 	public double absoluteTargetMagnitude = 0.5;
 	private final PIDController absoluteController = Constants.Drivetrain.absoluteRotationPID.createController();
 
+	private final SlewRateLimiter xLimiter = new SlewRateLimiter(100.0);
+	private final SlewRateLimiter yLimiter = new SlewRateLimiter(100.0);
+	private final SlewRateLimiter turnLimiter = new SlewRateLimiter(100.0);
+
 	public JoystickDrive(final Drivetrain drivetrain, final DriverOI oi) {
 		this.drivetrain = drivetrain;
 		this.oi = oi;
@@ -37,18 +41,18 @@ public class JoystickDrive extends Command {
 		final double mul = MathUtil.interpolate(1, 0.5, this.oi.slow.get());
 
 		// 1. CONVERT JOYSTICK VALUES
-		Translation2d linearVelocity = getSpeeds(mul); // Meters per/sec
-		SmartDashboard.putNumber("Speeds X", linearVelocity.getX());
-		SmartDashboard.putNumber("Speeds Y", linearVelocity.getY());
+		Translation2d linearVelocity = getLinearVelocity(mul); // Meters per/sec
+		SmartDashboard.putNumber("Linear Velocity X", linearVelocity.getX());
+		SmartDashboard.putNumber("Linear Velocity Y", linearVelocity.getY());
 
 		double omegaRadPerSec = getTheta(mul); // Radians per/sec
 		SmartDashboard.putNumber("Omega", omegaRadPerSec);
 
 		// 2 CONVERT TO CHASSIS SPEEDS	
-		double xMetersPerSec = linearVelocity.getX() * Constants.Drivetrain.maxWheelSpeed; // Convert to meters/sec
-		double yMetersPerSec = linearVelocity.getY() * Constants.Drivetrain.maxWheelSpeed; // Convert to meters/sec
-
-		ChassisSpeeds desired = new ChassisSpeeds(xMetersPerSec, yMetersPerSec,omegaRadPerSec);
+		// double xMetersPerSec = linearVelocity.getX() * Constants.Drivetrain.maxVelocityMetersPerSec; // Convert to meters/sec
+		// double yMetersPerSec = linearVelocity.getY() * Constants.Drivetrain.maxVelocityMetersPerSec; // Convert to meters/sec
+		// ChassisSpeeds desired = new ChassisSpeeds(xMetersPerSec, yMetersPerSec,omegaRadPerSec);
+		ChassisSpeeds desired = new ChassisSpeeds(linearVelocity.getX(), linearVelocity.getY(), omegaRadPerSec);
 
 		// Compensate for wheel rotation while driving and rotating. Rotate 0.35 radians (20 degrees).
 		if(Constants.Drivetrain.Flags.thetaCompensation) desired = this.drivetrain.compensate(desired);
@@ -65,26 +69,61 @@ public class JoystickDrive extends Command {
 	}
 
 	/**
-	 * magnitude of the velocity between 0 and 1.414 
 	 * 
 	 * @param mul
-	 * @return magnitude of the velocity
+	 * @return the velocity in meters per/sec
 	 */
-	private Translation2d getSpeeds(final double mul) {
+	private Translation2d getLinearVelocity(final double mul) {
 		// Left Axis
 
 		// Get joystick inputs and apply deadbands
 		final double axial = -MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
 		final double lateral = MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
 
-		// Calculate the move direction and magnitude
+		// Get the angle theta from the conversion of rectangular coordinates to polar coordinates
 		final Rotation2d moveDirection = Rotation2d.fromRadians(Math.atan2(lateral, axial));
+		// final Rotation2d moveDirection = new Rotation2d(this.oi.moveAxial.get(), this.oi.moveLateral.get());
+
+		// Calculate the move magnitude
+		// double magnitude = Math.hypot(lateral, axial);
+		// magnitude = MathUtil.clamp(magnitude, 0, 1); // Make it a unit value?
+		// final double moveMagnitude = magnitude * magnitude; // Square values
 		final double moveMagnitude = this.curve(MathUtil.clamp(Math.sqrt(lateral * lateral + axial * axial), 0, 1));
 
-		double xSpeed = Math.cos(moveDirection.getRadians()) * moveMagnitude * Constants.Drivetrain.axialLateralSpeed * mul;
-		double ySpeed = Math.sin(moveDirection.getRadians()) * moveMagnitude * Constants.Drivetrain.axialLateralSpeed * mul;
+		double xSpeed = Math.cos(moveDirection.getRadians()) * moveMagnitude * mul;
+		double ySpeed = Math.sin(moveDirection.getRadians()) * moveMagnitude * mul;
 
-		return new Translation2d(xSpeed, ySpeed);
+		// Convert to meters per/sec
+		double vxMetersPerSecond = xSpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
+		double vyMetersPerSecond = ySpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
+
+		return new Translation2d(vxMetersPerSecond, vyMetersPerSecond);
+	}
+
+	private Translation2d alternativeLinearVelocity(final double mul) {
+		// Apply deadband
+          double moveMagnitude =
+              MathUtil.applyDeadband(
+                  Math.hypot(this.oi.moveAxial.get(), this.oi.moveLateral.get()), 0.1);
+
+          Rotation2d moveDirection =
+              new Rotation2d(this.oi.moveAxial.get(), this.oi.moveLateral.get());
+
+          // Square values
+          moveMagnitude = moveMagnitude * moveMagnitude;
+
+          // Calcaulate new linear velocity
+          Translation2d linearVelocity =
+              new Pose2d(new Translation2d(), moveDirection)
+                  .transformBy(new Transform2d(moveMagnitude, 0.0, new Rotation2d()))
+                  .getTranslation();
+
+		double vxMetersPerSecond = linearVelocity.getX() * Constants.Drivetrain.maxVelocityMetersPerSec;
+		double vyMetersPerSecond = linearVelocity.getY() * Constants.Drivetrain.maxVelocityMetersPerSec;
+
+		return new Translation2d(vxMetersPerSecond, vyMetersPerSecond);
+
+		// return linearVelocity;
 	}
 
 
@@ -102,10 +141,8 @@ public class JoystickDrive extends Command {
 
 			this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;
 
-			// Constants.mod(this.drivetrain.gyro.getRotation2d().unaryMinus().getRotations(), 1)
 			double measurement = Constants.mod(this.drivetrain.getGyroRotations(),1) - 0.5;
 			double setpoint = this.absoluteTarget.getRotations();
-
 			theta = MathUtil.applyDeadband(
 						MathUtil
 							.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5),
@@ -113,44 +150,23 @@ public class JoystickDrive extends Command {
 					);
 		} else {
 			theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
-		}		
+		}
+		
+		// theta = this.turnLimiter.calculate(theta);
 
+		double omega = theta * mul
+					* (Constants.Drivetrain.Flags.absoluteRotation ? this.absoluteTargetMagnitude : 1);
+
+		// double omegaRadPerSec = omega * Constants.Drivetrain.maxAngularVelocityRadPerSec;
+		// return omegaRadPerSec;
 		return theta * Math.toRadians(Constants.Drivetrain.thetaSpeed)
 					* mul
 					* (Constants.Drivetrain.Flags.absoluteRotation ? this.absoluteTargetMagnitude : 1);
 	}
 
-	// Input curve function
+	// Square values
 	private double curve(final double input) {
 		return Math.pow(input, 2); // x^2
 	}
 
-	// private Translation2d getLinearVelocity() {
-	// 	// Apply deadband
-    //       double linearMagnitude =
-    //           MathUtil.applyDeadband(
-    //               Math.hypot(this.oi.moveAxial.get(), this.oi.moveLateral.get()), 0.1);
-    //       Rotation2d linearDirection =
-    //           new Rotation2d(-this.oi.moveAxial.get(), this.oi.moveLateral.get());
-          
-    //       // Square values
-    //       linearMagnitude = linearMagnitude * linearMagnitude;
-	// 	  SmartDashboard.putNumber("Magnitude", linearMagnitude);
-
-    //       // Calcaulate new linear velocity
-    //       Translation2d linearVelocity =
-    //           new Pose2d(new Translation2d(), linearDirection)
-    //               .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d()))
-    //               .getTranslation();
-
-	// 	return linearVelocity;
-	// }
-
-	// private double getOmega() {
-	// 	double omega = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.1);
-
-	// 	// Square values
-	// 	omega = Math.copySign(omega * omega, omega);
-	// 	return omega;
-	// }
 }

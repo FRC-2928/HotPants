@@ -13,7 +13,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 public class Constants {
 	private Constants() { throw new IllegalCallerException("Cannot instantiate `Constants`"); }
 
-	public static final Mode currentMode = Mode.REAL;
+	public static final Mode currentMode = Mode.SIM;
 
 	public static enum Mode {
 		/** Running on a real robot. */
@@ -142,6 +142,8 @@ public class Constants {
 		public static final double thetaCompensationFactor = 0.35;
 
 		public static final double wheelPositionRadius = 0.3906711; // radius of the circle that wheels are positioned on
+		public static final double wheelBase = (wheelPositionRadius * Math.sqrt(2)); // 0.55154329
+		public static final double trackWidth = wheelBase; // For a square drivetrain
 
 		public static final Translation2d swerveFrontLeftTranslation = new Translation2d(
 			Constants.Drivetrain.wheelPositionRadius,
@@ -174,13 +176,15 @@ public class Constants {
 		public static final double azimuthGearRatio = 150.0 / 7.0;
 
 		public static final double wheelRadius = 2.0 * 0.0254; // m
+		public static final double wheelCircumference = (wheelRadius * 2) * Math.PI;
+		public static final double rotationsPerMeter = driveGearRatio / wheelCircumference;
 
-		// todo: find
-		// public static final double maxWheelSpeed = 10.0;
-		public static final double maxWheelSpeed = 5.0; // m/s
+		// max angular velocity computes to 6.41 radians per second
+		public static final double maxVelocityMetersPerSec = 5.0; // m/s
+		public static final double maxAngularVelocityRadPerSec = maxVelocityMetersPerSec / Math.hypot(trackWidth / 2.0, wheelBase / 2.0);
 
-		// todo: choose
-		public static final double axialLateralSpeed = 1; // m/s
+		// // todo: choose
+		// public static final double axialLateralSpeed = 1; // m/s
 		public static final double thetaSpeed = 180.0; // deg/s
 	}
 }

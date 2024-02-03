@@ -25,7 +25,12 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.ClosedLoopOutputType;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants.SteerFeedbackType;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
@@ -70,11 +75,11 @@ public class ModuleIOTalonFX implements ModuleIO {
   private double targetTurnPositionRad = 0;
 
   // The closed-loop output type to use for the steer motors;
-    // This affects the PID/FF gains for the steer motors
-    private static final ClosedLoopOutputType steerClosedLoopOutput = ClosedLoopOutputType.Voltage;
-    // The closed-loop output type to use for the drive motors;
-    // This affects the PID/FF gains for the drive motors
-    private static final ClosedLoopOutputType driveClosedLoopOutput = ClosedLoopOutputType.Voltage;
+  // This affects the PID/FF gains for the steer motors
+  private static final ClosedLoopOutputType steerClosedLoopOutput = ClosedLoopOutputType.Voltage;
+  // The closed-loop output type to use for the drive motors;
+  // This affects the PID/FF gains for the drive motors
+  private static final ClosedLoopOutputType driveClosedLoopOutput = ClosedLoopOutputType.Voltage;
 
 
   public ModuleIOTalonFX(Place place) {
@@ -107,35 +112,49 @@ public class ModuleIOTalonFX implements ModuleIO {
       throw new RuntimeException("Invalid module index");
     }
 
-    var azimuthConfig = new TalonFXConfiguration();
+    var turnConfig = new TalonFXConfiguration();
       // Peak output of 40 amps
-    azimuthConfig.CurrentLimits.StatorCurrentLimit = 40.0;
-    azimuthConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-    azimuthConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
-    azimuthConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
+    turnConfig.CurrentLimits.StatorCurrentLimit = 40.0;
+    turnConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    turnConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
+    turnConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
+    turnConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
+    // turnConfig.Voltage.PeakForwardVoltage = 10;
+    // turnConfig.Voltage.PeakReverseVoltage = -10;
 
-    azimuthConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
-    azimuthConfig.Slot0 = Constants.Drivetrain.turnGainsSlot0;
-    turnTalon.getConfigurator().apply(azimuthConfig);
+    // Set the feedback source to be the CANcoder
+    turnConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+    // Fuses cancoder with internal rotor for more accurate positioning. Requires Phoenix Pro
+    // turnConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder; 
+    turnConfig.Feedback.FeedbackRemoteSensorID = cancoder.getDeviceID();
 
+    // PID values
+    turnConfig.Slot0 = Constants.Drivetrain.turnGainsSlot0;
+
+    turnTalon.getConfigurator().apply(turnConfig);
     turnTalon.setNeutralMode(NeutralModeValue.Brake);
 
     var driveConfig = new TalonFXConfiguration();
-      // Peak output of 40 amps
+      // Peak output amps
     driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
     driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     driveConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
     driveConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
-    // Peak output of 8 volts
-    driveConfig.Voltage.PeakForwardVoltage = 8;
-    driveConfig.Voltage.PeakReverseVoltage = -8;
 
+    // Supply current limits
+    // driveConfig.CurrentLimits.SupplyCurrentLimit = 35;
+    // driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    // driveConfig.CurrentLimits.SupplyCurrentThreshold = 60;
+    // driveConfig.CurrentLimits.SupplyTimeThreshold = 0.1;
+
+    // driveConfig.Feedback.SensorToMechanismRatio = Constants.Drivetrain.rotationsPerMeter;
     driveConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
 
+    // PID values
     driveConfig.Slot0 = Constants.Drivetrain.driveGainsSlot0;
     driveConfig.Slot1 = Constants.Drivetrain.driveGainsSlot1;
-    driveTalon.getConfigurator().apply(driveConfig);
 
+    driveTalon.getConfigurator().apply(driveConfig);
     driveTalon.setNeutralMode(NeutralModeValue.Brake);
 
     if(place == Place.FrontRight || place == Place.BackRight) {

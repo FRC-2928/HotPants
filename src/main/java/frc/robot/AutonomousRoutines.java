@@ -2,10 +2,14 @@ package frc.robot;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.subsystems.Drivetrain;
+
+import java.util.Optional;
 
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoTrajectory;
@@ -52,15 +56,15 @@ public final class AutonomousRoutines {
 		thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
 		// Whether or not to mirror the path based on alliance
-		// Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
-		// 		mirror = alliance.isPresent() && alliance.get() == Alliance.Red;
+		Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
+		boolean	mirror = alliance.isPresent() && alliance.get() == Alliance.Red;
 	
 		Command swerveCommand = Choreo.choreoSwerveCommand(
 			traj, // Choreo trajectory from above
 			drivetrain::getPoseEstimation, // A function that returns the current field-relative pose of the robot: 
 								// your wheel or vision odometry
 			new PIDController(0.1, 0.0, 0.0), // PIDController for field-relative X
-													// translation (input: X error in meters,// output: m/s).
+													// translation (input: X error in meters, output: m/s).
 			new PIDController(0.1, 0.0, 0.0), // PIDController for field-relative Y
 													// translation (input: Y error in meters, output: m/s).
 			thetaController, // PID constants to correct for rotation error
@@ -69,7 +73,7 @@ public final class AutonomousRoutines {
 				speeds.vyMetersPerSecond,
 				speeds.omegaRadiansPerSecond,
 				false),
-			() -> true, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
+			() -> mirror, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
 			drivetrain // The subsystem(s) to require, typically your drive subsystem only
 		);
 

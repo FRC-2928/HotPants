@@ -64,17 +64,18 @@ public class Drivetrain extends SubsystemBase {
 	 * @param rot Angular rate of the robot.
 	 * @param fieldRelative Whether the provided x and y speeds are relative to the field.
 	 */
-	public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
-		// direction of travel = Rotation2d(xVel, yVel)
-		// linear velocity = hypot(xVel, yVel)
-		SmartDashboard.putNumber("xSpeed", -xSpeed);
-		SmartDashboard.putNumber("ySpeed", ySpeed);
-		SmartDashboard.putNumber("rotation", rot);
+	public void drive(double vxMetersPerSecond, double vyMetersPerSecond, 
+					  double omegaRadiansPerSecond, boolean fieldRelative) {
+		
+		SmartDashboard.putNumber("xSpeed", vxMetersPerSecond);
+		SmartDashboard.putNumber("ySpeed", vyMetersPerSecond);
+		SmartDashboard.putNumber("rotation", omegaRadiansPerSecond);
+
 		var swerveModuleStates =
 			kinematics.toSwerveModuleStates(
 				fieldRelative
-					? ChassisSpeeds.fromFieldRelativeSpeeds(-xSpeed, ySpeed, rot, getHeading())
-					: new ChassisSpeeds(-xSpeed, ySpeed, rot));
+					? ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getHeading())
+					: new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond));
 
 		setModuleStates(swerveModuleStates);
 	}
@@ -83,11 +84,11 @@ public class Drivetrain extends SubsystemBase {
 	 * Set the required speed and angle of each wheel.
 	 * 
 	 * @param states - required speed in meters per/sec
-	 * 				 - angle in degrees
+	 * 				 - angle in radians per/sec
 	*/
 	public void setModuleStates(final SwerveModuleState[] states) {
 		// 5. DESATURATE WHEEL SPEEDS
-		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxWheelSpeed);
+		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxVelocityMetersPerSec);
 
 		// 6. SET SPEED AND ANGLE FOR EACH WHEEL
 		for(int i = 0; i < this.modules.length; i++)
@@ -169,7 +170,7 @@ public class Drivetrain extends SubsystemBase {
 			this.getModulePositions(),
 			pose);
 	}
-	
+
 	/** Returns the current odometry pose. */
 	@AutoLogOutput(key = "Odometry/Estimation")
 	public Pose2d getPoseEstimation() {
