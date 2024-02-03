@@ -133,11 +133,11 @@ public class Constants {
 		public static final PIDValues swerveAzimuthPID = new PIDValues(0.1, 0.01, 0.003, 0);
 		// public static final PIDValues swerveAzimuthPID = new PIDValues(0.025, 0.0, 0, 0);
 		// public static final PIDValues swerveAzimuthPID = new PIDValues(0.25, 0.75, 0, 0); // todo: test this more, see how it feels and inspect wheel motion, compare to above
-		public static final PIDValues absoluteRotationPID = new PIDValues(2.75, 0, 0.2, 0);
+		public static final PIDValues absoluteRotationPID = new PIDValues(1.8, 0.01, 0, 0);
 		// todo: find
 		// public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 1, 0);
-		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 10, 0);
-		public final static PIDController drivePID = new PIDController(0.5, 0, 0);
+		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 4, 0);
+		public final static PIDController drivePID = new PIDController(0.1, 0, 0);
 
 		public static final double thetaCompensationFactor = 0.35;
 

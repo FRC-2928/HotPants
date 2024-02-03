@@ -179,7 +179,7 @@ public class SwerveModule {
         final double turn = this.turnPID.calculate(currentAngle, targetAngle);
 
         // Restrict the turn power and reverse the direction
-        final double turnVolts = MathUtil.clamp(-turn, -12, 12);
+        final double turnVolts = MathUtil.clamp(-turn, -10, 10);
         SmartDashboard.putNumber(this.place.name() + " turnVolts", turnVolts);
 
         this.io.setTurnVoltage(turnVolts);
