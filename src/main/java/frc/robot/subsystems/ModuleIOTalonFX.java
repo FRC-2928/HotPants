@@ -123,10 +123,11 @@ public class ModuleIOTalonFX implements ModuleIO {
     // turnConfig.Voltage.PeakReverseVoltage = -10;
 
     // Set the feedback source to be the CANcoder
-    // turnConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+    turnConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+    turnConfig.Feedback.FeedbackRemoteSensorID = cancoder.getDeviceID();
+    turnConfig.Feedback.SensorToMechanismRatio = TURN_GEAR_RATIO;
     // Fuses cancoder with internal rotor for more accurate positioning. Requires Phoenix Pro
     // turnConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder; 
-    // turnConfig.Feedback.FeedbackRemoteSensorID = cancoder.getDeviceID();
 
     // PID values
     turnConfig.Slot0 = Constants.Drivetrain.turnGainsSlot0;

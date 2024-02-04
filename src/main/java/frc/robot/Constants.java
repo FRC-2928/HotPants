@@ -131,11 +131,8 @@ public class Constants {
 
 		// todo: tune
 		public static final PIDValues swerveAzimuthPID = new PIDValues(0.1, 0.01, 0.003, 0);
-		// public static final PIDValues swerveAzimuthPID = new PIDValues(0.025, 0.0, 0, 0);
-		// public static final PIDValues swerveAzimuthPID = new PIDValues(0.25, 0.75, 0, 0); // todo: test this more, see how it feels and inspect wheel motion, compare to above
 		public static final PIDValues absoluteRotationPID = new PIDValues(1.8, 0.01, 0, 0);
 		// todo: find
-		// public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 1, 0);
 		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 4, 0);
 		public final static PIDController drivePID = new PIDController(0.1, 0, 0);
 
@@ -178,13 +175,14 @@ public class Constants {
 		public static final double wheelRadius = 2.0 * 0.0254; // m
 		public static final double wheelCircumference = (wheelRadius * 2) * Math.PI;
 		public static final double rotationsPerMeter = driveGearRatio / wheelCircumference;
-
-		// max angular velocity computes to 6.41 radians per second
+	
 		public static final double maxVelocityMetersPerSec = 5.0; // m/s
+		
+		// max angular velocity computes to 6.41 radians per second
 		public static final double maxAngularVelocityRadPerSec = maxVelocityMetersPerSec / Math.hypot(trackWidth / 2.0, wheelBase / 2.0);
 
 		// // todo: choose
 		// public static final double axialLateralSpeed = 1; // m/s
-		public static final double thetaSpeed = 180.0; // deg/s
+		// public static final double thetaSpeed = 180.0; // deg/s
 	}
 }
