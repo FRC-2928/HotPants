@@ -1,5 +1,7 @@
 package frc.robot.vision;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -62,7 +64,14 @@ public class Limelight {
 	}
 
 	// Robot transform in 2D field-space. Translation (X,Y) Rotation(Z)
+    @AutoLogOutput(key = "Odometry/Limelight")
 	public Pose2d getPose2d() {
+        Pose2d botPose = getBotPose2d().relativeTo(new Pose2d(-8.27, -4.105, new Rotation2d()));
+		return botPose;
+	}
+
+    @AutoLogOutput(key = "Odometry/BotPose")
+    public Pose2d getBotPose2d() {
 		return LimelightHelpers.getBotPose2d(this.limelightName);
 	}
 

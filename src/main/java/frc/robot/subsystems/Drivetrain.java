@@ -222,6 +222,7 @@ public class Drivetrain extends SubsystemBase {
 		}
 	}
 
+	@AutoLogOutput(key = "AprilTag/id")
 	public int getAprilTagID() {
 		if(RobotBase.isReal()) {
 			return this.limelight.getTargetAprilTagID();
@@ -285,8 +286,13 @@ public class Drivetrain extends SubsystemBase {
 		if(this.limelight.hasValidTargets()) {
 			this.poseEstimator.addVisionMeasurement(this.getLimelightPose2d(), Timer.getFPGATimestamp() - 0.3);
 		}
+
+		Pose2d botPose = this.limelight.getPose2d();
 	}
 
+	// ----------------------------------------------------------
+    // Simulation
+    // ----------------------------------------------------------
 	public boolean getHasValidTargetsSim() {
 		double heading = this.getPoseEstimation().getRotation().getDegrees();
 
