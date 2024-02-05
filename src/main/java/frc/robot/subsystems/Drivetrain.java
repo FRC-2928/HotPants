@@ -104,7 +104,8 @@ public class Drivetrain extends SubsystemBase {
 		return ChassisSpeeds.fromFieldRelativeSpeeds(field, getHeading().unaryMinus());
 	}
 
-	// Compensate for wheel rotation while driving and rotating
+	// Compensate for wheel rotation.  This prevents the robot 
+	// from drifting to one side while driving and rotating
 	public ChassisSpeeds compensate(final ChassisSpeeds original) {
 		// using this function because its just an easy way to rotate the axial/lateral speeds
 		return ChassisSpeeds

@@ -145,24 +145,27 @@ public class SwerveModule {
     // ----------------------------------------------------------
     // Process Logic
     // ----------------------------------------------------------
-    private SwerveModuleState optimizeWheelDirection(Rotation2d currentAngle) {
+    private SwerveModuleState optimizeWheelDirection(Rotation2d currentAngleRotation) {
         this.backwards = Constants.Drivetrain.Flags.wheelOptimization
-            && Constants.angleDistance(this.targetAngle.getDegrees(), currentAngle.getDegrees()) > 90;
+            && Constants.angleDistance(this.targetAngle.getDegrees(), currentAngleRotation.getDegrees()) > 90;
 
         final double targetAngle = this.backwards
             ? Constants.angleNorm(this.targetAngle.getDegrees() + 180)
             : this.targetAngle.getDegrees();
+    
+        final double targetVelocity = this.backwards  
+            ? -this.targetVelocity : this.targetVelocity;
 
-        SmartDashboard.putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngle.getDegrees()));
+        SmartDashboard.putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngleRotation.getDegrees()));
         Rotation2d angle = Rotation2d.fromDegrees(targetAngle);
-        SwerveModuleState optimizedState = new SwerveModuleState(this.targetVelocity, angle);
+        SwerveModuleState optimizedState = new SwerveModuleState(targetVelocity, angle);
         return optimizedState;
     }
 
-    private SwerveModuleState optimize(Rotation2d currentAngle) {
+    private SwerveModuleState optimize(Rotation2d currentAngleRotation) {
         SwerveModuleState desiredState = new SwerveModuleState(this.targetVelocity, this.targetAngle);
         if (Constants.Drivetrain.Flags.wheelOptimization) {
-            return SwerveModuleState.optimize(desiredState, currentAngle);
+            return SwerveModuleState.optimize(desiredState, currentAngleRotation);
         } else {
             return desiredState;
         }
@@ -188,7 +191,7 @@ public class SwerveModule {
     /**
      * Computes the voltage output required and sends it to the drive motor
      */
-    private void applyDriveVolts() {
+    private void applyDriveVoltsOld() {
         // Calculate drive power
         final double ffw = Constants.Drivetrain.driveFFW.calculate(this.targetVelocity);
         SmartDashboard.putNumber(this.place.name() + " Drive Target Velocity", this.targetVelocity);
@@ -203,20 +206,35 @@ public class SwerveModule {
         this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
     }
 
+    private void applyDriveVolts(SwerveModuleState desiredState) {
+        // Calculate drive power
+        final double ffw = Constants.Drivetrain.driveFFW.calculate(desiredState.speedMetersPerSecond);
+        
+        final double output = Constants.Drivetrain.drivePID.calculate(getDriveVelocity(), desiredState.speedMetersPerSecond);
+        final double driveVolts = MathUtil.clamp(ffw + output, -10, 10);
+        
+        // SmartDashboard.putNumber(this.place.name() + " Drive Output", output);
+        // SmartDashboard.putNumber(this.place.name() + " Drive FFW", ffw);
+        // SmartDashboard.putNumber(this.place.name() + " Drive Volts", driveVolts);
+
+        this.io.setDriveVoltage(driveVolts);
+    }
+
     void update() {
         this.io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
 
-        Rotation2d rotationAngle = this.updateModulePosition().angle;
-        double currentAngle = rotationAngle.getDegrees();
+        Rotation2d currentAngleRotation = this.updateModulePosition().angle;
+        double currentAngle = currentAngleRotation.getDegrees();
         SmartDashboard.putNumber(this.place.name() + " Angle", currentAngle);
         SmartDashboard.putNumber(this.place.name() + " Angle Target", this.targetAngle.getDegrees());
 
         // 7. WHEEL DIRECTION OPTIMIZATION
-        SwerveModuleState optimizedState = optimizeWheelDirection(rotationAngle);
+        SwerveModuleState optimizedState = optimizeWheelDirection(currentAngleRotation);
+        // SwerveModuleState optimizedState = optimize(currentAngleRotation);
 
         // 8. APPLY POWER          
-        applyDriveVolts();
+        applyDriveVolts(optimizedState);
         applyTurnVolts(currentAngle, optimizedState.angle.getDegrees());
 
         // applyDriveVelocity(optimizedState.speedMetersPerSecond);
