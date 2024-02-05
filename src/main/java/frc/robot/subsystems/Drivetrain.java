@@ -6,17 +6,13 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -33,9 +29,7 @@ public class Drivetrain extends SubsystemBase {
 	// Used to track odometry
 	public final SwerveDrivePoseEstimator poseEstimator;
 	private final Limelight limelight = new Limelight("limelight");
-	private double offset;
-	private MedianFilter filterVertical = new MedianFilter(10);
-
+	
 	// ----------------------------------------------------------
     // Initialization
     // ----------------------------------------------------------
@@ -67,9 +61,9 @@ public class Drivetrain extends SubsystemBase {
 	/**
 	 * Method to drive the robot using joystick info.
 	 *
-	 * @param xSpeed Speed of the robot in the x direction (forward).
-	 * @param ySpeed Speed of the robot in the y direction (sideways).
-	 * @param rot Angular rate of the robot.
+	 * @param vxMetersPerSecond Speed of the robot in the x direction (forward).
+	 * @param vyMetersPerSecond Speed of the robot in the y direction (sideways).
+	 * @param omegaRadiansPerSecond Angular rate of the robot in radians per/sec
 	 * @param fieldRelative Whether the provided x and y speeds are relative to the field.
 	 */
 	public void drive(double vxMetersPerSecond, double vyMetersPerSecond, 
@@ -165,73 +159,6 @@ public class Drivetrain extends SubsystemBase {
 	public SwerveDriveKinematics getKinematics() {return this.kinematics;}
 
 	// ----------------------------------------------------------
-    // Vision
-    // ----------------------------------------------------------
-
-	// Robot transform in 3D field-space. Translation (X,Y,Z) Rotation(X,Y,Z)
-	// using "botpose"
-	public Pose3d getLimelightPose3d() {
-		return this.limelight.getPose3d();
-	}
-
-	// Robot transform in 2D field-space. Translation (X,Y) Rotation(Z)
-	// using "botpose"
-	public Pose2d getLimelightPose2d() {
-		return this.limelight.getPose2d();
-	}
-
-	// Robot transform in field-space with the alliance driverstation at the origin
-	// using botpose_wpired and botpose_wpiblue
-	public Pose2d getLimelightPoseRelative() {
-		if(RobotBase.isReal()) {
-			// if(DriverStation.getAlliance() == DriverStation.Alliance.Red) {
-			// 	return this.limelight.getRedPose2d();
-			// } else {
-				return this.limelight.getBluePose2d();
-			// }
-		} else {
-			// In simulation we just return the encoder pose.
-			return this.getPoseEstimation();
-		}
-	}
-
-	public Pose2d getLimelightPoseBlue(){
-		return this.limelight.getBluePose2d();
-	}
-
-	/**
-	 * Gets the angle of the target relative to the robot
-	 * @return offset angle between target and the robot
-	 */
-	public double getTargetHorizontalOffset() {
-		return this.limelight.getTargetHorizontalOffset();
-	}
-
-	public double getTargetVerticalOffset() {
-		if(this.limelight.getTargetVerticalOffset() != 0) {
-			this.offset = this.limelight.getTargetVerticalOffset();
-		}
-		return this.filterVertical.calculate(this.offset);
-	}
-
-	public boolean hasValidLimelightTarget() {
-		if(RobotBase.isReal()) {
-			return this.limelight.hasValidTargets();
-		} else {
-			return this.getHasValidTargetsSim();
-		}
-	}
-
-	@AutoLogOutput(key = "AprilTag/id")
-	public int getAprilTagID() {
-		if(RobotBase.isReal()) {
-			return this.limelight.getTargetAprilTagID();
-		} else {
-			return 8;
-		}
-	}
-
-	// ----------------------------------------------------------
     // Odometry
     // ----------------------------------------------------------
 	/**
@@ -264,6 +191,7 @@ public class Drivetrain extends SubsystemBase {
 		gyroIO.updateInputs(gyroInputs);
 		Logger.processInputs("Drive/Gyro", gyroInputs);
 
+		// Update the state of each swerve module
 		for(final SwerveModule module : this.modules)
 			module.update();
 
@@ -277,17 +205,16 @@ public class Drivetrain extends SubsystemBase {
 		// Log empty setpoint states when disabled
 		if (DriverStation.isDisabled()) {
 			Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
-			Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
-			
+			Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});		
 		}
 		
+		// Update the odometry pose
 		this.poseEstimator.update(this.gyroInputs.yawPosition, this.getModulePositions());
 
+		// Fuse odometry pose with vision data if we have it.
 		if(this.limelight.hasValidTargets()) {
-			this.poseEstimator.addVisionMeasurement(this.getLimelightPose2d(), Timer.getFPGATimestamp() - 0.3);
+			this.poseEstimator.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
 		}
-
-		Pose2d botPose = this.limelight.getPose2d();
 	}
 
 	// ----------------------------------------------------------
