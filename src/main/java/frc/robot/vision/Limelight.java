@@ -66,7 +66,9 @@ public class Limelight {
 	// Robot transform in 2D field-space. Translation (X,Y) Rotation(Z)
     @AutoLogOutput(key = "Odometry/Limelight")
 	public Pose2d getPose2d() {
-        Pose2d botPose = getBotPose2d().relativeTo(new Pose2d(-8.27, -4.105, new Rotation2d()));
+        // Pose2d botPose = getBotPose2d().relativeTo(new Pose2d(-8.27, -4.105, new Rotation2d()));
+		// This should do the same thing as the commented out line above, without need for manual coordinate transformation
+		Pose2d botPose = LimelightHelpers.getBotPose2d_wpiRed(this.limelightName);
 		return botPose;
 	}
 
