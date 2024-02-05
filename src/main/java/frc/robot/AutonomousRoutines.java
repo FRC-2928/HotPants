@@ -56,8 +56,7 @@ public final class AutonomousRoutines {
 		thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
 		// Whether or not to mirror the path based on alliance
-		Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
-		boolean	mirror = alliance.isPresent() && alliance.get() == Alliance.Red;
+		boolean	mirror = Robot.instance.alliance.isPresent() && Robot.instance.alliance.get() == Alliance.Red;
 	
 		Command swerveCommand = Choreo.choreoSwerveCommand(
 			traj, // Choreo trajectory from above

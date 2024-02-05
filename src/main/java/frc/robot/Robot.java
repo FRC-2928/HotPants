@@ -1,5 +1,7 @@
 package frc.robot;
 
+import java.util.Optional;
+
 import org.littletonrobotics.conduit.ConduitApi;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -8,12 +10,14 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public class Robot extends LoggedRobot {
 	public static Robot instance;
+	public Optional<DriverStation.Alliance> alliance;
 
 	private Command autonomousCommand;
 	private RobotContainer container;
@@ -49,6 +53,8 @@ public class Robot extends LoggedRobot {
 		}
 
 		Logger.start();
+
+		this.alliance = DriverStation.getAlliance();
 
 		this.container = new RobotContainer();
 	}
