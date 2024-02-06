@@ -3,9 +3,7 @@ package frc.robot.commands.drivetrain;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -67,7 +65,8 @@ public class JoystickDrive extends Command {
 
 	/**
 	 * 
-	 * @param mul
+	 * @param mul - joystick input to slow the speed
+	 * 
 	 * @return the velocity in meters per/sec
 	 */
 	private Translation2d getLinearVelocity(final double mul) {
@@ -79,7 +78,6 @@ public class JoystickDrive extends Command {
 
 		// Get the angle theta from the conversion of rectangular coordinates to polar coordinates
 		final Rotation2d moveDirection = Rotation2d.fromRadians(Math.atan2(lateral, axial));
-		// final Rotation2d moveDirection = new Rotation2d(this.oi.moveAxial.get(), this.oi.moveLateral.get());
 
 		// Calculate the move magnitude
 		double magnitude = Math.hypot(lateral, axial);
@@ -120,18 +118,10 @@ public class JoystickDrive extends Command {
 		} else {
 			theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
 		}
-		
-		// theta = this.turnLimiter.calculate(theta);
 
 		double omega = theta * mul
 					* (Constants.Drivetrain.Flags.absoluteRotation ? this.absoluteTargetMagnitude : 1);
 
 		return omega * Constants.Drivetrain.maxAngularVelocityRadPerSec;
 	}
-
-	// Square values
-	// private double curve(final double input) {
-	// 	return Math.pow(input, 2); // x^2
-	// }
-
 }

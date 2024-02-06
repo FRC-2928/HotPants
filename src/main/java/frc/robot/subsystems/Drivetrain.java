@@ -14,6 +14,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -50,13 +51,13 @@ public class Drivetrain extends SubsystemBase {
 		modules[3] = new SwerveModule(brModuleIO, Place.BackRight);
 
 		poseEstimator = new SwerveDrivePoseEstimator( this.kinematics,
-													this.gyroInputs.yawPosition,
+													getRobotAngle(),
 													this.getModulePositions(),
 													new Pose2d() 	
 													);
 
 		pose = new SwerveDriveOdometry( this.kinematics,
-										this.gyroInputs.yawPosition,
+										getRobotAngle(),
 										this.getModulePositions(),
 										new Pose2d() 	
 										);
@@ -84,7 +85,7 @@ public class Drivetrain extends SubsystemBase {
 		var swerveModuleStates =
 			kinematics.toSwerveModuleStates(
 				fieldRelative
-					? ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getHeading())
+					? ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getRobotAngle())
 					: new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond));
 
 		setModuleStates(swerveModuleStates);
@@ -109,7 +110,7 @@ public class Drivetrain extends SubsystemBase {
 
 	// Convert field-relative ChassisSpeeds to robot-relative ChassisSpeeds.
 	public ChassisSpeeds fieldOrientedDrive(final ChassisSpeeds field) {
-		return ChassisSpeeds.fromFieldRelativeSpeeds(field, getHeading().unaryMinus());
+		return ChassisSpeeds.fromFieldRelativeSpeeds(field, getRobotAngle().unaryMinus());
 	}
 
 	// Compensate for wheel rotation.  This prevents the robot 
@@ -130,16 +131,6 @@ public class Drivetrain extends SubsystemBase {
 	// ----------------------------------------------------------
     // Control Input
     // ----------------------------------------------------------
-	/**
-	 * The angle is continuous; that is, it will continue from 360 to
-     * 361 degrees. 
-	 * 
-	 * @return heading of the robot as a Rotation2d.
-	 */
-	@AutoLogOutput(key = "Gyro/Heading")
-	public Rotation2d getHeading() {
-		return this.gyroInputs.heading;
-	}
 
 	/**
 	 * Current reported yaw of the Pigeon2 in degrees
@@ -149,7 +140,14 @@ public class Drivetrain extends SubsystemBase {
 	 */
 	@AutoLogOutput(key = "Gyro/YawPosition")
 	public Rotation2d getRobotAngle() {
-		return this.gyroInputs.yawPosition;
+		if (RobotBase.isSimulation()){
+			var speeds = this.kinematics.toChassisSpeeds(
+				this.getModuleStates()
+			);
+			return this.gyroInputs.yawPosition.plus(new Rotation2d(speeds.omegaRadiansPerSecond * 0.02));
+		} else {
+			return this.gyroInputs.yawPosition;
+		}	
 	}
 
 	/**
@@ -160,7 +158,7 @@ public class Drivetrain extends SubsystemBase {
 	 */
 	@AutoLogOutput(key = "Gyro/Rotations")
 	public double getGyroRotations() {
-		return getHeading().unaryMinus().getRotations();
+		return getRobotAngle().unaryMinus().getRotations();
 	}
 
 	public SwerveModule[] getSwerveModules() {return this.modules;}
@@ -177,16 +175,16 @@ public class Drivetrain extends SubsystemBase {
 	 */
 	public void resetOdometryEstimator(Pose2d pose) {
 		this.poseEstimator.resetPosition(
-			this.gyroInputs.yawPosition,
+			getRobotAngle(),
 			this.getModulePositions(),
 			pose);
 	}
 
-	public void resetOdometry(Pose2d pose) {
+	public void resetOdometry(Pose2d newPose) {
 		this.pose.resetPosition(
-			this.gyroInputs.yawPosition,
+			getRobotAngle(),
 			this.getModulePositions(),
-			pose);
+			newPose);
 	}
 
 	/** Returns the current odometry pose. */
@@ -196,13 +194,17 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	/** Returns the current odometry pose. */
-	@AutoLogOutput(key = "Odometry/Robot")
+	@AutoLogOutput(key = "Odometry/Pose")
 	public Pose2d getPose() {
 		return this.pose.getPoseMeters();
 	}
 
 	public SwerveModulePosition[] getModulePositions() {
 		return Arrays.stream(this.modules).map(SwerveModule::updateModulePosition).toArray(SwerveModulePosition[]::new);
+	}
+
+	public SwerveModuleState[] getModuleStates() {
+		return Arrays.stream(this.modules).map(SwerveModule::getModuleState).toArray(SwerveModuleState[]::new);
 	}
 
 	// ----------------------------------------------------------
@@ -231,8 +233,8 @@ public class Drivetrain extends SubsystemBase {
 		}
 		
 		// Update the odometry pose
-		this.pose.update(this.gyroInputs.yawPosition, this.getModulePositions());
-		this.poseEstimator.update(this.gyroInputs.yawPosition, this.getModulePositions());
+		this.pose.update(getRobotAngle(), this.getModulePositions());
+		this.poseEstimator.update(getRobotAngle(), this.getModulePositions());
 
 		// Fuse odometry pose with vision data if we have it.
 		if(this.limelight.hasValidTargets()) {

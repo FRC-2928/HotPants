@@ -91,7 +91,7 @@ public class Constants {
 			public static final boolean absoluteRotation = true;
 
 			/// Optimize wheel rotation to only rotate less than 90deg per turn
-			public static final boolean wheelOptimization = false;
+			public static final boolean wheelOptimization = true;
 			/// Compensate for wheel rotation while driving and rotating
 			public static final boolean thetaCompensation = true;
 		}

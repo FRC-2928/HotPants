@@ -65,6 +65,7 @@ public class SwerveModule {
 
     public Rotation2d targetAngle = new Rotation2d(); // Setpoint for the module angle
     public double targetVelocity = 0; // Setpoint for the velocity in meters per/sec
+    public SwerveModuleState swerveModuleState = new SwerveModuleState();
 
     public SwerveModule(final ModuleIO io, final Place place) {
         this.io = io;
@@ -132,9 +133,19 @@ public class SwerveModule {
 
     /**
      * 
+     * @return applied speed in meters per/sec and the angle in radians
+     */
+    public SwerveModuleState getModuleState() {
+        return this.swerveModuleState;
+    }
+
+    /**
+     * 
      * @param state - required speed in meters per/sec and the angle in radians
      */
     public void applyState(final SwerveModuleState state) {
+        this.swerveModuleState.speedMetersPerSecond = state.speedMetersPerSecond;
+        this.swerveModuleState.angle = state.angle.unaryMinus();
         this.targetVelocity = state.speedMetersPerSecond;
         this.targetAngle = state.angle.unaryMinus();
     }
@@ -192,24 +203,6 @@ public class SwerveModule {
 
         // inputs.turnAppliedVolts will track the applied voltage
         this.io.setTurnVoltage(turnVolts);
-    }
-
-    /**
-     * Computes the voltage output required and sends it to the drive motor
-     */
-    private void applyDriveVoltsOld() {
-        // Calculate drive power
-        final double ffw = this.driveFFW.calculate(this.targetVelocity);
-        SmartDashboard.putNumber(this.place.name() + " Drive Target Velocity", this.targetVelocity);
-
-        final double output = this.drivePID.calculate(getDriveVelocity(), this.targetVelocity);
-        final double driveVolts = MathUtil.clamp(ffw + output, -10, 10);
-        
-        // SmartDashboard.putNumber(this.place.name() + " Drive Output", output);
-        // SmartDashboard.putNumber(this.place.name() + " Drive FFW", ffw);
-        // SmartDashboard.putNumber(this.place.name() + " Drive Volts", driveVolts);
-
-        this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
     }
 
     private void applyDriveVolts(SwerveModuleState desiredState) {
