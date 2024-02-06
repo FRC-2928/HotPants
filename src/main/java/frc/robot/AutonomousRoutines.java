@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.SwerveModule;
 
 import java.util.Optional;
 
@@ -49,10 +50,11 @@ public final class AutonomousRoutines {
 
 		ChoreoTrajectory traj = Choreo.getTrajectory(trajectoryName);
 		SmartDashboard.putString("Traj Name", trajectoryName);
-		SmartDashboard.putNumber("Linear X", traj.getInitialPose().getX());
-		SmartDashboard.putNumber("Linear Y", traj.getInitialPose().getY());
+		SmartDashboard.putNumber("Traj Linear X", traj.getInitialPose().getX());
+		SmartDashboard.putNumber("Traj Linear Y", traj.getInitialPose().getY());
+		SmartDashboard.putNumber("Traj Rotation", traj.getInitialPose().getRotation().getDegrees());
 		
-		var thetaController = new PIDController(1, 0, 0);
+		var thetaController = new PIDController(0.1, 0, 0);
 		thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
 		// Whether or not to mirror the path based on alliance
@@ -76,7 +78,9 @@ public final class AutonomousRoutines {
 			drivetrain // The subsystem(s) to require, typically your drive subsystem only
 		);
 
-			return Commands.sequence(
+			return Commands.sequence(		
+			Commands.runOnce(() -> drivetrain.setModuleStates(SwerveModule.State.forward())),
+			new WaitCommand(0.5),
 			Commands.runOnce(() -> drivetrain.resetOdometry(traj.getInitialPose())),
 			swerveCommand,
 			drivetrain.run(() -> drivetrain.drive(0, 0, 0, false))

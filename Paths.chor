@@ -1,5 +1,5 @@
 {
-    "version": "v0.2",
+    "version": "v0.2.1",
     "robotConfiguration": {
         "mass": 24.69599233436398,
         "rotationalInertia": 6,
@@ -141,14 +141,14 @@
                         "first"
                     ],
                     "type": "StopPoint",
-                    "uuid": "0beeaffd-0203-4d5b-b15a-a8427e4f226d"
+                    "uuid": "99632ae0-a83d-4784-a787-d7b7b6d006c7"
                 },
                 {
                     "scope": [
                         "last"
                     ],
                     "type": "StopPoint",
-                    "uuid": "22668d4d-9b72-43ef-a2df-f391276e8c54"
+                    "uuid": "e0c42778-8cda-4ff5-8b35-833c4f431b43"
                 }
             ],
             "usesControlIntervalGuessing": true,
@@ -156,5 +156,6 @@
             "usesDefaultFieldObstacles": true,
             "circleObstacles": []
         }
-    }
+    },
+    "splitTrajectoriesAtStopPoints": false
 }
