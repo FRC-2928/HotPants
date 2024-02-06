@@ -66,21 +66,12 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final double DRIVE_GEAR_RATIO = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0); // 6.746
   private final double TURN_GEAR_RATIO = 150.0 / 7.0; // 21.43
 
-  private final boolean isTurnMotorInverted = true;
   private final double absoluteEncoderOffset;
   // private final Rotation2d absoluteEncoderOffset;
 
   // Target Variables. Used only for data logging
   private double targetVelocityMetersPerSeconds = 0;
   private double targetTurnPositionRad = 0;
-
-  // The closed-loop output type to use for the steer motors;
-  // This affects the PID/FF gains for the steer motors
-  private static final ClosedLoopOutputType steerClosedLoopOutput = ClosedLoopOutputType.Voltage;
-  // The closed-loop output type to use for the drive motors;
-  // This affects the PID/FF gains for the drive motors
-  private static final ClosedLoopOutputType driveClosedLoopOutput = ClosedLoopOutputType.Voltage;
-
 
   public ModuleIOTalonFX(Place place) {
     switch(place) {
@@ -112,6 +103,8 @@ public class ModuleIOTalonFX implements ModuleIO {
       throw new RuntimeException("Invalid module index");
     }
 
+    // -------------------- Config TURN motor ----------------------//
+    
     var turnConfig = new TalonFXConfiguration();
       // Peak output of 40 amps
     turnConfig.CurrentLimits.StatorCurrentLimit = 40.0;
@@ -134,6 +127,8 @@ public class ModuleIOTalonFX implements ModuleIO {
 
     turnTalon.getConfigurator().apply(turnConfig);
     turnTalon.setNeutralMode(NeutralModeValue.Brake);
+
+    // -------------------- Config DRIVE motor ----------------------//
 
     var driveConfig = new TalonFXConfiguration();
       // Peak output amps
@@ -161,6 +156,9 @@ public class ModuleIOTalonFX implements ModuleIO {
     if(place == Place.FrontRight || place == Place.BackRight) {
       driveTalon.setInverted(true); // Clockwise_Positive
     }
+
+
+    // -------------------- Config CANcoder  --------------------------// 
 
     CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
     encoderConfig.MagnetSensor.MagnetOffset = absoluteEncoderOffset;
