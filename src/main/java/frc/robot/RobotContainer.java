@@ -24,51 +24,60 @@ import frc.robot.subsystems.ModuleIOTalonFX;
 
 public class RobotContainer {
 
-	public final LoggedDashboardChooser<Command> autonomousChooser; 
+	public final LoggedDashboardChooser<Command> autonomousChooser;
 
 	public final DriverOI driverOI = new DriverOI(new CommandXboxController(0));
 	// public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
 
 	public final Drivetrain drivetrain;
 
-	public RobotContainer() { 
-		
-		switch (Constants.currentMode) {
-			case REAL:
-				// Real robot, instantiate hardware IO implementations      
+	public RobotContainer() {
+
+		switch(Constants.currentMode) {
+		case REAL:
+			// Real robot, instantiate hardware IO implementations      
+			drivetrain = new Drivetrain(
+				new GyroIOPigeon2(),
+				new ModuleIOTalonFX(SwerveModule.Place.FrontLeft),
+				new ModuleIOTalonFX(SwerveModule.Place.FrontRight),
+				new ModuleIOTalonFX(SwerveModule.Place.BackLeft),
+				new ModuleIOTalonFX(SwerveModule.Place.BackRight)
+			);
+			break;
+
+		case SIM:
+			// Sim robot, instantiate physics sim IO implementations
+			if(Robot.isReal()) {
+				Constants.currentMode = Constants.Mode.REAL;
 				drivetrain = new Drivetrain(
 					new GyroIOPigeon2(),
 					new ModuleIOTalonFX(SwerveModule.Place.FrontLeft),
 					new ModuleIOTalonFX(SwerveModule.Place.FrontRight),
 					new ModuleIOTalonFX(SwerveModule.Place.BackLeft),
-					new ModuleIOTalonFX(SwerveModule.Place.BackRight));
-				break;
+					new ModuleIOTalonFX(SwerveModule.Place.BackRight)
+				);
+			} else {
+				drivetrain = new Drivetrain(new GyroIO() {
+				}, new ModuleIOSim(), new ModuleIOSim(), new ModuleIOSim(), new ModuleIOSim());
+			}
+			break;
 
-			case SIM:
-				// Sim robot, instantiate physics sim IO implementations
-				drivetrain =
-					new Drivetrain(
-						new GyroIO() {},
-						new ModuleIOSim(),
-						new ModuleIOSim(),
-						new ModuleIOSim(),
-						new ModuleIOSim());
-				break;
-
-			default:
-				// Replayed robot, disable IO implementations
-				drivetrain =
-					new Drivetrain(
-						new GyroIO() {},
-						new ModuleIO() {},
-						new ModuleIO() {},
-						new ModuleIO() {},
-						new ModuleIO() {});
-				break;
+		default:
+			// Replayed robot, disable IO implementations
+			drivetrain = new Drivetrain(new GyroIO() {
+			}, new ModuleIO() {
+			}, new ModuleIO() {
+			}, new ModuleIO() {
+			}, new ModuleIO() {
+			});
+			break;
 		}
-		this.autonomousChooser = new LoggedDashboardChooser<>("Autonomous Routine", AutonomousRoutines.createAutonomousChooser(this.drivetrain));
-		
-		this.configureDriverControls(); 
+		this.autonomousChooser = new LoggedDashboardChooser<>(
+			"Autonomous Routine",
+			AutonomousRoutines.createAutonomousChooser(this.drivetrain)
+		);
+
+		this.configureDriverControls();
 	}
 
 	private void configureDriverControls() {
@@ -76,7 +85,7 @@ public class RobotContainer {
 		this.driverOI.resetFOD.whileTrue(new RunCommand(() -> this.drivetrain.resetGyro())); // Y Button
 		this.driverOI.lock.whileTrue(new LockWheels(this.drivetrain, this.driverOI)); // Left Bumper
 	}
-	
+
 	public void teleop() { this.drivetrain.setDefaultCommand(new JoystickDrive(this.drivetrain, this.driverOI)); }
 
 	/**
@@ -84,8 +93,6 @@ public class RobotContainer {
 	 *
 	 * @return the command to run in autonomous
 	 */
-	public Command getAutonomousCommand() {
-		return this.autonomousChooser.get();
-	}
+	public Command getAutonomousCommand() { return this.autonomousChooser.get(); }
 
 }

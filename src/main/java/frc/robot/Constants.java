@@ -13,7 +13,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 public class Constants {
 	private Constants() { throw new IllegalCallerException("Cannot instantiate `Constants`"); }
 
-	public static final Mode currentMode = Mode.SIM;
+	public static Mode currentMode = Mode.SIM;
 
 	public static enum Mode {
 		/** Running on a real robot. */

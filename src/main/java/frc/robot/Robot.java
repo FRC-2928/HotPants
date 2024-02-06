@@ -39,6 +39,9 @@ public class Robot extends LoggedRobot {
 			break;
 
 		case SIM:
+			if(Robot.isReal()){
+				Constants.currentMode = Constants.Mode.REAL;
+			}
 			// Running a physics simulator, log to NT
 			Logger.addDataReceiver(new NT4Publisher());
 			break;
