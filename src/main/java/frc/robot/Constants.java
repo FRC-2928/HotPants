@@ -13,7 +13,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 public class Constants {
 	private Constants() { throw new IllegalCallerException("Cannot instantiate `Constants`"); }
 
-	public static final Mode currentMode = Mode.REAL;
+	public static final Mode currentMode = Mode.SIM;
 
 	public static enum Mode {
 		/** Running on a real robot. */
@@ -177,7 +177,7 @@ public class Constants {
 		public static final double rotationsPerMeter = driveGearRatio / wheelCircumference;
 	
 		public static final double maxVelocityMetersPerSec = 5.0; // m/s
-		
+
 		// max angular velocity computes to 6.41 radians per second
 		public static final double maxAngularVelocityRadPerSec = maxVelocityMetersPerSec / Math.hypot(trackWidth / 2.0, wheelBase / 2.0);
 

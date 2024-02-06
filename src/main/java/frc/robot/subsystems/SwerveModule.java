@@ -1,9 +1,11 @@
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -51,10 +53,13 @@ public class SwerveModule {
     }
 
     public final Place place;
+    public final String moduleName;
     public final ModuleIO io;
     private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
 
     private final PIDController turnPID = Constants.Drivetrain.swerveAzimuthPID.createController();
+    private final SimpleMotorFeedforward driveFFW = Constants.Drivetrain.driveFFW;
+    private final PIDController drivePID = Constants.Drivetrain.drivePID;
 
     private boolean backwards = false;
 
@@ -65,6 +70,7 @@ public class SwerveModule {
         this.io = io;
         this.place = place;
         this.turnPID.enableContinuousInput(-180, 180);
+        this.moduleName = this.place.name();
     }
 
     /**
@@ -123,7 +129,7 @@ public class SwerveModule {
      * @return Absolute Position of the cancoder as Rotation2d
      */
     public Rotation2d getCancoderAbsolutePosition() { return this.inputs.cancoderAbsolutePosition; }
-    
+
     /**
      * 
      * @param state - required speed in meters per/sec and the angle in radians
@@ -183,8 +189,8 @@ public class SwerveModule {
 
         // Restrict the turn power and reverse the direction
         final double turnVolts = MathUtil.clamp(-turn, -10, 10);
-        SmartDashboard.putNumber(this.place.name() + " turnVolts", turnVolts);
 
+        // inputs.turnAppliedVolts will track the applied voltage
         this.io.setTurnVoltage(turnVolts);
     }
 
@@ -193,30 +199,26 @@ public class SwerveModule {
      */
     private void applyDriveVoltsOld() {
         // Calculate drive power
-        final double ffw = Constants.Drivetrain.driveFFW.calculate(this.targetVelocity);
+        final double ffw = this.driveFFW.calculate(this.targetVelocity);
         SmartDashboard.putNumber(this.place.name() + " Drive Target Velocity", this.targetVelocity);
 
-        final double output = Constants.Drivetrain.drivePID.calculate(getDriveVelocity(), this.targetVelocity);
-        final double driveVolts = MathUtil.clamp(ffw + output, -10, 10);
-        
-        // SmartDashboard.putNumber(this.place.name() + " Drive Output", output);
-        // SmartDashboard.putNumber(this.place.name() + " Drive FFW", ffw);
-        SmartDashboard.putNumber(this.place.name() + " Drive Volts", driveVolts);
-
-        this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
-    }
-
-    private void applyDriveVolts(SwerveModuleState desiredState) {
-        // Calculate drive power
-        final double ffw = Constants.Drivetrain.driveFFW.calculate(desiredState.speedMetersPerSecond);
-        
-        final double output = Constants.Drivetrain.drivePID.calculate(getDriveVelocity(), desiredState.speedMetersPerSecond);
+        final double output = this.drivePID.calculate(getDriveVelocity(), this.targetVelocity);
         final double driveVolts = MathUtil.clamp(ffw + output, -10, 10);
         
         // SmartDashboard.putNumber(this.place.name() + " Drive Output", output);
         // SmartDashboard.putNumber(this.place.name() + " Drive FFW", ffw);
         // SmartDashboard.putNumber(this.place.name() + " Drive Volts", driveVolts);
 
+        this.io.setDriveVoltage(this.backwards ? -driveVolts : driveVolts);
+    }
+
+    private void applyDriveVolts(SwerveModuleState desiredState) {
+        // Calculate drive power
+        final double ffw = this.driveFFW.calculate(desiredState.speedMetersPerSecond);       
+        final double output = this.drivePID.calculate(getDriveVelocity(), desiredState.speedMetersPerSecond);
+        final double driveVolts = MathUtil.clamp(ffw + output, -10, 10);
+        
+        // inputs.driveAppliedVolts will track the applied voltage
         this.io.setDriveVoltage(driveVolts);
     }
 

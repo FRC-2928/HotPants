@@ -60,7 +60,7 @@ public final class AutonomousRoutines {
 	
 		Command swerveCommand = Choreo.choreoSwerveCommand(
 			traj, // Choreo trajectory from above
-			drivetrain::getPoseEstimation, // A function that returns the current field-relative pose of the robot: 
+			drivetrain::getPose, // A function that returns the current field-relative pose of the robot: 
 								// your wheel or vision odometry
 			new PIDController(0.1, 0.0, 0.0), // PIDController for field-relative X
 													// translation (input: X error in meters, output: m/s).

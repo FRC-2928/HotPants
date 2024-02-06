@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -27,6 +28,7 @@ public class Drivetrain extends SubsystemBase {
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
 
 	// Used to track odometry
+	public final SwerveDriveOdometry pose;
 	public final SwerveDrivePoseEstimator poseEstimator;
 	private final Limelight limelight = new Limelight("limelight");
 	
@@ -52,6 +54,12 @@ public class Drivetrain extends SubsystemBase {
 													this.getModulePositions(),
 													new Pose2d() 	
 													);
+
+		pose = new SwerveDriveOdometry( this.kinematics,
+										this.gyroInputs.yawPosition,
+										this.getModulePositions(),
+										new Pose2d() 	
+										);
 	}
 
 	// ----------------------------------------------------------
@@ -167,8 +175,15 @@ public class Drivetrain extends SubsystemBase {
 	 *
 	 * @param pose The pose to which to set the odometry.
 	 */
-	public void resetOdometry(Pose2d pose) {
+	public void resetOdometryEstimator(Pose2d pose) {
 		this.poseEstimator.resetPosition(
+			this.gyroInputs.yawPosition,
+			this.getModulePositions(),
+			pose);
+	}
+
+	public void resetOdometry(Pose2d pose) {
+		this.pose.resetPosition(
 			this.gyroInputs.yawPosition,
 			this.getModulePositions(),
 			pose);
@@ -178,6 +193,12 @@ public class Drivetrain extends SubsystemBase {
 	@AutoLogOutput(key = "Odometry/Estimation")
 	public Pose2d getPoseEstimation() {
 		return this.poseEstimator.getEstimatedPosition();
+	}
+
+	/** Returns the current odometry pose. */
+	@AutoLogOutput(key = "Odometry/Robot")
+	public Pose2d getPose() {
+		return this.pose.getPoseMeters();
 	}
 
 	public SwerveModulePosition[] getModulePositions() {
@@ -210,6 +231,7 @@ public class Drivetrain extends SubsystemBase {
 		}
 		
 		// Update the odometry pose
+		this.pose.update(this.gyroInputs.yawPosition, this.getModulePositions());
 		this.poseEstimator.update(this.gyroInputs.yawPosition, this.getModulePositions());
 
 		// Fuse odometry pose with vision data if we have it.
