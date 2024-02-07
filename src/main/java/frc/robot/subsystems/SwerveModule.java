@@ -154,6 +154,23 @@ public class SwerveModule {
     // ----------------------------------------------------------
     // Process Logic
     // ----------------------------------------------------------
+    /**
+     * Computes the velocity, torque, or position output required and sends it to the motors
+     * Uses the closed loop functions of the Phoenix motors
+     */
+    public void applyDriveVelocity(double requiredSpeedMetersPerSecond) {
+        this.io.setTargetDriveVelocity(requiredSpeedMetersPerSecond);
+    }
+
+    public void applyDriveTorque(double requiredSpeedMetersPerSecond) {
+        this.io.setTargetDriveTorque(requiredSpeedMetersPerSecond);
+    }
+
+    // Will use the CANcoder as the feedback device.  See turn motor config.
+    public void applyTurnPosition(Rotation2d requiredAngle) {
+        this.io.setTargetTurnPosition(requiredAngle.getRadians());
+    }
+    
     private SwerveModuleState optimizeWheelDirection(Rotation2d currentAngleRotation) {
         this.backwards = Constants.Drivetrain.Flags.wheelOptimization
             && Constants.angleDistance(this.targetAngle.getDegrees(), currentAngleRotation.getDegrees()) > 90;
@@ -189,6 +206,11 @@ public class SwerveModule {
         this.io.setTurnVoltage(turnVolts);
     }
 
+    /**
+     * Computes the voltage output required and sends it to the drive motor
+     * 
+     * @param desiredState the desired speed of the drive wheels in meters per/second
+     */
     private void applyDriveVolts(SwerveModuleState desiredState) {
         // Calculate drive power
         final double ffw = this.driveFFW.calculate(desiredState.speedMetersPerSecond);       
@@ -199,6 +221,10 @@ public class SwerveModule {
         this.io.setDriveVoltage(driveVolts);
     }
 
+    /** 
+     * This is the main update loop that controls the motors.
+     * It's called from the periodic loop of the Drivetrain.
+     */
     void update() {
         this.io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + Integer.toString(this.place.index), inputs);
@@ -225,20 +251,4 @@ public class SwerveModule {
         // applyTurnPosition(optimizedState.angle);
     }
 
-    /**
-     * Computes the velocity, torque, or position output required and sends it to the motors
-     * Uses the closed loop functions of the Phoenix motors
-     */
-    public void applyDriveVelocity(double requiredSpeedMetersPerSecond) {
-        this.io.setTargetDriveVelocity(requiredSpeedMetersPerSecond);
-    }
-
-    public void applyDriveTorque(double requiredSpeedMetersPerSecond) {
-        this.io.setTargetDriveTorque(requiredSpeedMetersPerSecond);
-    }
-
-    // Will use the CANcoder as the feedback device.  See turn motor config.
-    public void applyTurnPosition(Rotation2d requiredAngle) {
-        this.io.setTargetTurnPosition(requiredAngle.getRadians());
-    }
 }
