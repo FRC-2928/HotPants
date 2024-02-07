@@ -14,7 +14,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -140,14 +139,7 @@ public class Drivetrain extends SubsystemBase {
 	 */
 	@AutoLogOutput(key = "Gyro/YawPosition")
 	public Rotation2d getRobotAngle() {
-		if (RobotBase.isSimulation()){
-			var speeds = this.kinematics.toChassisSpeeds(
-				this.getModuleStates()
-			);
-			return this.gyroInputs.yawPosition.plus(new Rotation2d(speeds.omegaRadiansPerSecond * 0.02));
-		} else {
-			return this.gyroInputs.yawPosition;
-		}	
+		return this.gyroInputs.yawPosition;	
 	}
 
 	/**

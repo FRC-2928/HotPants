@@ -66,6 +66,7 @@ public class SwerveModule {
     public Rotation2d targetAngle = new Rotation2d(); // Setpoint for the module angle
     public double targetVelocity = 0; // Setpoint for the velocity in meters per/sec
     public SwerveModuleState swerveModuleState = new SwerveModuleState();
+    private Rotation2d lastAngle = new Rotation2d();
 
     public SwerveModule(final ModuleIO io, final Place place) {
         this.io = io;
@@ -189,14 +190,28 @@ public class SwerveModule {
     }
 
     /**
+     * Prevent rotating module if speed is less then 1%. Prevents Jittering.
+     * 
+     * @param state desired state
+     * @return 
+     */
+    private SwerveModuleState preventJittering(SwerveModuleState state) {
+        Rotation2d angle = (Math.abs(state.speedMetersPerSecond) <= (Constants.Drivetrain.maxVelocityMetersPerSec * 0.01)) ? this.lastAngle : state.angle; 
+        this.lastAngle = angle;
+        SwerveModuleState newState = new SwerveModuleState(state.speedMetersPerSecond, state.angle);
+        return newState;
+    }
+
+    /**
      * Computes the voltage output required and sends it to the turn motor
      * 
      * @param currentAngle - in degrees
      * @param targetAngle - in degrees
      */
-    private void applyTurnVolts(double currentAngle, double targetAngle) {
+    private void applyTurnVolts(double currentAngle, double desiredAngle) {
+
         // Calculate turn power required to reach the setpoint
-        final double turn = this.turnPID.calculate(currentAngle, targetAngle);
+        final double turn = this.turnPID.calculate(currentAngle, desiredAngle);
 
         // Restrict the turn power and reverse the direction
         final double turnVolts = MathUtil.clamp(-turn, -10, 10);
@@ -227,6 +242,9 @@ public class SwerveModule {
         // 7. WHEEL DIRECTION OPTIMIZATION
         SwerveModuleState optimizedState = optimizeWheelDirection(currentAngleRotation);
         // SwerveModuleState optimizedState = optimize(currentAngleRotation);
+
+        // Prevent rotating module if speed is less then 1%. Prevents Jittering.
+        // optimizedState = preventJittering(optimizedState);
 
         // 8. APPLY POWER          
         applyDriveVolts(optimizedState);
