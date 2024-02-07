@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,6 +14,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -199,6 +201,22 @@ public class Drivetrain extends SubsystemBase {
 		return Arrays.stream(this.modules).map(SwerveModule::getModuleState).toArray(SwerveModuleState[]::new);
 	}
 
+	/**
+	 * Updates the pose with vision if close to current position.
+	 */
+	public void updatePoseEstimatorWithVision() {
+		if(this.limelight.hasValidTargets()) {
+			// distance from current pose to vision estimated pose
+			double poseDifference = this.poseEstimator.getEstimatedPosition().getTranslation()
+				.getDistance(this.limelight.getPose2d().getTranslation());
+			SmartDashboard.putNumber("pose difference", poseDifference);
+
+			if (poseDifference < 0.5) {
+				this.poseEstimator.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
+			}
+		}
+	}
+
 	// ----------------------------------------------------------
     // Process Logic
     // ----------------------------------------------------------
@@ -229,9 +247,7 @@ public class Drivetrain extends SubsystemBase {
 		this.poseEstimator.update(getRobotAngle(), this.getModulePositions());
 
 		// Fuse odometry pose with vision data if we have it.
-		if(this.limelight.hasValidTargets()) {
-			this.poseEstimator.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
-		}
+		updatePoseEstimatorWithVision();
 	}
 
 	// ----------------------------------------------------------
