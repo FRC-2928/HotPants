@@ -1,8 +1,6 @@
 package frc.robot.subsystems;
 
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -66,7 +64,7 @@ public class SwerveModule {
     public Rotation2d targetAngle = new Rotation2d(); // Setpoint for the module angle
     public double targetVelocity = 0; // Setpoint for the velocity in meters per/sec
     public SwerveModuleState desiredModuleState = new SwerveModuleState();
-    private Rotation2d lastAngle = new Rotation2d();
+    public SwerveModulePosition currentModulePosition = new SwerveModulePosition();
 
     public SwerveModule(final ModuleIO io, final Place place) {
         this.io = io;
@@ -139,16 +137,18 @@ public class SwerveModule {
     public void applyState(final SwerveModuleState state) {
         this.targetVelocity = state.speedMetersPerSecond;
         this.targetAngle = state.angle.unaryMinus();
-        this.desiredModuleState = new SwerveModuleState(this.targetVelocity, this.targetAngle);
+        this.desiredModuleState = new SwerveModuleState(state.speedMetersPerSecond, state.angle.unaryMinus());
     }
 
     public void stop() {
+        this.desiredModuleState.speedMetersPerSecond = 0;
         this.io.setTurnVoltage(0.0);
         this.io.setDriveVoltage(0.0);
     }
 
     public SwerveModulePosition updateModulePosition() {
-        return new SwerveModulePosition(getDrivePositionMeters(), getCancoderAbsolutePosition());
+        this.currentModulePosition = new SwerveModulePosition(getDrivePositionMeters(), getCancoderAbsolutePosition());
+        return this.currentModulePosition;
     }
 
     // ----------------------------------------------------------
