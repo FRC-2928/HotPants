@@ -78,7 +78,6 @@ public class Limelight {
 		}		
 	}
 
-    @AutoLogOutput(key = "Odometry/BotPose")
     public Pose2d getBotPose2d() {
 		return LimelightHelpers.getBotPose2d(this.limelightName);
 	}
