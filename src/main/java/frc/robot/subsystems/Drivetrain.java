@@ -63,7 +63,7 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	// ----------------------------------------------------------
-    // Control Input
+    // Control Output
     // ----------------------------------------------------------
 
 	/**
@@ -128,7 +128,7 @@ public class Drivetrain extends SubsystemBase {
 	}
 	
 	// ----------------------------------------------------------
-    // Control Input
+    // Sensor Input
     // ----------------------------------------------------------
 
 	/**

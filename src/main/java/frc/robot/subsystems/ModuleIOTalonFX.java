@@ -65,6 +65,7 @@ public class ModuleIOTalonFX implements ModuleIO {
   // Gear ratios for SDS MK4i L2, adjust as necessary
   private final double DRIVE_GEAR_RATIO = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0); // 6.746
   private final double TURN_GEAR_RATIO = 150.0 / 7.0; // 21.43
+  private final double WHEEL_RADIUS = Constants.Drivetrain.wheelRadius;
 
   private final double absoluteEncoderOffset;
   // private final Rotation2d absoluteEncoderOffset;
@@ -213,6 +214,7 @@ public class ModuleIOTalonFX implements ModuleIO {
 
     inputs.drivePositionRad = Units.rotationsToRadians(drivePosition.getValueAsDouble()) / DRIVE_GEAR_RATIO;
     inputs.driveVelocityRadPerSec = Units.rotationsToRadians(driveVelocity.getValueAsDouble()) / DRIVE_GEAR_RATIO;
+    inputs.driveVelocityMetersPerSec = (Units.rotationsToRadians(driveVelocity.getValueAsDouble()) / DRIVE_GEAR_RATIO) * Constants.Drivetrain.wheelRadius;
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
     inputs.driveCurrentAmps = new double[] { driveCurrent.getValueAsDouble() };
     inputs.driveRotorPosition = driveRotorPosition.getValueAsDouble();

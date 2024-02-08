@@ -21,6 +21,7 @@ public interface ModuleIO {
   public static class ModuleIOInputs {
     public double drivePositionRad = 0.0;
     public double driveVelocityRadPerSec = 0.0;
+    public double driveVelocityMetersPerSec = 0.0;
     public double driveAppliedVolts = 0.0;
     public double driveRotorPosition = 0.0;
     public double targetDriveVelocityMetersPerSec = 0.0;
