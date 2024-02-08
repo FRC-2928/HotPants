@@ -40,19 +40,12 @@ public class RobotContainer {
 
 		case SIM:
 			// Sim robot, instantiate physics sim IO implementations
-			if(Robot.isReal()) {
-				Constants.currentMode = Constants.Mode.REAL;
-				drivetrain = new Drivetrain(
-					new GyroIOPigeon2(),
-					new ModuleIOTalonFX(SwerveModule.Place.FrontLeft),
-					new ModuleIOTalonFX(SwerveModule.Place.FrontRight),
-					new ModuleIOTalonFX(SwerveModule.Place.BackLeft),
-					new ModuleIOTalonFX(SwerveModule.Place.BackRight)
-				);
-			} else {
-				drivetrain = new Drivetrain(new GyroIO() {
-				}, new ModuleIOSim(), new ModuleIOSim(), new ModuleIOSim(), new ModuleIOSim());
-			}
+			
+				drivetrain = new Drivetrain(new GyroIO() {}, 
+							new ModuleIOSim(), 
+							new ModuleIOSim(), 
+							new ModuleIOSim(), 
+							new ModuleIOSim());
 			break;
 
 		default:

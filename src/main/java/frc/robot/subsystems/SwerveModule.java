@@ -34,6 +34,15 @@ public class SwerveModule {
                 .set(Place.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
         }
 
+        public static State fieldOrientedForward() {
+            return new State()
+                .set(Place.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(90)))
+                .set(Place.FrontRight, new SwerveModuleState(0, Rotation2d.fromDegrees(90)))
+                .set(Place.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(90)))
+                .set(Place.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(90)));
+        }
+
+
         public static State locked() {
             return new State()
                 .set(Place.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(-45)))
@@ -234,13 +243,14 @@ public class SwerveModule {
     
         SmartDashboard.putNumber(this.place.name() + " Angle", currentModulePosition.angle.getDegrees());
         SmartDashboard.putNumber(this.place.name() + " Angle Desired", this.desiredModuleState.angle.getDegrees());
-
+        SmartDashboard.putNumber(this.place.name() + " Speed Desired", this.desiredModuleState.speedMetersPerSecond);
+        
         // 7. WHEEL DIRECTION OPTIMIZATION
-        this.desiredModuleState = optimizeWheelDirection(currentModulePosition.angle);
+        // this.desiredModuleState = optimizeWheelDirection(currentModulePosition.angle);
 
-        // if (Constants.Drivetrain.Flags.wheelOptimization) {
-        //     this.desiredModuleState = SwerveModuleState.optimize(this.desiredModuleState, currentModulePosition.angle);
-        // }
+        if (Constants.Drivetrain.Flags.wheelOptimization) {
+            this.desiredModuleState = SwerveModuleState.optimize(this.desiredModuleState, currentModulePosition.angle);
+        }
 
         // 8. APPLY POWER          
         applyDriveVolts(this.desiredModuleState);

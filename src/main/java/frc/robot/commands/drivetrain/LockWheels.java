@@ -2,6 +2,7 @@ package frc.robot.commands.drivetrain;
 
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.oi.DriverOI;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.SwerveModule;
@@ -25,7 +26,12 @@ public class LockWheels extends Command {
 
 	@Override
 	public void end(final boolean interrupted) {
-		this.drivetrain.setModuleStates(SwerveModule.State.forward());
+		if (Constants.Drivetrain.Flags.fod) {
+			this.drivetrain.setModuleStates(SwerveModule.State.fieldOrientedForward());
+		} else {
+			this.drivetrain.setModuleStates(SwerveModule.State.forward());
+		}
+		
 		if(this.oi != null) this.oi.hid.setRumble(RumbleType.kBothRumble, 0);
 	}
 }
