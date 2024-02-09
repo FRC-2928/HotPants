@@ -19,6 +19,9 @@ public class SwerveModule {
         public final int index;
     }
 
+    /**
+     * This represents the state of the entire drivetrain combining the four individual module states.
+     */
     public static class State {
         public final SwerveModuleState[] states;
 
@@ -33,15 +36,6 @@ public class SwerveModule {
                 .set(Place.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
                 .set(Place.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
         }
-
-        public static State fieldOrientedForward() {
-            return new State()
-                .set(Place.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(90)))
-                .set(Place.FrontRight, new SwerveModuleState(0, Rotation2d.fromDegrees(90)))
-                .set(Place.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(90)))
-                .set(Place.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(90)));
-        }
-
 
         public static State locked() {
             return new State()
@@ -143,6 +137,19 @@ public class SwerveModule {
      */
     public Rotation2d getCancoderAbsolutePosition() { return this.inputs.cancoderAbsolutePosition; }
 
+    /**
+     * Getting the current swerve module position
+     *
+     * @return The drive speed and steer angle of the module
+     */
+    public SwerveModulePosition getPosition() {
+        return this.currentModulePosition;
+    }
+
+    public SwerveModuleState getModuleState() {
+        return this.desiredModuleState;
+    }
+
     // ----------------------------------------------------------
     // Control Output
     // ----------------------------------------------------------
@@ -151,6 +158,30 @@ public class SwerveModule {
         this.desiredModuleState.speedMetersPerSecond = 0;
         this.io.setTurnVoltage(0.0);
         this.io.setDriveVoltage(0.0);
+    }
+
+    /** 
+     * Use ONLY with applyTurnPosition() if the feedback sensor for angle motor is the RotaryEncoder
+     * Should NOT be used if the angle motor feedback sensor is the CANcoder
+     */
+    private double calculateRequiredAngle(Rotation2d requiredAngle) {
+        double currentAngle = inputs.turnPosition.getRadians(); // Current angle of the swerve module
+        double targetAngle = MathUtil.inputModulus(
+                requiredAngle.getRadians(),
+                0,
+                2 * Math.PI); // Target angle of the swerve module, limited to a domain between 0 and 2π.
+
+        double absoluteAngle = MathUtil.inputModulus(
+                currentAngle, 0, 2 * Math.PI); // Limiting the domain of the current angle to a domain of 0 to 2π.
+
+        double angleError = MathUtil.inputModulus(
+                targetAngle - absoluteAngle,
+                -Math.PI,
+                Math.PI); // Finding the difference in between the current and target angle (in radians).
+
+        // Adding that distance to our current angle (directly from the steer encoder). 
+        // Becomes our target angle
+        return currentAngle + angleError; 
     }
 
     /**
@@ -215,6 +246,11 @@ public class SwerveModule {
         // this.targetVelocity = state.speedMetersPerSecond;
         // this.targetAngle = state.angle.unaryMinus();
         this.desiredModuleState = new SwerveModuleState(state.speedMetersPerSecond, state.angle.unaryMinus());
+
+        // 7. WHEEL DIRECTION OPTIMIZATION
+        // if (Constants.Drivetrain.Flags.wheelOptimization) {
+        //     this.desiredModuleState = SwerveModuleState.optimize(this.desiredModuleState, currentModulePosition.angle);
+        // }
     }
 
     public SwerveModulePosition updateModulePosition() {
@@ -252,7 +288,7 @@ public class SwerveModule {
     
         SmartDashboard.putNumber(this.place.name() + " Angle", currentModulePosition.angle.getDegrees());
         SmartDashboard.putNumber(this.place.name() + " Angle Desired", this.desiredModuleState.angle.getDegrees());
-        SmartDashboard.putNumber(this.place.name() + " Speed Desired", this.desiredModuleState.speedMetersPerSecond);
+        SmartDashboard.putNumber(this.place.name() + " Speed Desired Meters per/sec", this.desiredModuleState.speedMetersPerSecond);
         
         // 7. WHEEL DIRECTION OPTIMIZATION
         // this.desiredModuleState = optimizeWheelDirection(currentModulePosition.angle);

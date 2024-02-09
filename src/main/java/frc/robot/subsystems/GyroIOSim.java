@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class GyroIOSim implements GyroIO {
     Drivetrain drivetrain;
@@ -21,6 +22,7 @@ public class GyroIOSim implements GyroIO {
         calcAngle();
         inputs.yawPosition = simOdometry.getRotation();
         inputs.heading = simOdometry.getRotation();
+        SmartDashboard.putNumber("Sim Yaw Position", inputs.yawPosition.getDegrees());
     }
 
     private void calcAngle() {
@@ -34,10 +36,10 @@ public class GyroIOSim implements GyroIO {
         SwerveModuleState[] measuredStatesDiff = new SwerveModuleState[4];
         for (int i = 0; i < 4; i++) {
             measuredStatesDiff[i] = new SwerveModuleState(
-                    (drivetrain.getSwerveModules()[i].getDrivePositionMeters() - lastModulePositionsRad[i])
+                    (drivetrain.getSwerveModules()[i].getPosition().distanceMeters - lastModulePositionsRad[i])
                             * Units.inchesToMeters(2),
                     turnPositions[i]);
-            lastModulePositionsRad[i] = drivetrain.getSwerveModules()[i].getDrivePositionMeters();
+            lastModulePositionsRad[i] = drivetrain.getSwerveModules()[i].getPosition().distanceMeters;
         }
 
         simOdometry = simOdometry.exp(new Twist2d(

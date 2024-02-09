@@ -133,14 +133,19 @@ public class Drivetrain extends SubsystemBase {
 
 	/**
 	 * Current reported yaw of the Pigeon2 in degrees
-	 * Constructs and returns a Rotation2d
+	 * Constructs and returns a Rotation2d.
+	 * Rotation is continuous through 360 degrees.
 	 * 
 	 * @return current angle of the robot
 	 */
-	@AutoLogOutput(key = "Gyro/YawPosition")
+	@AutoLogOutput(key = "Robot/Rotation")
 	public Rotation2d getRobotAngle() {
 		return this.gyroInputs.yawPosition;	
 	}
+
+	public double getAngularVelocity() {
+		return gyroInputs.yawVelocityRadPerSec;
+    }
 
 	/**
 	 * Takes the negative of the current angular value
@@ -148,7 +153,6 @@ public class Drivetrain extends SubsystemBase {
 	 * 
 	 * @return the continuous rotations and partial rotations
 	 */
-	@AutoLogOutput(key = "Gyro/Rotations")
 	public double getGyroRotations() {
 		return getRobotAngle().unaryMinus().getRotations();
 	}
@@ -193,6 +197,11 @@ public class Drivetrain extends SubsystemBase {
 
 	public SwerveModulePosition[] getModulePositions() {
 		return Arrays.stream(this.modules).map(SwerveModule::updateModulePosition).toArray(SwerveModulePosition[]::new);
+	}
+
+	@AutoLogOutput(key = "SwerveStates/Desired")
+	public SwerveModuleState[] getModuleStates() {
+		return Arrays.stream(this.modules).map(SwerveModule::getModuleState).toArray(SwerveModuleState[]::new);
 	}
 
 	/**

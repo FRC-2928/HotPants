@@ -4,18 +4,25 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants;
+import frc.robot.Constants.Mode;
 
 public class DriverOI extends BaseOI {
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
 
 		this.moveAxial = this.controller::getLeftY;
-		this.moveLateral = this.controller::getLeftX;
+		this.moveLateral = this.controller::getLeftX;		
 		
-		this.moveTheta = this.controller::getRightX;
-		
-		this.moveRotationX = this.controller::getRightX;
-		this.moveRotationY = this.controller::getRightY;
+		if (Constants.currentMode == Mode.REAL) {
+			this.moveTheta = this.controller::getRightX;
+			this.moveRotationX = this.controller::getRightX;
+			this.moveRotationY = this.controller::getRightY;
+		} else {
+			this.moveTheta = () -> this.hid.getRawAxis(2);
+			this.moveRotationX = () -> this.hid.getRawAxis(2);
+			this.moveRotationY = () -> this.hid.getRawAxis(3);
+		}
 		
 		this.slow = this.controller::getRightTriggerAxis;
 

@@ -26,12 +26,8 @@ public class LockWheels extends Command {
 
 	@Override
 	public void end(final boolean interrupted) {
-		if (Constants.Drivetrain.Flags.fod) {
-			this.drivetrain.setModuleStates(SwerveModule.State.fieldOrientedForward());
-		} else {
-			this.drivetrain.setModuleStates(SwerveModule.State.forward());
-		}
-		
+		// Return the wheels to the direction they were in before locking
+		this.drivetrain.setModuleStates(SwerveModule.State.forward());
 		if(this.oi != null) this.oi.hid.setRumble(RumbleType.kBothRumble, 0);
 	}
 }

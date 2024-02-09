@@ -39,13 +39,12 @@ public class RobotContainer {
 			break;
 
 		case SIM:
-			// Sim robot, instantiate physics sim IO implementations
-			
-				drivetrain = new Drivetrain(new GyroIO() {}, 
-							new ModuleIOSim(), 
-							new ModuleIOSim(), 
-							new ModuleIOSim(), 
-							new ModuleIOSim());
+			// Sim robot, instantiate physics sim IO implementations		
+			drivetrain = new Drivetrain(null, 
+						new ModuleIOSim(), 
+						new ModuleIOSim(), 
+						new ModuleIOSim(), 
+						new ModuleIOSim());
 			break;
 
 		default:
@@ -67,7 +66,6 @@ public class RobotContainer {
 	}
 
 	private void configureDriverControls() {
-		// this.driverOI.resetFOD.whileTrue(new RunCommand(() -> this.drivetrain.gyro.setYaw(0)));
 		this.driverOI.resetFOD.whileTrue(new RunCommand(() -> this.drivetrain.resetGyro())); // Y Button
 		this.driverOI.lock.whileTrue(new LockWheels(this.drivetrain, this.driverOI)); // Left Bumper
 	}
