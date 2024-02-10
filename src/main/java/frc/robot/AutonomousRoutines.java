@@ -2,15 +2,13 @@ package frc.robot;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.SwerveModule;
-
-import java.util.Optional;
 
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoTrajectory;
@@ -23,13 +21,18 @@ public final class AutonomousRoutines {
 
 		chooser.addOption("Drive test trajectory", new SequentialCommandGroup(runTrajectory("test", drivetrain)));
 
-		// Set up FF characterization routines
-		// chooser.addOption(
-		// 	"Drive FF Characterization",
-		// 	new FeedForwardCharacterization(
-		// 		drivetrain, drivetrain::runCharacterizationVolts, drivetrain::getCharacterizationVelocity));
-		// chooser.setDefaultOption("Wait do nothing", new SequentialCommandGroup(new WaitCommand(.75)));
-
+		// Set up SysId routines
+		chooser.addOption(
+			"Drive SysId (Quasistatic Forward)",
+			drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+		chooser.addOption(
+			"Drive SysId (Quasistatic Reverse)",
+			drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+		chooser.addOption(
+			"Drive SysId (Dynamic Forward)", drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward));
+		chooser.addOption(
+			"Drive SysId (Dynamic Reverse)", drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+   
 		return chooser;
 	}
 

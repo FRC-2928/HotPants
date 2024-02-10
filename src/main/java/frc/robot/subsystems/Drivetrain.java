@@ -1,11 +1,13 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.*;
 import java.util.Arrays;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -16,7 +18,9 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
@@ -31,6 +35,8 @@ public class Drivetrain extends SubsystemBase {
 	public final SwerveDriveOdometry pose;
 	public final SwerveDrivePoseEstimator poseEstimator;
 	private final Limelight limelight = new Limelight("limelight");
+
+	private final SysIdRoutine sysId;
 	
 	// ----------------------------------------------------------
     // Initialization
@@ -60,6 +66,23 @@ public class Drivetrain extends SubsystemBase {
 										this.getModulePositions(),
 										new Pose2d() 	
 										);
+
+		// Configure SysId
+		sysId =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                null,
+                null,
+                (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> {
+                  for (int i = 0; i < 4; i++) {
+                    modules[i].runCharacterization(voltage.in(Volts));
+                  }
+                },
+                null,
+                this));
 	}
 
 	// ----------------------------------------------------------
@@ -254,20 +277,30 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	/** Runs forwards at the commanded voltage. */
-	public void runCharacterizationVolts(double volts) {
-		for (int i = 0; i < 4; i++) {
-		  modules[i].runCharacterization(volts);
-		}
-	  }
+	// public void runCharacterizationVolts(double volts) {
+	// 	for (int i = 0; i < 4; i++) {
+	// 	  modules[i].runCharacterization(volts);
+	// 	}
+	//   }
 	
-	  /** Returns the average drive velocity in radians/sec. */
-	  public double getCharacterizationVelocity() {
-		double driveVelocityAverage = 0.0;
-		for (var module : modules) {
-		  driveVelocityAverage += module.getCharacterizationVelocity();
-		}
-		return driveVelocityAverage / 4.0;
-	  }
+	//   /** Returns the average drive velocity in radians/sec. */
+	//   public double getCharacterizationVelocity() {
+	// 	double driveVelocityAverage = 0.0;
+	// 	for (var module : modules) {
+	// 	  driveVelocityAverage += module.getCharacterizationVelocity();
+	// 	}
+	// 	return driveVelocityAverage / 4.0;
+	//   }
+
+	/** Returns a command to run a quasistatic test in the specified direction. */
+	public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+		return sysId.quasistatic(direction);
+	}
+
+	/** Returns a command to run a dynamic test in the specified direction. */
+	public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+		return sysId.dynamic(direction);
+	}
 	  
 	// ----------------------------------------------------------
     // Simulation

@@ -248,11 +248,6 @@ public class SwerveModule {
         // this.targetVelocity = state.speedMetersPerSecond;
         // this.targetAngle = state.angle.unaryMinus();
         this.desiredModuleState = new SwerveModuleState(state.speedMetersPerSecond, state.angle.unaryMinus());
-
-        // 7. WHEEL DIRECTION OPTIMIZATION
-        // if (Constants.Drivetrain.Flags.wheelOptimization) {
-        //     this.desiredModuleState = SwerveModuleState.optimize(this.desiredModuleState, currentModulePosition.angle);
-        // }
     }
 
     public SwerveModulePosition updateModulePosition() {
@@ -270,10 +265,10 @@ public class SwerveModule {
         this.speedSetpoint = null;
     }
 
-    /** Returns the drive velocity in radians/sec. */
-    public double getCharacterizationVelocity() {
-        return inputs.driveVelocityRadPerSec;
-    }
+    // /** Returns the drive velocity in radians/sec. */
+    // public double getCharacterizationVelocity() {
+    //     return inputs.driveVelocityRadPerSec;
+    // }
 
     // private SwerveModuleState optimizeWheelDirection(Rotation2d currentAngleRotation) {
     //     this.backwards = Constants.Drivetrain.Flags.wheelOptimization
