@@ -132,7 +132,7 @@ public class Drivetrain extends SubsystemBase {
 
 	// Convert field-relative ChassisSpeeds to robot-relative ChassisSpeeds.
 	public ChassisSpeeds fieldOrientedDrive(final ChassisSpeeds field) {
-		return ChassisSpeeds.fromFieldRelativeSpeeds(field, getRobotAngle().unaryMinus());
+		return ChassisSpeeds.fromFieldRelativeSpeeds(field, getRobotAngle());
 	}
 
 	// Compensate for wheel rotation.  This prevents the robot 
@@ -177,7 +177,7 @@ public class Drivetrain extends SubsystemBase {
 	 * @return the continuous rotations and partial rotations
 	 */
 	public double getGyroRotations() {
-		return getRobotAngle().unaryMinus().getRotations();
+		return getRobotAngle().getRotations();
 	}
 
 	public SwerveModule[] getSwerveModules() {return this.modules;}
