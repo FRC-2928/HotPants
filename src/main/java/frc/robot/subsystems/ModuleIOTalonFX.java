@@ -105,9 +105,9 @@ public class ModuleIOTalonFX implements ModuleIO {
     }
 
     // -------------------- Config TURN motor ----------------------//
-    
+
     var turnConfig = new TalonFXConfiguration();
-      // Peak output of 40 amps
+    // Peak output of 40 amps
     turnConfig.CurrentLimits.StatorCurrentLimit = 40.0;
     turnConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     turnConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
@@ -132,7 +132,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     // -------------------- Config DRIVE motor ----------------------//
 
     var driveConfig = new TalonFXConfiguration();
-      // Peak output amps
+    // Peak output amps
     driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
     driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     driveConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
@@ -157,7 +157,6 @@ public class ModuleIOTalonFX implements ModuleIO {
     if(place == Place.FrontRight || place == Place.BackRight) {
       driveTalon.setInverted(true); // Clockwise_Positive
     }
-
 
     // -------------------- Config CANcoder  --------------------------// 
 
@@ -214,12 +213,13 @@ public class ModuleIOTalonFX implements ModuleIO {
 
     inputs.drivePositionRad = Units.rotationsToRadians(drivePosition.getValueAsDouble()) / DRIVE_GEAR_RATIO;
     inputs.driveVelocityRadPerSec = Units.rotationsToRadians(driveVelocity.getValueAsDouble()) / DRIVE_GEAR_RATIO;
-    inputs.driveVelocityMetersPerSec = (Units.rotationsToRadians(driveVelocity.getValueAsDouble()) / DRIVE_GEAR_RATIO) * Constants.Drivetrain.wheelRadius;
+    inputs.driveVelocityMetersPerSec = (Units.rotationsToRadians(driveVelocity.getValueAsDouble()) / DRIVE_GEAR_RATIO)
+      * Constants.Drivetrain.wheelRadius;
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
     inputs.driveCurrentAmps = new double[] { driveCurrent.getValueAsDouble() };
     inputs.driveRotorPosition = driveRotorPosition.getValueAsDouble();
     inputs.targetDriveVelocityMetersPerSec = targetVelocityMetersPerSeconds;
-    
+
     inputs.turnPosition = Rotation2d.fromRotations(turnPosition.getValueAsDouble() / TURN_GEAR_RATIO);
     inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble()) / TURN_GEAR_RATIO;
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
@@ -245,31 +245,32 @@ public class ModuleIOTalonFX implements ModuleIO {
   public void setTurnDutyCycle(double speed) { turnTalon.setControl(new DutyCycleOut(speed)); }
 
   @Override
-    public void setTargetTurnPosition(double targetTurnPositionRad) {
-      /* Start at position 0, enable FOC, no feed forward, use slot 0 */
-      final PositionVoltage voltagePosition = new PositionVoltage(0, 0, true, 0, 0, false, false, false);
-      turnTalon.setControl(voltagePosition.withPosition(targetTurnPositionRad));
-      this.targetTurnPositionRad = targetTurnPositionRad;
-    }
+  public void setTargetTurnPosition(double targetTurnPositionRad) {
+    /* Start at position 0, enable FOC, no feed forward, use slot 0 */
+    final PositionVoltage voltagePosition = new PositionVoltage(0, 0, true, 0, 0, false, false, false);
+    turnTalon.setControl(voltagePosition.withPosition(targetTurnPositionRad));
+    this.targetTurnPositionRad = targetTurnPositionRad;
+  }
 
-    @Override
-    public void setTargetDriveVelocity(double targetDriveVelocityMetersPerSec) {
-      /* Start at velocity 0, enable FOC, no feed forward, use slot 0 */
-      final VelocityVoltage voltageVelocity = new VelocityVoltage(0, 0, true, 0, 0, false, false, false);
-      driveTalon.setControl(voltageVelocity.withVelocity(targetDriveVelocityMetersPerSec));
-      this.targetVelocityMetersPerSeconds = targetDriveVelocityMetersPerSec;
-    }
+  @Override
+  public void setTargetDriveVelocity(double targetDriveVelocityMetersPerSec) {
+    /* Start at velocity 0, enable FOC, no feed forward, use slot 0 */
+    final VelocityVoltage voltageVelocity = new VelocityVoltage(0, 0, true, 0, 0, false, false, false);
+    driveTalon.setControl(voltageVelocity.withVelocity(targetDriveVelocityMetersPerSec));
+    this.targetVelocityMetersPerSeconds = targetDriveVelocityMetersPerSec;
+  }
 
-    @Override
-    public void setTargetDriveTorque(double targetDriveVelocityMetersPerSec) {  
-      /* Start at velocity 0, no feed forward, use slot 1 */
-      final VelocityTorqueCurrentFOC torqueVelocity = new VelocityTorqueCurrentFOC(0, 0, 0, 1, false, false, false);
-      
-      // To account for friction, we add this to the arbitrary feed forward
-      final double friction_torque = (targetDriveVelocityMetersPerSec > 0) ? 1 : -1; 
+  @Override
+  public void setTargetDriveTorque(double targetDriveVelocityMetersPerSec) {
+    /* Start at velocity 0, no feed forward, use slot 1 */
+    final VelocityTorqueCurrentFOC torqueVelocity = new VelocityTorqueCurrentFOC(0, 0, 0, 1, false, false, false);
 
-      driveTalon.setControl(torqueVelocity.withVelocity(targetDriveVelocityMetersPerSec).withFeedForward(friction_torque));
-      this.targetVelocityMetersPerSeconds = targetDriveVelocityMetersPerSec;
-    }
+    // To account for friction, we add this to the arbitrary feed forward
+    final double friction_torque = (targetDriveVelocityMetersPerSec > 0) ? 1 : -1;
+
+    driveTalon
+      .setControl(torqueVelocity.withVelocity(targetDriveVelocityMetersPerSec).withFeedForward(friction_torque));
+    this.targetVelocityMetersPerSeconds = targetDriveVelocityMetersPerSec;
+  }
 
 }

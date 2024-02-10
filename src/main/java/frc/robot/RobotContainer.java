@@ -26,7 +26,7 @@ public class RobotContainer {
 
 	public RobotContainer() {
 
-		switch(Constants.currentMode) {
+		switch(Robot.instance.currentMode) {
 		case REAL:
 			// Real robot, instantiate hardware IO implementations      
 			drivetrain = new Drivetrain(

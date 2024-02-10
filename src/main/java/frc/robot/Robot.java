@@ -21,6 +21,7 @@ public class Robot extends LoggedRobot {
 
 	private Command autonomousCommand;
 	private RobotContainer container;
+	public Constants.Mode currentMode = Constants.Mode.SIM;
 
 	public Robot() {
 		super();
@@ -31,7 +32,11 @@ public class Robot extends LoggedRobot {
 	public void robotInit() {
 		ConduitApi.getInstance().configurePowerDistribution(Constants.CAN.pdh, ModuleType.kRev.value);
 
-		switch(Constants.currentMode) {
+		if(Robot.isReal()){
+			this.currentMode = Constants.Mode.REAL;
+		}
+
+		switch(this.currentMode) {
 		case REAL:
 			// Running on a real robot, log to a USB stick
 			Logger.addDataReceiver(new WPILOGWriter("/U"));
@@ -39,9 +44,6 @@ public class Robot extends LoggedRobot {
 			break;
 
 		case SIM:
-			if(Robot.isReal()){
-				Constants.currentMode = Constants.Mode.REAL;
-			}
 			// Running a physics simulator, log to NT
 			Logger.addDataReceiver(new NT4Publisher());
 			break;
