@@ -15,6 +15,23 @@
     "**/*~": true
   },
   "editor.formatOnSave": true,
+  "editor.tabSize": 4,
+  "editor.insertSpaces": false,
+  "editor.defaultFormatter": "redhat.java",
+  "java.cleanup.actionsOnSave": [
+    "qualifyMembers",
+    "qualifyStaticMembers",
+    "addOverride",
+    "addDeprecated",
+    "stringConcatToTextBlock",
+    "invertEquals",
+    "addFinalModifier",
+    "instanceofPatternMatch",
+    "lambdaExpression",
+    "switchExpression",
+    "tryWithResource"
+  ],
+  "java.saveActions.organizeImports": true,
   "java.test.config": [
     {
       "name": "WPIlibUnitTests",

@@ -32,6 +32,7 @@ public class Robot extends LoggedRobot {
 	public void robotPeriodic() { CommandScheduler.getInstance().run(); }
 
 	// DISABLED //
+
 	@Override
 	public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
 

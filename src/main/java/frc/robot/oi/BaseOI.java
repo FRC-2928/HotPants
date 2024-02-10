@@ -9,8 +9,7 @@ public abstract class BaseOI {
 	public final XboxController hid;
 
 	/**
-	 * C-Stop, the most useful command you'll ever have
-	 * Press this magical button (start/left "window" button) to stop *all running commands*
+	 * C-Stop, the most useful command you'll ever have Press this magical button (start/left "window" button) to stop *all running commands*
 	 */
 	public final Trigger cstop;
 

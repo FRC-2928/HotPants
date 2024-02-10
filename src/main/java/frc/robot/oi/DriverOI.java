@@ -11,12 +11,12 @@ public class DriverOI extends BaseOI {
 
 		this.moveAxial = this.controller::getLeftY;
 		this.moveLateral = this.controller::getLeftX;
-		
+
 		this.moveTheta = this.controller::getRightX;
-		
+
 		this.moveRotationX = this.controller::getRightX;
 		this.moveRotationY = this.controller::getRightY;
-		
+
 		this.slow = this.controller::getRightTriggerAxis;
 
 		this.lock = this.controller.leftBumper();
