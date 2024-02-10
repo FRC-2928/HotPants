@@ -26,7 +26,7 @@ public class RobotContainer {
 
 	public RobotContainer() {
 
-		switch(Robot.instance.currentMode) {
+		switch(Constants.currentMode) {
 		case REAL:
 			// Real robot, instantiate hardware IO implementations      
 			drivetrain = new Drivetrain(
@@ -49,12 +49,11 @@ public class RobotContainer {
 
 		default:
 			// Replayed robot, disable IO implementations
-			drivetrain = new Drivetrain(new GyroIO() {
-			}, new ModuleIO() {
-			}, new ModuleIO() {
-			}, new ModuleIO() {
-			}, new ModuleIO() {
-			});
+			drivetrain = new Drivetrain(new GyroIO() {}, 
+						new ModuleIO() {}, 
+						new ModuleIO() {}, 
+						new ModuleIO() {}, 
+						new ModuleIO() {});
 			break;
 		}
 		this.autonomousChooser = new LoggedDashboardChooser<>(

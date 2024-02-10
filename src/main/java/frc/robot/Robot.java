@@ -21,7 +21,6 @@ public class Robot extends LoggedRobot {
 
 	private Command autonomousCommand;
 	private RobotContainer container;
-	public Constants.Mode currentMode = Constants.Mode.SIM;
 
 	public Robot() {
 		super();
@@ -33,10 +32,10 @@ public class Robot extends LoggedRobot {
 		ConduitApi.getInstance().configurePowerDistribution(Constants.CAN.pdh, ModuleType.kRev.value);
 
 		if(Robot.isReal()){
-			this.currentMode = Constants.Mode.REAL;
+			Constants.currentMode = Constants.Mode.REAL;
 		}
 
-		switch(this.currentMode) {
+		switch(Constants.currentMode) {
 		case REAL:
 			// Running on a real robot, log to a USB stick
 			Logger.addDataReceiver(new WPILOGWriter("/U"));
