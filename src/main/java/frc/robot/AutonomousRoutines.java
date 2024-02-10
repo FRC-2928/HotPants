@@ -23,15 +23,12 @@ public final class AutonomousRoutines {
 
 		chooser.addOption("Drive test trajectory", new SequentialCommandGroup(runTrajectory("test", drivetrain)));
 
+		// Set up FF characterization routines
 		// chooser.addOption(
-		// 	"Drive testorig trajectory",
-		// 	new SequentialCommandGroup(
-		// 		// new WaitCommand(.75)
-		// 		runTrajectory("testorig", drivetrain)
-		// 	)
-		// );
-
-		chooser.setDefaultOption("Wait do nothing", new SequentialCommandGroup(new WaitCommand(.75)));
+		// 	"Drive FF Characterization",
+		// 	new FeedForwardCharacterization(
+		// 		drivetrain, drivetrain::runCharacterizationVolts, drivetrain::getCharacterizationVelocity));
+		// chooser.setDefaultOption("Wait do nothing", new SequentialCommandGroup(new WaitCommand(.75)));
 
 		return chooser;
 	}

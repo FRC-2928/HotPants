@@ -68,6 +68,8 @@ public class SwerveModule {
     // public double targetVelocity = 0; // Setpoint for the velocity in meters per/sec
     public SwerveModuleState desiredModuleState = new SwerveModuleState();
     public SwerveModulePosition currentModulePosition = new SwerveModulePosition();
+    private Rotation2d angleSetpoint = null; // Setpoint for closed loop control, null for open loop
+    private Double speedSetpoint = null; // Setpoint for closed loop control, null for open loop
 
     public SwerveModule(final ModuleIO io, final Place place) {
         this.io = io;
@@ -256,6 +258,21 @@ public class SwerveModule {
     public SwerveModulePosition updateModulePosition() {
         this.currentModulePosition = new SwerveModulePosition(getDrivePositionMeters(), getCancoderAbsolutePosition());
         return this.currentModulePosition;
+    }
+
+    /** Runs the module with the specified voltage while controlling to zero degrees. */
+    public void runCharacterization(double volts) {
+        // Closed loop turn control
+        this.angleSetpoint = new Rotation2d();
+
+        // Open loop drive control
+        io.setDriveVoltage(volts);
+        this.speedSetpoint = null;
+    }
+
+    /** Returns the drive velocity in radians/sec. */
+    public double getCharacterizationVelocity() {
+        return inputs.driveVelocityRadPerSec;
     }
 
     // private SwerveModuleState optimizeWheelDirection(Rotation2d currentAngleRotation) {
