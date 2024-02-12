@@ -56,7 +56,7 @@ public class Drivetrain extends SubsystemBase {
 		modules[3] = new SwerveModule(brModuleIO, Place.BackRight);
 
 		poseEstimator = new SwerveDrivePoseEstimator( this.kinematics,
-													getRobotAngle(),
+													getRobotAngle().unaryMinus(),
 													this.getModulePositions(),
 													new Pose2d() 	
 													);
@@ -104,7 +104,7 @@ public class Drivetrain extends SubsystemBase {
 		SmartDashboard.putNumber("ySpeed", vyMetersPerSecond);
 		SmartDashboard.putNumber("rotation", omegaRadiansPerSecond);
 
-		var swerveModuleStates =
+		SwerveModuleState[] swerveModuleStates =
 			kinematics.toSwerveModuleStates(
 				fieldRelative
 					? ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getPose().getRotation())
@@ -163,7 +163,7 @@ public class Drivetrain extends SubsystemBase {
 	 */
 	@AutoLogOutput(key = "Robot/Rotation")
 	public Rotation2d getRobotAngle() {
-		return this.gyroInputs.yawPosition.unaryMinus();	
+		return this.gyroInputs.yawPosition;	
 	}
 
 	public double getAngularVelocity() {
@@ -176,9 +176,9 @@ public class Drivetrain extends SubsystemBase {
 	 * 
 	 * @return the continuous rotations and partial rotations
 	 */
-	// public double getGyroRotations() {
-	// 	return getRobotAngle().getRotations();
-	// }
+	public double getGyroRotations() {
+		return getRobotAngle().unaryMinus().getRotations();
+	}
 
 	public SwerveModule[] getSwerveModules() {return this.modules;}
 
