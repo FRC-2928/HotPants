@@ -136,6 +136,8 @@ public class Constants {
 		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 4, 0);
 		public final static PIDController drivePID = new PIDController(0.1, 0, 0);
 
+		public static final PIDValues targetVerticalControllerPID = new PIDValues(0.5, 0.0, 0, 0);
+
 		public static final double thetaCompensationFactor = 0.1;
 
 		public static final double wheelPositionRadius = 0.3906711; // radius of the circle that wheels are positioned on

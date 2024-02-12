@@ -36,7 +36,8 @@ public class JoystickDrive extends Command {
 
 	@Override
 	public void execute() {
-		final double mul = MathUtil.interpolate(1, 0.5, this.oi.slow.get());
+		// final double mul = MathUtil.interpolate(1, 0.5, this.oi.slow.get());
+		final double mul = 1;
 
 		// 1. CONVERT JOYSTICK VALUES
 		Translation2d linearVelocity = getLinearVelocity(mul); // Meters per/sec

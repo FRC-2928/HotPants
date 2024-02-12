@@ -34,7 +34,7 @@ public class Drivetrain extends SubsystemBase {
 	// Used to track odometry
 	public final SwerveDriveOdometry pose;
 	public final SwerveDrivePoseEstimator poseEstimator;
-	private final Limelight limelight = new Limelight("limelight");
+	public final Limelight limelight = new Limelight("limelight");
 
 	private final SysIdRoutine sysId;
 	
@@ -58,13 +58,13 @@ public class Drivetrain extends SubsystemBase {
 		poseEstimator = new SwerveDrivePoseEstimator( this.kinematics,
 													getRobotAngle(),
 													this.getModulePositions(),
-													new Pose2d() 	
+													new Pose2d()
 													);
 
 		pose = new SwerveDriveOdometry( this.kinematics,
 										getRobotAngle(),
 										this.getModulePositions(),
-										new Pose2d() 	
+										new Pose2d()
 										);
 
 		// Configure SysId
@@ -104,7 +104,7 @@ public class Drivetrain extends SubsystemBase {
 		SmartDashboard.putNumber("ySpeed", vyMetersPerSecond);
 		SmartDashboard.putNumber("rotation", omegaRadiansPerSecond);
 
-		SwerveModuleState[] swerveModuleStates =
+		var swerveModuleStates =
 			kinematics.toSwerveModuleStates(
 				fieldRelative
 					? ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getPose().getRotation())
@@ -183,6 +183,10 @@ public class Drivetrain extends SubsystemBase {
 	public SwerveModule[] getSwerveModules() {return this.modules;}
 
 	public SwerveDriveKinematics getKinematics() {return this.kinematics;}
+
+	public double getTargetRange() {
+		return this.limelight.getTargetVerticalOffset();
+	}
 
 	// ----------------------------------------------------------
     // Odometry
@@ -275,22 +279,6 @@ public class Drivetrain extends SubsystemBase {
 		// Fuse odometry pose with vision data if we have it.
 		updatePoseEstimatorWithVision();
 	}
-
-	/** Runs forwards at the commanded voltage. */
-	// public void runCharacterizationVolts(double volts) {
-	// 	for (int i = 0; i < 4; i++) {
-	// 	  modules[i].runCharacterization(volts);
-	// 	}
-	//   }
-	
-	//   /** Returns the average drive velocity in radians/sec. */
-	//   public double getCharacterizationVelocity() {
-	// 	double driveVelocityAverage = 0.0;
-	// 	for (var module : modules) {
-	// 	  driveVelocityAverage += module.getCharacterizationVelocity();
-	// 	}
-	// 	return driveVelocityAverage / 4.0;
-	//   }
 
 	/** Returns a command to run a quasistatic test in the specified direction. */
 	public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
