@@ -56,7 +56,7 @@ public class Drivetrain extends SubsystemBase {
 		modules[3] = new SwerveModule(brModuleIO, Place.BackRight);
 
 		poseEstimator = new SwerveDrivePoseEstimator( this.kinematics,
-													getRobotAngle().unaryMinus(),
+													getRobotAngle(),
 													this.getModulePositions(),
 													new Pose2d() 	
 													);
@@ -163,7 +163,7 @@ public class Drivetrain extends SubsystemBase {
 	 */
 	@AutoLogOutput(key = "Robot/Rotation")
 	public Rotation2d getRobotAngle() {
-		return this.gyroInputs.yawPosition;	
+		return this.gyroInputs.yawPosition.unaryMinus();	
 	}
 
 	public double getAngularVelocity() {
@@ -176,9 +176,9 @@ public class Drivetrain extends SubsystemBase {
 	 * 
 	 * @return the continuous rotations and partial rotations
 	 */
-	public double getGyroRotations() {
-		return getRobotAngle().unaryMinus().getRotations();
-	}
+	// public double getGyroRotations() {
+	// 	return getRobotAngle().getRotations();
+	// }
 
 	public SwerveModule[] getSwerveModules() {return this.modules;}
 
