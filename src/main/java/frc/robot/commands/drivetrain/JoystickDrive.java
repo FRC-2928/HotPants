@@ -40,12 +40,12 @@ public class JoystickDrive extends Command {
 
 		// 1. CONVERT JOYSTICK VALUES
 		Translation2d linearVelocity = getLinearVelocity(mul); // Meters per/sec
-		SmartDashboard.putNumber("Linear Velocity X", linearVelocity.getX());
-		SmartDashboard.putNumber("Linear Velocity Y", linearVelocity.getY());
+		SmartDashboard.putNumber("Joystick/Linear Velocity X", linearVelocity.getX());
+		SmartDashboard.putNumber("Joystick/Linear Velocity Y", linearVelocity.getY());
 
 		// Calculate the desired angle rate of change
 		double omegaRadPerSec = getOmega(mul); // Radians per/sec
-		SmartDashboard.putNumber("Omega Rad Per/Sec", omegaRadPerSec);
+		SmartDashboard.putNumber("Joystick/Omega Rad Per/Sec", omegaRadPerSec);
 
 		// 2 CONVERT TO CHASSIS SPEEDS	
 		ChassisSpeeds desired = new ChassisSpeeds(linearVelocity.getX(), linearVelocity.getY(), omegaRadPerSec);
@@ -103,19 +103,19 @@ public class JoystickDrive extends Command {
 			final double rotY = this.oi.moveRotationY.get();
 
 			this.absoluteTargetMagnitude = Math.sqrt(rotX * rotX + rotY * rotY);
-			SmartDashboard.putNumber("absoluteTargetMagnitude", absoluteTargetMagnitude);
+			SmartDashboard.putNumber("Joystick/absoluteTargetMagnitude", absoluteTargetMagnitude);
 
 			// Get a new rotation target if joystick values are beyond the deadband.
 			// Otherwise, we'll keep the old one.
 			final boolean rotateRobot = this.absoluteTargetMagnitude > 0.5;
 			if(rotateRobot) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(-rotX, rotY));
 
-			SmartDashboard.putNumber("absoluteTarget", absoluteTarget.getDegrees());
+			SmartDashboard.putNumber("Joystick/absoluteTarget", absoluteTarget.getDegrees());
 
 			// Run a PID loop to calculate the angular rate of change of the robot
 			// double measurement = this.drivetrain.getRobotAngle().getDegrees();
 			// double setpoint = this.absoluteTarget.getDegrees();
-			double measurement = Constants.mod(this.drivetrain.getGyroRotations(),1) - 0.5;
+			double measurement = Constants.mod(this.drivetrain.getRobotAngle().getRotations(),1) - 0.5;
 			double setpoint = this.absoluteTarget.getRotations();
 			omega = MathUtil.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5);
 

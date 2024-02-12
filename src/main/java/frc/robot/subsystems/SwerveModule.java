@@ -298,9 +298,9 @@ public class SwerveModule {
         // Update the module position
         SwerveModulePosition currentModulePosition = this.updateModulePosition();
     
-        SmartDashboard.putNumber(this.place.name() + " Angle", currentModulePosition.angle.getDegrees());
-        SmartDashboard.putNumber(this.place.name() + " Angle Desired", this.desiredModuleState.angle.getDegrees());
-        SmartDashboard.putNumber(this.place.name() + " Speed Desired Meters per/sec", this.desiredModuleState.speedMetersPerSecond);
+        SmartDashboard.putNumber(this.place.name() + "/Angle", currentModulePosition.angle.getDegrees());
+        SmartDashboard.putNumber(this.place.name() + "/Angle Desired", this.desiredModuleState.angle.getDegrees());
+        SmartDashboard.putNumber(this.place.name() + "/Speed Desired Meters PerSec", this.desiredModuleState.speedMetersPerSecond);
         
         // 7. WHEEL DIRECTION OPTIMIZATION
         // this.desiredModuleState = optimizeWheelDirection(currentModulePosition.angle);
