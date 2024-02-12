@@ -2,7 +2,6 @@ package frc.robot.commands.drivetrain;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -20,10 +19,7 @@ public class JoystickDrive extends Command {
 	public Rotation2d absoluteTarget = new Rotation2d();
 	public double absoluteTargetMagnitude = 0.5;
 	private final PIDController absoluteController = Constants.Drivetrain.absoluteRotationPID.createController();
-
-	private final SlewRateLimiter xLimiter = new SlewRateLimiter(100.0);
-	private final SlewRateLimiter yLimiter = new SlewRateLimiter(100.0);
-	private final SlewRateLimiter turnLimiter = new SlewRateLimiter(100.0);
+	private final PIDController targetVerticalController = Constants.Drivetrain.targetVerticalControllerPID.createController();
 
 	public JoystickDrive(final Drivetrain drivetrain, final DriverOI oi) {
 		this.drivetrain = drivetrain;
@@ -66,17 +62,17 @@ public class JoystickDrive extends Command {
 	}
 
 	/**
+	 * Uses the Joystick Left Axis
 	 * 
 	 * @param mul - joystick input to slow the speed
 	 * 
 	 * @return the velocity in meters per/sec
 	 */
 	private Translation2d getLinearVelocity(final double mul) {
-		// Left Axis
-
+		
 		// Get joystick inputs and apply deadbands
-		final double axial = -MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
-		final double lateral = MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
+		double axial = MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
+		double lateral = -MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
 
 		// Get the angle theta from the conversion of rectangular coordinates to polar coordinates
 		final Rotation2d moveDirection = Rotation2d.fromRadians(Math.atan2(lateral, axial));
@@ -92,10 +88,19 @@ public class JoystickDrive extends Command {
 		// Convert to meters per/sec
 		double vxMetersPerSecond = xSpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
 		double vyMetersPerSecond = ySpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
+		SmartDashboard.putNumber("JoystickDrive/Linear Velocity X", vxMetersPerSecond);
+		SmartDashboard.putNumber("JoystickDrive/Linear Velocity Y", vyMetersPerSecond);
 
 		return new Translation2d(vxMetersPerSecond, vyMetersPerSecond);
 	}
 
+	/**
+	 * Uses the Joystick Right Axis
+	 * 
+	 * @param mul - joystick input to slow the speed
+	 * 
+	 * @return omega radians per second
+	 */
 	private double getOmega(final double mul) {
 		// Right Axis
 		double omega;
@@ -124,12 +129,6 @@ public class JoystickDrive extends Command {
 			// Otherwise, use a large deadband to make sure that there is no movement.
 			omega = MathUtil.applyDeadband(omega, rotateRobot ? 0.075 : 0.25); 
 
-			// omega = MathUtil.applyDeadband(
-			// 			MathUtil
-			// 				.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5),
-			// 			rotateRobot ? 0.075 : 0.25
-			// 		);
-
 			this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;
 
 			omega = omega * this.absoluteTargetMagnitude;
@@ -137,11 +136,8 @@ public class JoystickDrive extends Command {
 			omega = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
 		}
 
-		// double omega = theta * mul
-		// 			* (Constants.Drivetrain.Flags.absoluteRotation ? this.absoluteTargetMagnitude : 1);
-
-		// return omega * Constants.Drivetrain.maxAngularVelocityRadPerSec;
 		double omegaRadiansPerSecond = omega * Constants.Drivetrain.maxAngularVelocityRadPerSec * mul;
+		SmartDashboard.putNumber("JoystickDrive/Omega Rad PerSec", omegaRadiansPerSecond);
 		return omegaRadiansPerSecond;
 	}
 }
