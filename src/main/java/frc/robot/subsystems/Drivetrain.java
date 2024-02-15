@@ -163,7 +163,7 @@ public class Drivetrain extends SubsystemBase {
 	 */
 	@AutoLogOutput(key = "Robot/Rotation")
 	public Rotation2d getRobotAngle() {
-		return this.gyroInputs.yawPosition.unaryMinus();	
+		return this.gyroInputs.yawPosition;	
 	}
 
 	public double getAngularVelocity() {

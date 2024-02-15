@@ -1,17 +1,28 @@
 package frc.robot.subsystems;
 
+import javax.swing.text.StyleContext.SmallAttributeSet;
+
+import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.sim.Pigeon2SimState;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class GyroIOSim implements GyroIO {
     Drivetrain drivetrain;
 
     private Pose2d simOdometry = new Pose2d();
-    double[] lastModulePositionsRad = {0, 0, 0, 0};
+    double[] lastModulePositionMeters = {0, 0, 0, 0};
+        
+    private final Pigeon2 imu = new Pigeon2(0);
+    private final Pigeon2SimState imuSim = imu.getSimState();
 
     public GyroIOSim(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
@@ -20,9 +31,11 @@ public class GyroIOSim implements GyroIO {
     @Override
     public void updateInputs(GyroIOInputs inputs) {
         calcAngle();
+        inputs.connected = true;
+        // imuSim.setSupplyVoltage(RobotController.getBatteryVoltage());
+        // final StatusCode yaw = imuSim.setRawYaw(this.drivetrain.getRobotAngle().getRadians());
+        // inputs.yawPosition = Rotation2d.fromRadians(yaw.value);
         inputs.yawPosition = simOdometry.getRotation();
-        inputs.heading = simOdometry.getRotation();
-        SmartDashboard.putNumber("Sim Yaw Position", inputs.yawPosition.getDegrees());
     }
 
     private void calcAngle() {
@@ -35,11 +48,13 @@ public class GyroIOSim implements GyroIO {
 
         SwerveModuleState[] measuredStatesDiff = new SwerveModuleState[4];
         for (int i = 0; i < 4; i++) {
-            measuredStatesDiff[i] = new SwerveModuleState(
-                    (drivetrain.getSwerveModules()[i].getPosition().distanceMeters - lastModulePositionsRad[i])
-                            * Units.inchesToMeters(2),
-                    turnPositions[i]);
-            lastModulePositionsRad[i] = drivetrain.getSwerveModules()[i].getPosition().distanceMeters;
+            double distanceMeters = drivetrain.getSwerveModules()[i].getModulePosition().distanceMeters;
+            measuredStatesDiff[i] = new SwerveModuleState(distanceMeters - lastModulePositionMeters[i],
+                                                        turnPositions[i]);
+            lastModulePositionMeters[i] = distanceMeters;
+            SmartDashboard.putNumber("SIM/turnPosition", turnPositions[0].getDegrees());
+            SmartDashboard.putNumber("SIM/measuredSpeed", measuredStatesDiff[0].speedMetersPerSecond);
+            SmartDashboard.putNumber("SIM/lastDistanceMeters", lastModulePositionMeters[0]);
         }
 
         simOdometry = simOdometry.exp(new Twist2d(

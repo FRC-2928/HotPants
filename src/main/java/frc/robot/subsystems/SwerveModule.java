@@ -144,7 +144,7 @@ public class SwerveModule {
      *
      * @return The drive speed and steer angle of the module
      */
-    public SwerveModulePosition getPosition() {
+    public SwerveModulePosition getModulePosition() {
         return this.currentModulePosition;
     }
 
