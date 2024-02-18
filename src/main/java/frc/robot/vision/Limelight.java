@@ -68,14 +68,9 @@ public class Limelight {
 
 	// Robot transform in 2D field-space. Translation (X,Y) Rotation(Z)
     @AutoLogOutput(key = "Odometry/Limelight")
-	public Pose2d getPose2d() {
-        // Pose2d botPose = getBotPose2d().relativeTo(new Pose2d(-8.27, -4.105, new Rotation2d()));
-		// This should do the same thing as the commented out line above, without need for manual coordinate transformation
-		if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
-			return LimelightHelpers.getBotPose2d_wpiRed(this.limelightName);
-		} else {
-			return LimelightHelpers.getBotPose2d_wpiBlue(this.limelightName);
-		}		
+	public Pose2d getPose2d() { 
+		// Always use Blue alliance for 2024
+		return LimelightHelpers.getBotPose2d_wpiBlue(this.limelightName);	
 	}
 
     public Pose2d getBotPose2d() {

@@ -245,8 +245,6 @@ public class SwerveModule {
      * @param state - required speed in meters per/sec and the angle in radians
      */
     public void applyState(final SwerveModuleState state) {
-        // this.targetVelocity = state.speedMetersPerSecond;
-        // this.targetAngle = state.angle;
         this.desiredModuleState = new SwerveModuleState(state.speedMetersPerSecond, state.angle.unaryMinus());
     }
 
@@ -264,28 +262,6 @@ public class SwerveModule {
         io.setDriveVoltage(volts);
         this.speedSetpoint = null;
     }
-
-    // /** Returns the drive velocity in radians/sec. */
-    // public double getCharacterizationVelocity() {
-    //     return inputs.driveVelocityRadPerSec;
-    // }
-
-    // private SwerveModuleState optimizeWheelDirection(Rotation2d currentAngleRotation) {
-    //     this.backwards = Constants.Drivetrain.Flags.wheelOptimization
-    //         && Constants.angleDistance(this.targetAngle.getDegrees(), currentAngleRotation.getDegrees()) > 90;
-
-    //     final double targetAngle = this.backwards
-    //         ? Constants.angleNorm(this.targetAngle.getDegrees() + 180)
-    //         : this.targetAngle.getDegrees();
-    
-    //     final double targetVelocity = this.backwards  
-    //         ? -this.targetVelocity : this.targetVelocity;
-
-    //     SmartDashboard.putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngleRotation.getDegrees()));
-        
-    //     Rotation2d angle = Rotation2d.fromDegrees(targetAngle);
-    //     return new SwerveModuleState(targetVelocity, angle);
-    // }
 
     /** 
      * This is the main update loop that controls the motors.
