@@ -10,6 +10,7 @@ import frc.robot.oi.DriverOI;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.GyroIO;
 import frc.robot.subsystems.GyroIOPigeon2;
+import frc.robot.subsystems.LockServo;
 import frc.robot.subsystems.SwerveModule;
 import frc.robot.subsystems.ModuleIO;
 import frc.robot.subsystems.ModuleIOSim;
@@ -23,6 +24,7 @@ public class RobotContainer {
 	// public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
 
 	public final Drivetrain drivetrain;
+	// private final LockServo servo = new LockServo(0); // PWM channel
 
 	public RobotContainer() {
 
@@ -67,6 +69,9 @@ public class RobotContainer {
 	private void configureDriverControls() {
 		this.driverOI.resetFOD.whileTrue(new RunCommand(() -> this.drivetrain.resetGyro())); // Y Button
 		this.driverOI.lock.whileTrue(new LockWheels(this.drivetrain, this.driverOI)); // Left Bumper
+		
+		// this.driverOI.servoLeft.whileTrue(new RunCommand(() -> this.servo.incrementServo(1)));
+		// this.driverOI.servoRight.whileTrue(new RunCommand(() -> this.servo.incrementServo(-1)));
 	}
 
 	public void teleop() { this.drivetrain.setDefaultCommand(new JoystickDrive(this.drivetrain, this.driverOI)); }

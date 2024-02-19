@@ -170,16 +170,6 @@ public class Drivetrain extends SubsystemBase {
 		return gyroInputs.yawVelocityRadPerSec;
     }
 
-	/**
-	 * Takes the negative of the current angular value
-	 * and converts given radians to rotations.
-	 * 
-	 * @return the continuous rotations and partial rotations
-	 */
-	// public double getGyroRotations() {
-	// 	return getRobotAngle().getRotations();
-	// }
-
 	public SwerveModule[] getSwerveModules() {return this.modules;}
 
 	public SwerveDriveKinematics getKinematics() {return this.kinematics;}
