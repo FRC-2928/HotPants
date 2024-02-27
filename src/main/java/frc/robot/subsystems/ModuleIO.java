@@ -13,56 +13,24 @@
 
 package frc.robot.subsystems;
 
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.*;
+
 import org.littletonrobotics.junction.AutoLog;
 
 public interface ModuleIO {
-  @AutoLog
-  public static class ModuleIOInputs {
-    public double drivePositionRad = 0.0;
-    public double driveVelocityRadPerSec = 0.0;
-    public double driveVelocityMetersPerSec = 0.0;
-    public double driveAppliedVolts = 0.0;
-    public double driveRotorPosition = 0.0;
-    public double targetDriveVelocityMetersPerSec = 0.0;
-    public double[] driveCurrentAmps = new double[] {};
+	@AutoLog
+	public static class ModuleIOInputs {
+		public Measure<Angle> drivePosition = Units.Degrees.zero();
+		public Measure<Velocity<Distance>> driveVelocity = Units.MetersPerSecond.zero();
+		public Measure<Current> driveCurrent = Units.Amps.zero();
 
-    public Rotation2d cancoderAbsolutePosition = new Rotation2d();
-    
-    public Rotation2d turnPosition = new Rotation2d();
-    public double turnVelocityRadPerSec = 0.0;
-    public double turnAppliedVolts = 0.0;
-    public double targetTurnPositionRad = 0.0;
-    public double[] turnCurrentAmps = new double[] {};
-  }
+		public Measure<Angle> angle = Units.Degrees.zero();
+		public Measure<Current> azimuthCurrent = Units.Amps.zero();
+	}
 
-  /** Updates the set of loggable inputs. */
-  public default void updateInputs(ModuleIOInputs inputs) {}
+	public default void setDriveVoltage(final double volts) {}
 
-  /** Run the drive motor at the specified voltage. */
-  public default void setDriveVoltage(double volts) {}
+	public default void setAzimuthVoltage(final double volts) {}
 
-  /** Run the turn motor at the specified voltage. */
-  public default void setTurnVoltage(double volts) {}
-
-  /** Run the drive motor at the specified duty cycle (-1 to 1). */
-  public default void setDriveDutyCycle(double speed) {}
-
-  /** Run the turn motor at the specified duty cycle (-1 to 1). */
-  public default void setTurnDutyCycle(double speed) {}
-
-  /** Enable or disable brake mode on the drive motor. */
-  public default void setDriveBrakeMode(boolean enable) {}
-
-  /** Enable or disable brake mode on the turn motor. */
-  public default void setTurnBrakeMode(boolean enable) {}
-
-  /** Run closed loop position control on the turn motor. */
-  public default void setTargetTurnPosition(double targetSteerPositionRad) {}
-
-  /** Run closed loop velocity control on the drive motor. */
-  public default void setTargetDriveVelocity(double targetDriveVelocityMetersPerSec) {}
-
-  /** Run closed loop torque control on the drive motor. */
-  public default void setTargetDriveTorque(double targetDriveVelocityMetersPerSec) {}
+	public default void updateInputs(final ModuleIOInputs inputs) {}
 }

@@ -2,6 +2,7 @@ package frc.robot.oi;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
@@ -14,7 +15,7 @@ public class DriverOI extends BaseOI {
 		this.moveAxial = this.controller::getLeftY;
 		this.moveLateral = this.controller::getLeftX;
 		
-		if (Constants.currentMode == Mode.REAL) {
+		if (Constants.mode == Mode.REAL) {
 			this.moveTheta = this.controller::getRightX;
 			this.moveRotationX = this.controller::getRightX;
 			this.moveRotationY = this.controller::getRightY;
@@ -24,10 +25,10 @@ public class DriverOI extends BaseOI {
 			this.moveRotationY = () -> this.hid.getRawAxis(3);
 		}
 		
-		// this.slow = this.controller::getRightTriggerAxis;
+		this.slow = () -> MathUtil.interpolate(1, 0.5, this.controller.getRightTriggerAxis());
 		this.alignShooter = this.controller::getRightTriggerAxis;
 
-		this.lock = this.controller.leftBumper();
+		this.lockWheels = this.controller.leftBumper();
 
 		this.resetFOD = this.controller.y();
 		this.servoLeft = this.controller.a();
@@ -42,10 +43,10 @@ public class DriverOI extends BaseOI {
 	public final Supplier<Double> moveRotationX;
 	public final Supplier<Double> moveRotationY;
 
-	// public final Supplier<Double> slow;
+	public final Supplier<Double> slow;
 	public final Supplier<Double> alignShooter;
 
-	public final Trigger lock;
+	public final Trigger lockWheels;
 	public final Trigger servoLeft;
 	public final Trigger servoRight;
 
