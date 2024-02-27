@@ -4,7 +4,6 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.drivetrain.JoystickDrive;
@@ -14,12 +13,6 @@ import frc.robot.subsystems.Diagnostics;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.DrivetrainModifier;
 import frc.robot.subsystems.DrivetrainModifier.Modification;
-import frc.robot.subsystems.GyroIO;
-import frc.robot.subsystems.GyroIOReal;
-import frc.robot.subsystems.SwerveModule;
-import frc.robot.subsystems.ModuleIO;
-import frc.robot.subsystems.ModuleIOSim;
-import frc.robot.subsystems.ModuleIOReal;
 
 public class RobotContainer {
 	public final LoggedDashboardChooser<Command> autonomousChooser;

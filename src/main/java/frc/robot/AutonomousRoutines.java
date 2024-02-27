@@ -48,7 +48,7 @@ public final class AutonomousRoutines {
 				.reset(
 					new Pose2d(
 						AutonomousRoutines.getPoseForAlliance(trajectory.getInitialPose()).getTranslation(),
-						Robot.cont.drivetrain.est.getEstimatedPosition().getRotation()
+						Robot.cont.drivetrain.poseEstimator.getEstimatedPosition().getRotation()
 					)
 				);
 

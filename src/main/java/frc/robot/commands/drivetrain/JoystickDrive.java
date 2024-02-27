@@ -7,7 +7,6 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.units.*;
 import frc.robot.Constants;
@@ -31,19 +30,21 @@ public class JoystickDrive extends Command {
 
 	@Override
 	public void initialize() {
-		this.absoluteTarget = Units.Radians.of(this.drivetrain.est.getEstimatedPosition().getRotation().getRadians());
+		this.absoluteTarget = Units.Radians.of(this.drivetrain.poseEstimator.getEstimatedPosition().getRotation().getRadians());
 	}
 
 	@Override
 	public void execute() {
 		final Translation2d translation = this.translation();
 
+		// 2. Create ChassisSpeeds Object
 		this.drivetrain
 			.control(
 				new ChassisSpeeds(translation.getX(), translation.getY(), this.theta().in(Units.RadiansPerSecond))
 			);
 	}
 
+	// 1. Convert Joystick Input
 	private Translation2d translation() {
 		// get inputs, apply deadbands
 		final double axial = MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);

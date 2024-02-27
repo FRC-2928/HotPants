@@ -74,8 +74,10 @@ public class SwerveModule {
 	}
 
 	public void control(final SwerveModuleState state) {
+        // 6. Apply New States
 		state.speedMetersPerSecond = -state.speedMetersPerSecond;
 
+        // 7. Optimize Wheel Speeds
 		if(
 			Constants.Drivetrain.Flags.wheelOptimization
 				&& Math
@@ -87,6 +89,7 @@ public class SwerveModule {
 			state.angle = state.angle.rotateBy(Rotation2d.fromDegrees(180.0));
 		}
 
+        // 8. Apply Power
 		this.azimuth(Units.Degrees.of(state.angle.getDegrees()));
 		this.drive(Units.MetersPerSecond.of(state.speedMetersPerSecond));
 

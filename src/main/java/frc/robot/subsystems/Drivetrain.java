@@ -62,7 +62,7 @@ public class Drivetrain extends SubsystemBase {
 	public final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
 
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
-	public final SwerveDrivePoseEstimator est;
+	public final SwerveDrivePoseEstimator poseEstimator;
 	public final Limelight limelight = new Limelight("limelight");
 
 	public Measure<Angle> fodOffset = Units.Radians.zero();
@@ -100,7 +100,7 @@ public class Drivetrain extends SubsystemBase {
 		default -> throw new Error();
 		}
 
-		this.est = new SwerveDrivePoseEstimator(
+		this.poseEstimator = new SwerveDrivePoseEstimator(
 			this.kinematics,
 			new Rotation2d(this.gyroInputs.yawPosition),
 			this.modulePositions(),
@@ -127,6 +127,7 @@ public class Drivetrain extends SubsystemBase {
 		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
 
+		// 3. Convert to Robot Relative Chassis Speeds
 		speeds = ChassisSpeeds
 			.discretize(
 				ChassisSpeeds
@@ -137,12 +138,14 @@ public class Drivetrain extends SubsystemBase {
 				0.02
 			);
 
+		// 4. Convert to Module Speeds and Angle	
 		this.control(this.kinematics.toSwerveModuleStates(speeds));
 	}
 
 	public void control(final Drivetrain.State state) { this.control(state.states); }
 
 	public void control(final SwerveModuleState[] states) {
+		// 5. Desaturate Wheel Speeds
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxVelocity);
 
 		for(int i = 0; i < this.modules.length; i++)
@@ -167,7 +170,7 @@ public class Drivetrain extends SubsystemBase {
 	 * This method is good for resetting field oriented drive.
 	 */
 	public void resetAngle() {
-		this.reset(new Pose2d(this.est.getEstimatedPosition().getTranslation(), Rotation2d.fromRadians(0)));
+		this.reset(new Pose2d(this.poseEstimator.getEstimatedPosition().getTranslation(), Rotation2d.fromRadians(0)));
 	}
 
 	public void resetFOD() {
@@ -176,7 +179,7 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void reset(final Pose2d newPose) {
-		this.est.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
+		this.poseEstimator.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
 	}
 
 	@AutoLogOutput(key = "Drivetrain/CurrentPositions")
@@ -198,11 +201,11 @@ public class Drivetrain extends SubsystemBase {
 	@AutoLogOutput(key = "Odometry/BlueOriginPose")
 	public Pose2d blueOriginPose() {
 		if(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-			return this.est
+			return this.poseEstimator
 				.getEstimatedPosition()
 				.relativeTo(new Pose2d(Constants.fieldWidth, Constants.fieldDepth, Rotation2d.fromRadians(Math.PI)));
 		} else {
-			return this.est.getEstimatedPosition();
+			return this.poseEstimator.getEstimatedPosition();
 		}
 	}
 
@@ -215,7 +218,7 @@ public class Drivetrain extends SubsystemBase {
 			module.periodic();
 
 		// Update the odometry pose
-		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
+		this.poseEstimator.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 
 		// Fuse odometry pose with vision data if we have it.
 		if(this.limelight.hasValidTargets() && this.limelight.getNumberOfAprilTags() >= 2) {
@@ -226,16 +229,19 @@ public class Drivetrain extends SubsystemBase {
 			// 	.getDistance(this.limelight.getPose2d().getTranslation());
 
 			// if (poseDifference < 0.5) {
-			this.est.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
+			this.poseEstimator.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
 			// }
 		}
 
-		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
+		Logger.recordOutput("Drivetrain/Pose", this.poseEstimator.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/FieldForward", this.gyroInputs.yawPosition.minus(this.fodOffset));
 	}
 
+	// -------------------------------------------------------------------------------
+	// Simulation
+	// -------------------------------------------------------------------------------
 	public boolean getHasValidTargetsSim() {
-		final double heading = this.est.getEstimatedPosition().getRotation().getDegrees();
+		final double heading = this.poseEstimator.getEstimatedPosition().getRotation().getDegrees();
 
 		return heading > 135 || heading < -135;
 	}
