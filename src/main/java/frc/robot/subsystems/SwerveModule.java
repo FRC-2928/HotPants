@@ -20,9 +20,17 @@ public class SwerveModule {
 		public final int index;
 	}
 
-	public SwerveModule(final ModuleIO io, final Place place) {
-		this.io = io;
+	public SwerveModule(final Place place) {
 		this.place = place;
+
+		this.io = switch(Constants.mode) {
+		case REAL -> new ModuleIOReal(this);
+		case SIM -> new ModuleIOSim();
+		case REPLAY -> new ModuleIO() {
+		};
+		default -> throw new Error();
+		};
+
 		this.azimuthPID.enableContinuousInput(-180, 180);
 	}
 
@@ -74,22 +82,13 @@ public class SwerveModule {
 	}
 
 	public void control(final SwerveModuleState state) {
-        // 6. Apply New States
 		state.speedMetersPerSecond = -state.speedMetersPerSecond;
 
-        // 7. Optimize Wheel Speeds
-		if(
-			Constants.Drivetrain.Flags.wheelOptimization
-				&& Math
-					.abs(
-						state.angle.minus(Rotation2d.fromDegrees(this.inputs.angle.in(Units.Degrees))).getDegrees()
-					) > 90
-		) {
+		if(Math.abs(state.angle.minus(Rotation2d.fromDegrees(this.inputs.angle.in(Units.Degrees))).getDegrees()) > 90) {
 			state.speedMetersPerSecond = -state.speedMetersPerSecond;
 			state.angle = state.angle.rotateBy(Rotation2d.fromDegrees(180.0));
 		}
 
-        // 8. Apply Power
 		this.azimuth(Units.Degrees.of(state.angle.getDegrees()));
 		this.drive(Units.MetersPerSecond.of(state.speedMetersPerSecond));
 

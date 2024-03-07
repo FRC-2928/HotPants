@@ -2,12 +2,15 @@ package frc.robot;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.configs.AudioConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.*;
 
 public class Constants {
@@ -16,6 +19,11 @@ public class Constants {
 		if(!Logger.hasReplaySource()) return Mode.SIM;
 		else return Mode.REPLAY;
 	}
+
+	public static final AudioConfigs talonFXAudio = new AudioConfigs()
+		.withAllowMusicDurDisable(true)
+		.withBeepOnBoot(true)
+		.withBeepOnConfig(false);
 
 	private Constants() { throw new IllegalCallerException("Cannot instantiate `Constants`"); }
 
@@ -47,7 +55,17 @@ public class Constants {
 
 	public static record PIDValues(double p, double i, double d, double f) {
 		public final PIDController createController() { return new PIDController(this.p, this.i, this.d); }
+
+		public final ProfiledPIDController createProfiledController(final TrapezoidProfile.Constraints profile) {
+			return new ProfiledPIDController(this.p, this.i, this.d, profile);
+		}
 	}
+
+	public static final PIDValues absoluteRotationPID = new PIDValues(2, 0, 0, 0);
+	public static final TrapezoidProfile.Constraints absoluteRotationConstraints = new TrapezoidProfile.Constraints(
+		1,
+		15
+	);
 
 	public static record Ratio<U extends Unit<U>>(double factor) {
 		public Ratio(final Measure<U> from, final Measure<U> to) {

@@ -48,10 +48,10 @@ public class ModuleIOReal implements ModuleIO {
 
 	public final Measure<Angle> absoluteEncoderOffset;
 
-	public ModuleIOReal(final Place place) {
-		this.place = place;
+	public ModuleIOReal(final SwerveModule module) {
+		this.place = module.place;
 
-		switch(place) {
+		switch(this.place) {
 		case FrontLeft:
 			this.azimuth = new TalonFX(Constants.CAN.CTRE.swerveFrontLeftAzimuth, Constants.CAN.CTRE.bus);
 			this.drive = new TalonFX(Constants.CAN.CTRE.swerveFrontLeftDrive, Constants.CAN.CTRE.bus);
@@ -97,6 +97,8 @@ public class ModuleIOReal implements ModuleIO {
 		azimuthConfig.CurrentLimits.SupplyCurrentThreshold = 60;
 		azimuthConfig.CurrentLimits.SupplyTimeThreshold = 0.1;
 
+		azimuthConfig.Audio = Constants.talonFXAudio;
+
 		this.azimuth.getConfigurator().apply(azimuthConfig);
 		this.azimuth.setNeutralMode(NeutralModeValue.Brake);
 
@@ -120,10 +122,12 @@ public class ModuleIOReal implements ModuleIO {
 		driveConfig.Slot0 = Constants.Drivetrain.driveGainsSlot0;
 		driveConfig.Slot1 = Constants.Drivetrain.driveGainsSlot1;
 
+		driveConfig.Audio = Constants.talonFXAudio;
+
 		this.drive.getConfigurator().apply(driveConfig);
 		this.drive.setNeutralMode(NeutralModeValue.Brake);
 
-		if(place == Place.FrontRight || place == Place.BackRight) this.drive.setInverted(true);
+		if(this.place == Place.FrontRight || this.place == Place.BackRight) this.drive.setInverted(true);
 
 		final CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
 		encoderConfig.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
@@ -152,14 +156,10 @@ public class ModuleIOReal implements ModuleIO {
 	}
 
 	@Override
-	public void setDriveVoltage(final double volts) {
-		this.drive.setControl(new VoltageOut(volts, true, false, false, false));
-	}
+	public void setDriveVoltage(final double volts) { this.drive.setControl(new VoltageOut(volts)); }
 
 	@Override
-	public void setAzimuthVoltage(final double volts) {
-		this.azimuth.setControl(new VoltageOut(volts, true, false, false, false));
-	}
+	public void setAzimuthVoltage(final double volts) { this.azimuth.setControl(new VoltageOut(volts)); }
 
 	@Override
 	public void updateInputs(final ModuleIOInputs inputs) {

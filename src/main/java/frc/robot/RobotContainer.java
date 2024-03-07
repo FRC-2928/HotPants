@@ -49,16 +49,11 @@ public class RobotContainer {
 	}
 
 	private void configureDriverControls() {
-
 		this.driverOI.lockWheels.whileTrue(new LockWheels());
-
-		this.driverOI.resetFOD.onTrue(new InstantCommand(() -> {
-			this.drivetrain.resetFOD();
-			this.drivetrain.resetAngle();
-		}));
+		this.driverOI.resetFOD.onTrue(new InstantCommand(this.drivetrain::resetAngle));
 	}
 
-	public void teleop() { this.drivetrain.setDefaultCommand(new JoystickDrive()); }
+	public void teleop() { this.drivetrain.setDefaultCommand(new JoystickDrive(this.drivetrain)); }
 
 	public Command getAutonomousCommand() { return this.autonomousChooser.get(); }
 }

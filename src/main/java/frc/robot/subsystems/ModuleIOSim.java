@@ -25,7 +25,7 @@ public class ModuleIOSim implements ModuleIO {
 
 	private final DCMotorSim drive = new DCMotorSim(DCMotor.getFalcon500(1), 6.75, 0.025);
 	private final DCMotorSim azimuth = new DCMotorSim(DCMotor.getFalcon500(1), 150.0 / 7.0, 0.004);
-	private final EncoderSim cancoder = new EncoderSim(null);
+	// private final EncoderSim cancoder = new EncoderSim(null);
 
 	@Override
 	public void updateInputs(final ModuleIOInputs inputs) {

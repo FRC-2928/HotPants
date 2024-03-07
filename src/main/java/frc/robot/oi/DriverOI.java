@@ -12,17 +12,15 @@ public class DriverOI extends BaseOI {
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
 
-		this.moveAxial = this.controller::getLeftY;
-		this.moveLateral = this.controller::getLeftX;
-		
-		if (Constants.mode == Mode.REAL) {
-			this.moveTheta = this.controller::getRightX;
-			this.moveRotationX = this.controller::getRightX;
-			this.moveRotationY = this.controller::getRightY;
+		this.driveAxial = this.controller::getLeftY;
+		this.driveLateral = this.controller::getLeftX;
+
+		if(Constants.mode == Mode.REAL) {
+			this.driveFORX = this.controller::getRightX;
+			this.driveFORY = () -> -this.controller.getRightY();
 		} else {
-			this.moveTheta = () -> this.hid.getRawAxis(2);
-			this.moveRotationX = () -> this.hid.getRawAxis(2);
-			this.moveRotationY = () -> this.hid.getRawAxis(3);
+			this.driveFORX = () -> this.hid.getRawAxis(2);
+			this.driveFORY = () -> this.hid.getRawAxis(3);
 		}
 		
 		this.slow = () -> MathUtil.interpolate(1, 0.5, this.controller.getRightTriggerAxis());
@@ -33,15 +31,14 @@ public class DriverOI extends BaseOI {
 		this.resetFOD = this.controller.y();
 		this.servoLeft = this.controller.a();
 		this.servoRight = this.controller.b();
+		
 	}
 
-	public final Supplier<Double> moveAxial;
-	public final Supplier<Double> moveLateral;
+	public final Supplier<Double> driveAxial;
+	public final Supplier<Double> driveLateral;
 
-	public final Supplier<Double> moveTheta;
-
-	public final Supplier<Double> moveRotationX;
-	public final Supplier<Double> moveRotationY;
+	public final Supplier<Double> driveFORX;
+	public final Supplier<Double> driveFORY;
 
 	public final Supplier<Double> slow;
 	public final Supplier<Double> alignShooter;

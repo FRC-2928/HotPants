@@ -26,19 +26,6 @@ public final class AutonomousRoutines {
 				new SequentialCommandGroup(AutonomousRoutines.choreo(Choreo.getTrajectory("test")))
 			);
 
-		chooser
-			.addOption(
-				"Drive SysId (Quasistatic Forward)",
-				drivetrain.sysId.quasistatic(SysIdRoutine.Direction.kForward)
-			);
-		chooser
-			.addOption(
-				"Drive SysId (Quasistatic Reverse)",
-				drivetrain.sysId.quasistatic(SysIdRoutine.Direction.kReverse)
-			);
-		chooser.addOption("Drive SysId (Dynamic Forward)", drivetrain.sysId.dynamic(SysIdRoutine.Direction.kForward));
-		chooser.addOption("Drive SysId (Dynamic Reverse)", drivetrain.sysId.dynamic(SysIdRoutine.Direction.kReverse));
-
 		return chooser;
 	}
 
