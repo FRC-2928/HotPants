@@ -19,6 +19,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -156,10 +157,20 @@ public class ModuleIOReal implements ModuleIO {
 	}
 
 	@Override
-	public void setDriveVoltage(final double volts) { this.drive.setControl(new VoltageOut(volts)); }
+	public void setDriveVoltage(final double volts) { 
+		VelocityVoltage req = new VelocityVoltage(0).withSlot(0);
+		this.drive.setControl(
+			req.withVelocity(volts).withFeedForward(
+				Constants.Drivetrain.driveFFW.calculate(req.Velocity)
+			)); 
+	}
 
 	@Override
-	public void setAzimuthVoltage(final double volts) { this.azimuth.setControl(new VoltageOut(volts)); }
+	public void setAzimuthVoltage(final double volts) { this.azimuth.setControl(
+		new VelocityVoltage(volts).withFeedForward(
+			Constants.Drivetrain.driveFFW.calculate(new VelocityVoltage(8).Velocity)
+		)); 
+	}
 
 	@Override
 	public void updateInputs(final ModuleIOInputs inputs) {
@@ -187,4 +198,5 @@ public class ModuleIOReal implements ModuleIO {
 		inputs.angle = Units.Rotations.of(this.angle.getValueAsDouble());
 		Logger.recordOutput("Drivetrain/" + this.place.name() + "/Angle", inputs.angle);
 	}
+	
 }
