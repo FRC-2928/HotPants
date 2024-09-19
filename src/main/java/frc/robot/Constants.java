@@ -114,10 +114,10 @@ public class Constants {
 		);
 
 		// todo: find
-		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 1, 0);
+		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFheedforward(0, 1, 0);
 
 		public static final Ratio motorEncoderToRotations = new Ratio(2048, 1);
-		public static final Ratio driveGearMotorToWheel = new Ratio(6.75, 1); // 6.75:1 (motor:wheel)
+		public static final Ratio driveGearMotorToWheel = new Ratio(((50 / 14) * (16 / 28) * (45 / 15)), 1); // 6.75:1 (motor:wheel)
 		public static final Ratio azimuthGearMotorToWheel = new Ratio(150.0 / 7.0, 1); // (150 / 7):1 (motor:wheel)
 
 		public static final double wheelRadius = 2.0 * 0.0254; // m
