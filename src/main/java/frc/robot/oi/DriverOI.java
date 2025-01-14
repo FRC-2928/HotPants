@@ -13,8 +13,8 @@ public class DriverOI extends BaseOI {
 
 		this.moveAxial = this.controller::getLeftY;
 		this.moveLateral = this.controller::getLeftX;
-		
-		if (Constants.currentMode == Mode.REAL) {
+
+		if(Constants.currentMode == Mode.REAL) {
 			this.moveTheta = this.controller::getRightX;
 			this.moveRotationX = this.controller::getRightX;
 			this.moveRotationY = this.controller::getRightY;
@@ -23,10 +23,10 @@ public class DriverOI extends BaseOI {
 			this.moveRotationX = () -> this.hid.getRawAxis(2);
 			this.moveRotationY = () -> this.hid.getRawAxis(3);
 		}
-		
+
 		// this.slow = this.controller::getRightTriggerAxis;
 		this.alignShooter = this.controller::getRightTriggerAxis;
-
+		this.runIntake = this.controller.x();
 		this.lock = this.controller.leftBumper();
 
 		this.resetFOD = this.controller.y();
@@ -44,7 +44,7 @@ public class DriverOI extends BaseOI {
 
 	// public final Supplier<Double> slow;
 	public final Supplier<Double> alignShooter;
-
+	public final Trigger runIntake;
 	public final Trigger lock;
 	public final Trigger servoLeft;
 	public final Trigger servoRight;

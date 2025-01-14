@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.commands.drivetrain.LockWheels;
+import frc.robot.commands.drivetrain.RunIntake;
 import frc.robot.oi.DriverOI;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.GyroIO;
@@ -69,7 +70,7 @@ public class RobotContainer {
 	private void configureDriverControls() {
 		this.driverOI.resetFOD.whileTrue(new RunCommand(() -> this.drivetrain.resetGyro())); // Y Button
 		this.driverOI.lock.whileTrue(new LockWheels(this.drivetrain, this.driverOI)); // Left Bumper
-		
+		this.driverOI.runIntake.whileTrue(new RunIntake());
 		// this.driverOI.servoLeft.whileTrue(new RunCommand(() -> this.servo.incrementServo(1)));
 		// this.driverOI.servoRight.whileTrue(new RunCommand(() -> this.servo.incrementServo(-1)));
 	}
