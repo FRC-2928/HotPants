@@ -87,7 +87,7 @@ public class Constants {
 			/// Field-oriented drive
 			public static final boolean fod = true;
 			/// Absolute rotation (point right stick in direction to face)
-			public static final boolean absoluteRotation = true;
+			public static final boolean absoluteRotation = false;
 
 			/// Optimize wheel rotation to only rotate less than 90deg per turn
 			public static final boolean wheelOptimization = true;

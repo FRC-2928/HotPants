@@ -4,22 +4,24 @@
 
 package frc.robot.commands.drivetrain;
 
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import frc.robot.Tuning;
 import frc.robot.subsystems.Intake;;
 
 public class RunIntake extends Command {
     /** Creates a new RunIntake. */
     private Intake intake;
-    public LoggedDashboardNumber speed;
+    // public double speed;
 
     public RunIntake() {
         intake = new Intake();
         this.addRequirements(intake);
-        this.speed = new LoggedDashboardNumber("Tuning/SpeedIntakePercent", 1);
+        // this.speed = Tuning.intakeSpeed.get();
     }
 
     // Called when the command is initially scheduled.
@@ -30,7 +32,11 @@ public class RunIntake extends Command {
 
     // Called every time the scheduler runs while the command is scheduled.
     @Override
-    public void execute() { intake.runIntake(MathUtil.clamp(this.speed.get(), -1, 1)); }
+    public void execute() {
+        double speed = Tuning.intakeSpeed.get();
+        Logger.recordOutput("Intake/Speed", speed);
+        intake.runIntake(MathUtil.clamp(speed, -1, 1));
+    }
 
     // Called once the command ends or is interrupted.
     @Override
