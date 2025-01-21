@@ -1,72 +1,75 @@
 package frc.robot;
 
-import java.util.Optional;
-
 import org.littletonrobotics.conduit.ConduitApi;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.inputs.LoggedPowerDistribution;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import com.pathplanner.lib.commands.PathfindingCommand;
+import com.pathplanner.lib.pathfinding.Pathfinding;
+
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.commands.drivetrain.RunIntake;
-import frc.robot.subsystems.Intake;
-
+import frc.robot.commands.drivetrain.LockWheels;
 public class Robot extends LoggedRobot {
 	public static Robot instance;
-	public Optional<DriverStation.Alliance> alliance;
+	public static RobotContainer cont;
+	public static Command commandToRun;
+	public static boolean needToLookOtherWay;
+
+	public RobotContainer container;
 
 	private Command autonomousCommand;
-	private RobotContainer container;
 
 	public Robot() {
 		super();
-		Robot.instance = this;
-	}
 
-	@Override
-	public void robotInit() {
-		ConduitApi.getInstance().configurePowerDistribution(Constants.CAN.pdh, ModuleType.kRev.value);
+		ConduitApi.getInstance().configurePowerDistribution(Constants.CAN.Misc.pdh, ModuleType.kRev.value);
 
-		if(Robot.isReal()){
-			Constants.currentMode = Constants.Mode.REAL;
+		switch(Constants.mode) {
+		case REAL -> {
+			Logger.addDataReceiver(new WPILOGWriter("/U/logs"));
+			Logger.addDataReceiver(new NT4Publisher());
 		}
 
-		switch(Constants.currentMode) {
-		case REAL:
-			// Running on a real robot, log to a USB stick
-			Logger.addDataReceiver(new WPILOGWriter("/U"));
+		case SIM -> {
 			Logger.addDataReceiver(new NT4Publisher());
-			break;
+		}
 
-		case SIM:
-			// Running a physics simulator, log to NT
-			Logger.addDataReceiver(new NT4Publisher());
-			break;
-
-		case REPLAY:
-			// Replaying a log, set up replay source
-			setUseTiming(false); // Run as fast as possible
-			String logPath = LogFileUtil.findReplayLog();
+		case REPLAY -> {
+			this.setUseTiming(false); // Run as fast as possible
+			final String logPath = LogFileUtil.findReplayLog();
 			Logger.setReplaySource(new WPILOGReader(logPath));
 			Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
-			break;
+		}
 		}
 
 		Logger.start();
 
-		this.alliance = DriverStation.getAlliance();
+		Robot.instance = this;
+		Robot.cont = new RobotContainer();
 
-		this.container = new RobotContainer();
+		DriverStation.silenceJoystickConnectionWarning(true);
 	}
 
 	@Override
-	public void robotPeriodic() { CommandScheduler.getInstance().run(); }
+	public void robotInit() {
+		PathfindingCommand.warmupCommand().schedule();
+	}
+
+	@Override
+	public void robotPeriodic() {
+		CommandScheduler.getInstance().run();
+		LoggedPowerDistribution.getInstance(Constants.CAN.Misc.pdh, ModuleType.kRev);
+		
+	}
 
 	// DISABLED //
 	@Override
@@ -83,8 +86,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void autonomousInit() {
 		CommandScheduler.getInstance().cancelAll();
-
-		// Get selected routine from the SmartDashboard
+		// Get selected routine from the dashboard
 		this.autonomousCommand = this.container.getAutonomousCommand();
 
 		// schedule the autonomous command (example)
@@ -94,7 +96,8 @@ public class Robot extends LoggedRobot {
 	}
 
 	@Override
-	public void autonomousPeriodic() {}
+	public void autonomousPeriodic() {
+	}
 
 	@Override
 	public void autonomousExit() {}
@@ -104,7 +107,8 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopInit() {
 		CommandScheduler.getInstance().cancelAll();
-		this.container.teleop();
+
+		this.container.drivetrain.setDefaultCommand(this.container.drivetrain.joystickDrive);
 	}
 
 	@Override
@@ -116,7 +120,11 @@ public class Robot extends LoggedRobot {
 	// TEST //
 
 	@Override
-	public void testInit() { CommandScheduler.getInstance().cancelAll(); }
+	public void testInit() {
+		CommandScheduler.getInstance().cancelAll();
+
+		this.container.drivetrain.setDefaultCommand(this.container.drivetrain.joystickDrive);
+	}
 
 	@Override
 	public void testPeriodic() {}

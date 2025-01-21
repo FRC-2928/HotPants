@@ -14,7 +14,23 @@
     "**/.factorypath": true,
     "**/*~": true
   },
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
+  "editor.tabSize": 4,
+  "editor.insertSpaces": false,
+  "editor.defaultFormatter": "redhat.java",
+  "java.cleanup.actionsOnSave": [
+    "qualifyMembers",
+    "qualifyStaticMembers",
+    "addOverride",
+    "addDeprecated",
+    "stringConcatToTextBlock",
+    "invertEquals",
+    "instanceofPatternMatch",
+    "lambdaExpression",
+    "switchExpression",
+    "tryWithResource"
+  ],
+  "java.saveActions.organizeImports": true,
   "java.test.config": [
     {
       "name": "WPIlibUnitTests",

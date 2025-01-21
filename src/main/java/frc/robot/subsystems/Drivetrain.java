@@ -1,294 +1,300 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.*;
+import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.Units.*;
+import edu.wpi.first.units.measure.*;
 import java.util.Arrays;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathfindingCommand;
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.util.PathPlannerLogging;
+
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import frc.robot.Robot;
+import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
 
 public class Drivetrain extends SubsystemBase {
-	private final GyroIO gyroIO;
-	private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
-	private final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
-	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
+	public static class State {
+		public final SwerveModuleState[] states;
 
-	// Used to track odometry
-	public final SwerveDriveOdometry pose;
-	public final SwerveDrivePoseEstimator poseEstimator;
+		public State() { this.states = new SwerveModuleState[4]; }
+
+		public State(final SwerveModuleState[] states) { this.states = states; }
+
+		public static State forward() {
+			return new State()
+				.set(Place.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
+				.set(Place.FrontRight, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
+				.set(Place.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
+				.set(Place.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
+		}
+
+		public static State locked() {
+			return new State()
+				.set(Place.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(-45)))
+				.set(Place.FrontRight, new SwerveModuleState(0, Rotation2d.fromDegrees(45)))
+				.set(Place.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(-135)))
+				.set(Place.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(135)));
+		}
+
+		public SwerveModuleState get(final Place place) { return this.states[place.index]; }
+
+		public State set(final Place place, final SwerveModuleState state) {
+			this.states[place.index] = state;
+			return this;
+		}
+	}
+
+	public final GyroIO gyro;
+	public final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+
+	public final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
+
+	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
+	public final SwerveDrivePoseEstimator est;
+	public final SwerveDrivePoseEstimator noLimelightEst;
+	public final Limelight limelightNote = new Limelight("limelight-note");
+	public final Limelight limelightShooter = new Limelight("limelight-shooter");
+	public final Limelight limelightRear = new Limelight("limelight-rear");
 	public final Limelight limelight = new Limelight("limelight");
 
-	private final SysIdRoutine sysId;
-	
-	// ----------------------------------------------------------
-    // Initialization
-    // ----------------------------------------------------------
-	public Drivetrain(
-		GyroIO gyroIO,
-		ModuleIO flModuleIO,
-		ModuleIO frModuleIO,
-		ModuleIO blModuleIO,
-		ModuleIO brModuleIO) 
-  	{	
-		if (gyroIO == null) gyroIO = new GyroIOSim(this);
-		this.gyroIO = gyroIO;
-		modules[0] = new SwerveModule(flModuleIO, Place.FrontLeft);
-		modules[1] = new SwerveModule(frModuleIO, Place.FrontRight);
-		modules[2] = new SwerveModule(blModuleIO, Place.BackLeft);
-		modules[3] = new SwerveModule(brModuleIO, Place.BackRight);
+	public final JoystickDrive joystickDrive = new JoystickDrive(this);
+	public ChassisSpeeds joystickSpeeds = new ChassisSpeeds();
+	private ChassisSpeeds robotChassisSpeeds = new ChassisSpeeds();
 
-		poseEstimator = new SwerveDrivePoseEstimator( this.kinematics,
-													getRobotAngle(),
-													this.getModulePositions(),
-													new Pose2d()
-													);
+	// PathPlanner config constants
+	private static final double ROBOT_MASS_KG = /*74.088*/ 57;
+	private static final double ROBOT_MOI = 6.883;
+	private static final double WHEEL_COF = 1.2;
+	private static final RobotConfig PP_CONFIG = /* TODO: TUNE THESE FOR OUR ROBOT */
+      new RobotConfig(
+          ROBOT_MASS_KG,
+          ROBOT_MOI,
+          new ModuleConfig(
+              Constants.Drivetrain.wheelRadius,
+              Constants.Drivetrain.maxVelocity,
+              WHEEL_COF,
+              DCMotor.getKrakenX60Foc(1)
+                  .withReduction(Constants.Drivetrain.driveGearRatio),
+              (Current)Units.Amps.of(120),
+              1),
+          Constants.Drivetrain.kinematics.getModules());
 
-		pose = new SwerveDriveOdometry( this.kinematics,
-										getRobotAngle(),
-										this.getModulePositions(),
-										new Pose2d()
-										);
+	public Drivetrain() {
+		this.gyro = switch(Constants.mode) {
+		case REAL -> new GyroIOReal();
+		case REPLAY -> new GyroIO() {
+		};
+		default -> throw new Error();
+		};
 
-		// Configure SysId
-		sysId =
-        new SysIdRoutine(
-            new SysIdRoutine.Config(
-                null,
-                null,
-                null,
-                (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
-            new SysIdRoutine.Mechanism(
-                (voltage) -> {
-                  for (int i = 0; i < 4; i++) {
-                    modules[i].runCharacterization(voltage.in(Volts));
-                  }
-                },
-                null,
-                this));
+		this.modules[0] = new SwerveModule(Place.FrontLeft);
+		this.modules[1] = new SwerveModule(Place.FrontRight);
+		this.modules[2] = new SwerveModule(Place.BackLeft);
+		this.modules[3] = new SwerveModule(Place.BackRight);
+
+		this.est = new SwerveDrivePoseEstimator(
+			this.kinematics,
+			new Rotation2d(this.gyroInputs.yawPosition),
+			this.modulePositions(),
+			new Pose2d()
+		);
+		this.noLimelightEst = new SwerveDrivePoseEstimator(
+			this.kinematics,
+			new Rotation2d(this.gyroInputs.yawPosition),
+			this.modulePositions(),
+			new Pose2d()
+		);
+
+		// PathPlannerLib auto configuration. Refer https://pathplanner.dev/pplib-getting-started.html
+		AutoBuilder
+			.configure(
+				this::getEstimatedPosition,
+				null,
+				this::getCurrentChassisSpeeds,
+				this::controlRobotOriented,
+				new PPHolonomicDriveController(
+					Constants.fromPIDValues(Constants.Drivetrain.Auto.translationDynamic),
+					Constants.fromPIDValues(Constants.Drivetrain.Auto.thetaDynamic)),
+				PP_CONFIG,
+				() -> false,
+				this
+			);
+
+		PathPlannerLogging
+			.setLogActivePathCallback(
+				poses -> Logger.recordOutput("Drivetrain/Auto/PathPoses", poses.toArray(Pose2d[]::new))
+			);
+		PathPlannerLogging.setLogCurrentPoseCallback(pose -> Logger.recordOutput("Drivetrain/Auto/CurrentPose", pose));
+		PathPlannerLogging.setLogTargetPoseCallback(pose -> Logger.recordOutput("Drivetrain/Auto/DesiredPose", pose));
 	}
 
-	// ----------------------------------------------------------
-    // Control Output
-    // ----------------------------------------------------------
+	public void control(ChassisSpeeds speeds) {
+		Logger.recordOutput("Drivetrain/dx", speeds.vxMetersPerSecond);
+		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
+		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
 
-	/**
-	 * Method to drive the robot using joystick info.
-	 *
-	 * @param vxMetersPerSecond Speed of the robot in the x direction (forward).
-	 * @param vyMetersPerSecond Speed of the robot in the y direction (sideways).
-	 * @param omegaRadiansPerSecond Angular rate of the robot in radians per/sec
-	 * @param fieldRelative Whether the provided x and y speeds are relative to the field.
-	 */
-	public void drive(double vxMetersPerSecond, double vyMetersPerSecond, 
-					  double omegaRadiansPerSecond, boolean fieldRelative) {
-		
-		SmartDashboard.putNumber("xSpeed", vxMetersPerSecond);
-		SmartDashboard.putNumber("ySpeed", vyMetersPerSecond);
-		SmartDashboard.putNumber("rotation", omegaRadiansPerSecond);
+		speeds = this.fod(speeds);
+		speeds = this.compensate(speeds);
+		speeds = ChassisSpeeds.discretize(speeds, 0.02);
 
-		var swerveModuleStates =
-			kinematics.toSwerveModuleStates(
-				fieldRelative
-					? ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getPose().getRotation())
-					: new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond));
+		this.robotChassisSpeeds = speeds;
 
-		setModuleStates(swerveModuleStates);
+		this.control(this.kinematics.toSwerveModuleStates(speeds));
 	}
 
-	/**
-	 * Set the required speed and angle of each wheel.
-	 * 
-	 * @param states - required speed in meters per/sec
-	 * 				 - angle in radians per/sec
-	*/
-	public void setModuleStates(final SwerveModuleState[] states) {
-		// 5. DESATURATE WHEEL SPEEDS
-		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxVelocityMetersPerSec);
+	public void controlRobotOriented(final ChassisSpeeds speeds) {
+		speeds.omegaRadiansPerSecond = speeds.omegaRadiansPerSecond * 0.45;
 
-		// 6. SET SPEED AND ANGLE FOR EACH WHEEL
+		Logger.recordOutput("Drivetrain/dx", speeds.vxMetersPerSecond);
+		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
+		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
+
+		this.robotChassisSpeeds = ChassisSpeeds.discretize(speeds.unaryMinus(), 0.02);
+
+		this.control(this.kinematics.toSwerveModuleStates(this.robotChassisSpeeds));
+	}
+
+	public void control(final Drivetrain.State state) { this.control(state.states); }
+
+	public void control(final SwerveModuleState[] states) {
+		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxVelocity);
+
 		for(int i = 0; i < this.modules.length; i++)
-			this.modules[i].applyState(states[i]);
+			this.modules[i].control(states[i]);
 	}
 
-	public void setModuleStates(final SwerveModule.State state) { this.setModuleStates(state.states); }
+	public void halt() { this.control(State.locked()); }
 
-	// Convert field-relative ChassisSpeeds to robot-relative ChassisSpeeds.
-	public ChassisSpeeds fieldOrientedDrive(final ChassisSpeeds field) {
-		return ChassisSpeeds.fromFieldRelativeSpeeds(field, getPose().getRotation());
+	public ChassisSpeeds fod(final ChassisSpeeds speeds) {
+		return ChassisSpeeds.fromFieldRelativeSpeeds(speeds, this.est.getEstimatedPosition().getRotation());
 	}
 
-	// Compensate for wheel rotation.  This prevents the robot 
-	// from drifting to one side while driving and rotating
+	public ChassisSpeeds rod(final ChassisSpeeds speeds) {
+		return ChassisSpeeds.fromRobotRelativeSpeeds(speeds, this.est.getEstimatedPosition().getRotation());
+	}
+
 	public ChassisSpeeds compensate(final ChassisSpeeds original) {
 		// using this function because its just an easy way to rotate the axial/lateral speeds
 		return ChassisSpeeds
 			.fromFieldRelativeSpeeds(
 				original,
-				Rotation2d.fromRadians(original.omegaRadiansPerSecond * Constants.Drivetrain.thetaCompensationFactor)
+				Rotation2d.fromRadians(original.omegaRadiansPerSecond * -Constants.Drivetrain.thetaCompensationFactor)
 			);
 	}
-  
-	public void resetGyro() {
-		gyroIO.resetGyro();
-	}
-	
-	// ----------------------------------------------------------
-    // Sensor Input
-    // ----------------------------------------------------------
 
-	/**
-	 * Current reported yaw of the Pigeon2 in degrees
-	 * Constructs and returns a Rotation2d.
-	 * Rotation is continuous through 360 degrees.
-	 * 
-	 * @return current angle of the robot
-	 */
-	@AutoLogOutput(key = "Robot/Rotation")
-	public Rotation2d getRobotAngle() {
-		return this.gyroInputs.yawPosition;	
+	public void resetAngle() {
+		this.reset(new Pose2d(this.est.getEstimatedPosition().getTranslation(), Rotation2d.fromRadians(0)));
+		((JoystickDrive) this.getDefaultCommand()).forTarget = Units.Radians.zero();
 	}
 
-	public double getAngularVelocity() {
-		return gyroInputs.yawVelocityRadPerSec;
-    }
-
-	public SwerveModule[] getSwerveModules() {return this.modules;}
-
-	public SwerveDriveKinematics getKinematics() {return this.kinematics;}
-
-	public double getTargetRange() {
-		return this.limelight.getTargetVerticalOffset();
+	public void reset(final Pose2d newPose) {
+		this.est.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
+		this.noLimelightEst.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);	
 	}
 
-	// ----------------------------------------------------------
-    // Odometry
-    // ----------------------------------------------------------
-	/**
-	 * Resets the odometry to the specified pose.
-	 *
-	 * @param pose The pose to which to set the odometry.
-	 */
-	public void resetOdometryEstimator(Pose2d pose) {
-		this.poseEstimator.resetPosition(
-			getRobotAngle(),
-			this.getModulePositions(),
-			pose);
-	}
-
-	public void resetOdometry(Pose2d newPose) {
-		this.pose.resetPosition(
-			getRobotAngle(),
-			this.getModulePositions(),
-			newPose);
-	}
-
-	/** Returns the current odometry pose. */
-	@AutoLogOutput(key = "Odometry/Estimation")
-	public Pose2d getPoseEstimation() {
-		return this.poseEstimator.getEstimatedPosition();
-	}
-
-	/** Returns the current odometry pose. */
-	@AutoLogOutput(key = "Odometry/Pose")
-	public Pose2d getPose() {
-		return this.pose.getPoseMeters();
-	}
-
-	public SwerveModulePosition[] getModulePositions() {
-		return Arrays.stream(this.modules).map(SwerveModule::updateModulePosition).toArray(SwerveModulePosition[]::new);
-	}
-
-	@AutoLogOutput(key = "SwerveStates/Desired")
-	public SwerveModuleState[] getModuleStates() {
-		return Arrays.stream(this.modules).map(SwerveModule::getModuleState).toArray(SwerveModuleState[]::new);
-	}
-
-	/**
-	 * Updates the pose with vision if close to current position.
-	 */
-	public void updatePoseEstimatorWithVision() {
-		if(this.limelight.hasValidTargets()) {
-			// distance from current pose to vision estimated pose
-			double poseDifference = this.poseEstimator.getEstimatedPosition().getTranslation()
-				.getDistance(this.limelight.getPose2d().getTranslation());
-			SmartDashboard.putNumber("pose difference", poseDifference);
-
-			if (poseDifference < 0.5) {
-				this.poseEstimator.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
-			}
+	public void resetLimelightPose(){
+		if(this.limelightNote.hasValidTargets()){
+			this.est.resetPose(this.limelightNote.getPose2d());
 		}
 	}
 
-	// ----------------------------------------------------------
-    // Process Logic
-    // ----------------------------------------------------------
+	@AutoLogOutput
+	public void runCharacterization(final double volts) {
+		for(int i = 0; i < this.modules.length; i++) {
+			this.modules[i].runCharacterization(volts);
+		}
+		Logger.recordOutput("Drivetrain/InputVoltage", volts);
+	}
+
+	@AutoLogOutput(key = "Drivetrain/CurrentPositions")
+	public SwerveModulePosition[] modulePositions() {
+		return Arrays.stream(this.modules).map(module -> module.position).toArray(SwerveModulePosition[]::new);
+	}
+
+	@AutoLogOutput(key = "Drivetrain/States/Desired")
+	public SwerveModuleState[] desiredModuleStates() {
+		return Arrays.stream(this.modules).map(module -> module.desired).toArray(SwerveModuleState[]::new);
+	}
+
+	@AutoLogOutput(key = "Drivetrain/States/Current")
+	public SwerveModuleState[] currentModuleStates() {
+		return Arrays.stream(this.modules).map(module -> module.current).toArray(SwerveModuleState[]::new);
+	}
+
+	@AutoLogOutput(key = "Drivetrain/CurrentChassisSpeeds")
+	public ChassisSpeeds getCurrentChassisSpeeds() {
+		return this.kinematics.toChassisSpeeds(this.currentModuleStates());
+	}
+
+	// Returns the current odometry pose, transformed to blue origin coordinates.
+	@AutoLogOutput(key = "Odometry/BlueOriginPose")
+	public Pose2d blueOriginPose() {
+		if(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+			return this.est
+				.getEstimatedPosition()
+				.relativeTo(new Pose2d(Constants.fieldWidth, Constants.fieldDepth, Rotation2d.fromRadians(Math.PI)));
+		} else {
+			return this.est.getEstimatedPosition();
+		}
+	}
+
+	public Pose2d getEstimatedPosition(){
+		return this.est.getEstimatedPosition();
+	}
+
 	@Override
 	public void periodic() {
-		gyroIO.updateInputs(gyroInputs);
-		Logger.processInputs("Drive/Gyro", gyroInputs);
+		this.gyro.updateInputs(this.gyroInputs);
+		Logger.processInputs("Drivetrain/Gyro", this.gyroInputs);
+        Logger.recordOutput("Drivetrain/Botpose",limelightNote.getBluePose3d());
+		this.joystickSpeeds = this.joystickDrive.speeds();
+		if(this.getCurrentCommand() == this.joystickDrive) this.control(this.joystickSpeeds);
 
-		// Update the state of each swerve module
 		for(final SwerveModule module : this.modules)
-			module.update();
+			module.periodic();
 
-		// Stop moving when disabled
-		if (DriverStation.isDisabled()) {
-			for (var module : modules) {
-				module.stop();
-			}
-		}
-
-		// Log empty setpoint states when disabled
-		if (DriverStation.isDisabled()) {
-			Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
-			Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});		
-		}
-		
 		// Update the odometry pose
-		this.pose.update(getRobotAngle(), this.getModulePositions());
-		this.poseEstimator.update(getRobotAngle(), this.getModulePositions());
+		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
+		this.noLimelightEst.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 
 		// Fuse odometry pose with vision data if we have it.
-		updatePoseEstimatorWithVision();
-	}
+		if(this.limelightShooter.hasValidTargets()) {
+			// final distance from current final pose to vision final estimated pose
+			final double poseDifference = this.est
+				.getEstimatedPosition()
+				.getTranslation()
+				.getDistance(this.limelightNote.getPose2d().getTranslation());
 
-	/** Returns a command to run a quasistatic test in the specified direction. */
-	public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-		return sysId.quasistatic(direction);
-	}
+			if(poseDifference < 0.5) {
+				//0.3 subtracted to account for cam delay
+				this.est.addVisionMeasurement(this.limelightShooter.getPose2d(), Timer.getFPGATimestamp() - 0.3);
 
-	/** Returns a command to run a dynamic test in the specified direction. */
-	public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-		return sysId.dynamic(direction);
+			}
+		}
+		Logger.recordOutput("Drivetrain/LimelightNotePose", this.limelightNote.getPose2d());
+		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());	
+		Logger.recordOutput("Drivetrain/Pose with out limelight", this.noLimelightEst.getEstimatedPosition());
 	}
-	  
-	// ----------------------------------------------------------
-    // Simulation
-    // ----------------------------------------------------------
-	public boolean getHasValidTargetsSim() {
-		double heading = this.getPoseEstimation().getRotation().getDegrees();
-
-		// if(DriverStation.getAlliance() == DriverStation.Alliance.Red) return heading < 75 || heading > -75;
-		// else 
-		return heading > 135 || heading < -135;
-	}
-
 }

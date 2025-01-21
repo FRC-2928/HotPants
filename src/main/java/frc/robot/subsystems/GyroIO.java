@@ -13,23 +13,20 @@
 
 package frc.robot.subsystems;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.Constants;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.*;
 
 import org.littletonrobotics.junction.AutoLog;
 
-import com.ctre.phoenix6.hardware.Pigeon2;
-
 public interface GyroIO {
-  @AutoLog
-  public static class GyroIOInputs {
-    public boolean connected = false;
-    public Rotation2d yawPosition = new Rotation2d();
-    public double yawVelocityRadPerSec = 0.0;
-    public Rotation2d heading = new Rotation2d();
-  }
+	@AutoLog
+	public static class GyroIOInputs {
+		public boolean connected = false;
+		public Angle yawPosition = Units.Rotations.zero();
+		public AngularVelocity yawVelocityRadPerSec = Units.RotationsPerSecond.zero();
+	}
 
+	public default void updateInputs(final GyroIOInputs inputs) {}
 
-  public default void updateInputs(GyroIOInputs inputs) {}
-  public default void resetGyro(){}
+	public default void reset() {}
 }

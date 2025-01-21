@@ -2,52 +2,72 @@ package frc.robot.oi;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
+import frc.robot.Robot;
+import frc.robot.Tuning;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.drivetrain.TestDrive;
+import frc.robot.commands.drivetrain.LockWheels;
+import frc.robot.commands.drivetrain.RunIntake;
 
 public class DriverOI extends BaseOI {
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
 
-		this.moveAxial = this.controller::getLeftY;
-		this.moveLateral = this.controller::getLeftX;
+		this.driveAxial = this.controller::getLeftY;
+		this.driveLateral = this.controller::getLeftX;
 
-		if(Constants.currentMode == Mode.REAL) {
-			this.moveTheta = this.controller::getRightX;
-			this.moveRotationX = this.controller::getRightX;
-			this.moveRotationY = this.controller::getRightY;
+		if(Constants.mode == Mode.REAL) {
+			this.driveFORX = this.controller::getRightX;
+			this.driveFORY = () -> -this.controller.getRightY();
 		} else {
-			this.moveTheta = () -> this.hid.getRawAxis(2);
-			this.moveRotationX = () -> this.hid.getRawAxis(2);
-			this.moveRotationY = () -> this.hid.getRawAxis(3);
+			this.driveFORX = () -> this.hid.getRawAxis(2);
+			this.driveFORY = () -> this.hid.getRawAxis(3);
 		}
+		this.manualRotation = this.controller.rightStick();
 
-		// this.slow = this.controller::getRightTriggerAxis;
-		this.alignShooter = this.controller::getRightTriggerAxis;
-		this.runIntake = this.controller.x();
-		this.lock = this.controller.leftBumper();
+		this.shootSpeaker = this.controller.leftTrigger();
+		this.shootAmp = this.controller.leftBumper();
+		this.intake = this.controller.b();
+
+		this.ferry = this.controller.rightBumper();
 
 		this.resetFOD = this.controller.y();
-		this.servoLeft = this.controller.a();
-		this.servoRight = this.controller.b();
+
+		this.resetPoseLimelight = this.controller.a();
+
+		this.lockWheels = this.controller.x();
 	}
 
-	public final Supplier<Double> moveAxial;
-	public final Supplier<Double> moveLateral;
+	public final Supplier<Double> driveAxial;
+	public final Supplier<Double> driveLateral;
 
-	public final Supplier<Double> moveTheta;
+	public final Supplier<Double> driveFORX;
+	public final Supplier<Double> driveFORY;
+	public final Trigger manualRotation;
 
-	public final Supplier<Double> moveRotationX;
-	public final Supplier<Double> moveRotationY;
+	public final Trigger shootSpeaker;
+	public final Trigger shootAmp;
+	public final Trigger intake;
 
-	// public final Supplier<Double> slow;
-	public final Supplier<Double> alignShooter;
-	public final Trigger runIntake;
-	public final Trigger lock;
-	public final Trigger servoLeft;
-	public final Trigger servoRight;
+	public final Trigger lockWheels;
 
 	public final Trigger resetFOD;
+
+	public final Trigger resetPoseLimelight;
+
+	public final Trigger ferry;
+
+	public void configureControls() {
+
+		this.lockWheels.whileTrue(new LockWheels());
+		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
+		this.resetPoseLimelight.onTrue(new InstantCommand(Robot.cont.drivetrain::resetLimelightPose));
+		this.intake.whileTrue(new RunIntake());
+	}
 }
