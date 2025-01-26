@@ -56,6 +56,8 @@ public class JoystickDrive extends Command {
 		// get inputs, apply deadbands
 		final double axial = MathUtil.applyDeadband(this.oi.driveAxial.get(), 0.1);
 		final double lateral = MathUtil.applyDeadband(this.oi.driveLateral.get(), 0.1);
+		Logger.recordOutput("Drivetrain/JoystickDrive/Axial", this.oi.driveAxial.get());
+		Logger.recordOutput("Drivetrain/JoystickDrive/Lateral", this.oi.driveLateral.get());
 
 		// cartesian -> polar
 		final Rotation2d direction = Rotation2d.fromRadians(Math.atan2(lateral, axial)); // why?

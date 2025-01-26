@@ -181,8 +181,11 @@ public class Drivetrain extends SubsystemBase {
 	public void control(final SwerveModuleState[] states) {
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxVelocity);
 
-		for(int i = 0; i < this.modules.length; i++)
-			this.modules[i].control(states[i]);
+		for(int i = 0; i < this.modules.length; i++) {
+			if (this.modules[i] != null) {
+				this.modules[i].control(states[i]);
+			}
+		}
 	}
 
 	public void halt() { this.control(State.locked()); }
@@ -230,17 +233,17 @@ public class Drivetrain extends SubsystemBase {
 
 	@AutoLogOutput(key = "Drivetrain/CurrentPositions")
 	public SwerveModulePosition[] modulePositions() {
-		return Arrays.stream(this.modules).map(module -> module.position).toArray(SwerveModulePosition[]::new);
+		return Arrays.stream(this.modules).map(module -> (module != null) ? module.position : new SwerveModulePosition()).toArray(SwerveModulePosition[]::new);
 	}
 
 	@AutoLogOutput(key = "Drivetrain/States/Desired")
 	public SwerveModuleState[] desiredModuleStates() {
-		return Arrays.stream(this.modules).map(module -> module.desired).toArray(SwerveModuleState[]::new);
+		return Arrays.stream(this.modules).map(module -> (module != null) ? module.desired : new SwerveModuleState()).toArray(SwerveModuleState[]::new);
 	}
 
 	@AutoLogOutput(key = "Drivetrain/States/Current")
 	public SwerveModuleState[] currentModuleStates() {
-		return Arrays.stream(this.modules).map(module -> module.current).toArray(SwerveModuleState[]::new);
+		return Arrays.stream(this.modules).map(module -> (module != null) ? module.current : new SwerveModuleState()).toArray(SwerveModuleState[]::new);
 	}
 
 	@AutoLogOutput(key = "Drivetrain/CurrentChassisSpeeds")
@@ -272,8 +275,11 @@ public class Drivetrain extends SubsystemBase {
 		this.joystickSpeeds = this.joystickDrive.speeds();
 		if(this.getCurrentCommand() == this.joystickDrive) this.control(this.joystickSpeeds);
 
-		for(final SwerveModule module : this.modules)
-			module.periodic();
+		for(final SwerveModule module : this.modules) {
+			if (module != null) {
+				module.periodic();
+			}
+		}
 
 		// Update the odometry pose
 		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());

@@ -31,6 +31,7 @@ import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -177,7 +178,7 @@ public class ModuleIOReal implements ModuleIO {
 
 	@Override
 	public void drive(final LinearVelocity demand) {
-		this.drive.setControl(new VelocityVoltage(demand.in(Units.MetersPerSecond)));
+		this.drive.setControl(new VelocityVoltage(MathUtil.applyDeadband(demand.in(Units.MetersPerSecond), 0.1)));
 	}
 
 	@Override

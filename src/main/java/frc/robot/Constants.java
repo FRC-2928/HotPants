@@ -93,17 +93,17 @@ public class Constants {
 
 			public static final int pigeon = 0;
 
-			public static final int swerveFrontLeftAzimuth = 3;
-			public static final int swerveFrontLeftDrive = 4;
+			public static final int swerveFrontLeftAzimuth = 16;
+			public static final int swerveFrontLeftDrive = 15;
 
-			public static final int swerveFrontRightAzimuth = 1;
-			public static final int swerveFrontRightDrive = 2;
+			public static final int swerveFrontRightAzimuth = 3;
+			public static final int swerveFrontRightDrive = 4;
 
-			public static final int swerveBackLeftAzimuth = 16;
-			public static final int swerveBackLeftDrive = 15;
+			public static final int swerveBackLeftAzimuth = 17;
+			public static final int swerveBackLeftDrive = 18;
 
-			public static final int swerveBackRightAzimuth = 17; 
-			public static final int swerveBackRightDrive = 18;
+			public static final int swerveBackRightAzimuth = 1; 
+			public static final int swerveBackRightDrive = 2;
 
 			public static final int shooterPivot = 12;
 			public static final int shooterFlywheelA = 1;
@@ -149,7 +149,7 @@ public class Constants {
 		public static final SlotConfigs drive = new SlotConfigs()
 			.withKP(4) /* 0.15 */
 			.withKI(0.0)
-			.withKD(0.2)
+			.withKD(0.15)
 			.withKS(0.225)
 			.withKV(2.62) 
 			.withKA(0);
@@ -172,22 +172,26 @@ public class Constants {
 		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain`
 
 		// public static final Angle swerveFrontLeftOffset = Units.Rotations.of(0.227783);
-		public static final Angle swerveFrontLeftOffset = Units.Rotations.of(0.349609375);
+		// public static final Angle swerveFrontLeftOffset = Units.Rotations.of(0.349609375);
+		public static final Angle swerveFrontLeftOffset = Units.Rotations.of(-0.385009765625);
 		public static final Translation2d swerveFrontLeftTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase,
 			Constants.Drivetrain.trackWidth
 		);
-		public static final Angle swerveFrontRightOffset = Units.Rotations.of(-0.150146484375);
+		// public static final Angle swerveFrontRightOffset = Units.Rotations.of(-0.150146484375);
+		public static final Angle swerveFrontRightOffset = Units.Rotations.of(-0.38671875);
 		public static final Translation2d swerveFrontRightTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase,
 			Constants.Drivetrain.trackWidth.negate()
 		);
-		public static final Angle swerveBackLeftOffset = Units.Rotations.of(-0.136474609375);
+		// public static final Angle swerveBackLeftOffset = Units.Rotations.of(-0.136474609375);
+		public static final Angle swerveBackLeftOffset = Units.Rotations.of(-0.19384765625);
 		public static final Translation2d swerveBackLeftTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase.negate(),
 			Constants.Drivetrain.trackWidth
 		);
-		public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.4404296875);
+		// public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.4404296875);
+		public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.404296875);
 		public static final Translation2d swerveBackRightTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase.negate(),
 			Constants.Drivetrain.trackWidth.negate()
@@ -201,7 +205,8 @@ public class Constants {
 		);
 
 		// Gear ratios for SDS MK4i L2, adjust as necessary
-		public static final double driveGearRatio = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0); // ~= 6.746
+		// public static final double driveGearRatio = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0); // ~= 6.746
+		public static final double driveGearRatio = (50.0 / 14) * (16.0 / 28) * (45.0 / 15); // ~= 6.746
 		public static final double azimuthGearRatio = 150.0 / 7.0;
 
 		public static final Distance wheelRadius = Units.Inches.of(2);
