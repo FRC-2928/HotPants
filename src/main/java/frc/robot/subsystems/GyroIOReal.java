@@ -45,5 +45,9 @@ public class GyroIOReal implements GyroIO {
 	}
 
 	@Override
+	public void setYaw(Angle yaw){
+		this.pigeon.setYaw(yaw.in(Units.Degrees));
+	}
+	@Override
 	public void reset() { this.pigeon.reset(); }
 }

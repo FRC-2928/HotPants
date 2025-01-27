@@ -67,7 +67,7 @@ public final class Autonomous {
 			.addOption(
 				"[Test] Forward Back",
 				new SequentialCommandGroup(
-					Autonomous.setInitialPose("ForwardBack"),
+					Autonomous.setInitialPose("forwardBack"),
 					Autonomous.path("ForwardBack")
 				)
 			);
@@ -223,7 +223,8 @@ public final class Autonomous {
 		// 	);
 
 		chooser.addOption("Center On Limelight", 
-			new CenterLimelight(Units.Degree.of(-20.51),Units.Degrees.of(0))
+			new CenterLimelight(Units.Meters.of(0
+			),Units.Meters.of(0))
 		);
 		// chooser
 		// 	.addOption("[testing] dynamic path back", new SequentialCommandGroup(Autonomous.dynamic("forwardBack.2")));
@@ -244,7 +245,7 @@ public final class Autonomous {
 
 	public static Command setInitialPose(final String name) {
 		final Optional<Trajectory<SwerveSample>> traj = Choreo.loadTrajectory(name);
-		try {
+		// try {
 			final Pose2d initial = traj.get().getPoses()[0];
 
 			return Commands.runOnce(() -> {
@@ -255,10 +256,10 @@ public final class Autonomous {
 				Logger.recordOutput("Drivetrain/Auto/r0", initial.getRotation().getDegrees());
 				Logger.recordOutput("Drivetrain/Auto/AllyPose", initial);
 			});
-		} catch (Exception e) {
-			System.out.println(e.toString());
-			return new InstantCommand();
-		}
+		// } catch (Exception e) {
+		// 	System.out.println(e.toString());
+		// 	return new InstantCommand();
+		// }
 	}
 
 	public static Command path(final String name) {

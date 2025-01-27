@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.vision.LimelightHelpers.LimelightResults;
+import frc.robot.vision.LimelightHelpers.PoseEstimate;
 
 public class Limelight {
 	public final NetworkTable nt;
@@ -49,7 +50,7 @@ public class Limelight {
 
 	public int getNumberOfAprilTags() {
 		final LimelightResults reultsOfJson = LimelightHelpers.getLatestResults(this.limelightName);
-		return reultsOfJson.targetingResults.targets_Fiducials.length;
+		return reultsOfJson.targets_Fiducials.length;
 	}
 
 	// Target Area (0% of image to 100% of image)
@@ -57,9 +58,14 @@ public class Limelight {
 
 	public double getTargetSkew() { return this.nt.getEntry("ts").getDouble(0); }
 
+	public double getLatency(){ return (this.nt.getEntry("tl").getDouble(0) + this.nt.getEntry("cl").getDouble(0));}
+
 	// Robot transform in 3D field-space. Translation (X,Y,Z) Rotation(X,Y,Z)
 	public Pose3d getPose3d() { return LimelightHelpers.getBotPose3d(this.limelightName); }
 
+	public PoseEstimate getPoseMegatag() { return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(this.limelightName);}
+
+	public void setRobotOrientation(double yaw) { LimelightHelpers.SetRobotOrientation(limelightName, yaw,0,0,0,0,0);}
 	// Robot transform in 2D field-space. Translation (X,Y) Rotation(Z)
 	@AutoLogOutput(key = "Odometry/Limelight")
 	public Pose2d getPose2d() {

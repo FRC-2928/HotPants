@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.Tuning;
+import frc.robot.Constants.Drivetrain;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.drivetrain.TestDrive;
 import frc.robot.commands.drivetrain.LockWheels;
@@ -39,7 +40,7 @@ public class DriverOI extends BaseOI {
 
 		this.resetFOD = this.controller.y();
 
-		this.resetPoseLimelight = this.controller.a();
+		this.resetAngle = this.controller.a();
 
 		this.lockWheels = this.controller.x();
 	}
@@ -59,15 +60,13 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger resetFOD;
 
-	public final Trigger resetPoseLimelight;
-
 	public final Trigger ferry;
-
+	public final Trigger resetAngle;
 	public void configureControls() {
 
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
-		this.resetPoseLimelight.onTrue(new InstantCommand(Robot.cont.drivetrain::resetLimelightPose));
 		this.intake.whileTrue(new RunIntake());
+		this.resetAngle.onTrue(new InstantCommand(Robot.cont.drivetrain::resetYawWithLimelight));
 	}
 }
