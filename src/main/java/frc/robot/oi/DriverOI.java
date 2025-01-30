@@ -67,6 +67,6 @@ public class DriverOI extends BaseOI {
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
 		this.intake.whileTrue(new RunIntake());
-		this.resetAngle.onTrue(new InstantCommand(Robot.cont.drivetrain::resetYawWithLimelight));
+		this.resetAngle.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngleWithLimelight));
 	}
 }

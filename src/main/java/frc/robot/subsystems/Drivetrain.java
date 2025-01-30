@@ -226,8 +226,8 @@ public class Drivetrain extends SubsystemBase {
 		}
 	}
 
-	public void resetYawWithLimelight(){
-		Robot.cont.drivetrain.gyro.setYaw(Robot.cont.drivetrain.limelight.getBluePose2d().getRotation().getMeasure());
+	public void resetAngleWithLimelight(){
+		setAngle(Robot.cont.drivetrain.limelight.getBluePose2d().getRotation().getMeasure());
 	}
 
 	@AutoLogOutput
@@ -306,10 +306,13 @@ public class Drivetrain extends SubsystemBase {
 
 			}
 		}
-		this.limelight.setRobotOrientation(this.gyroInputs.yawPosition.in(Units.Degree));
 		Logger.recordOutput("Drivetrain/LimelightNotePose", this.limelightNote.getPose2d());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());	
 		Logger.recordOutput("Drivetrain/Pose with out limelight", this.noLimelightEst.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/PoseMegatag", this.limelight.getPoseMegatag().pose);
+	}
+
+	public void disabledPeriodic() {
+		this.limelight.setRobotOrientation(this.est.getEstimatedPosition().getRotation().getDegrees());
 	}
 }

@@ -6,21 +6,12 @@ package frc.robot.commands.drivetrain;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.Nat;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.estimator.KalmanFilter;
-import edu.wpi.first.math.estimator.PoseEstimator;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
@@ -56,7 +47,7 @@ public class CenterLimelight extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    Robot.cont.drivetrain.resetYawWithLimelight();
+    Robot.cont.drivetrain.setAngle(Robot.cont.drivetrain.limelight.getBluePose2d().getRotation().getMeasure());
   }
   @Override
   public void execute() {

@@ -1,5 +1,6 @@
 package frc.robot.vision;
 
+import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.AutoLogOutput;
 
 import edu.wpi.first.math.geometry.*;
@@ -66,6 +67,11 @@ public class Limelight {
 	public PoseEstimate getPoseMegatag() { return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(this.limelightName);}
 
 	public void setRobotOrientation(double yaw) { LimelightHelpers.SetRobotOrientation(limelightName, yaw,0,0,0,0,0);}
+
+	public void setIMUMode(int mode) {
+		LimelightHelpers.SetIMUMode(limelightName, mode);
+	}
+
 	// Robot transform in 2D field-space. Translation (X,Y) Rotation(Z)
 	@AutoLogOutput(key = "Odometry/Limelight")
 	public Pose2d getPose2d() {
