@@ -30,7 +30,9 @@ public class CenterLimelight extends Command {
   private PIDController centerPID;
   private PIDController centerRotaionPid;
   private final Distance halfRobotWidth = Units.Inches.of(16.5);
+  private Pose2d robotPoseTagspace;
   public static final Pose2d tag8 = new Pose2d(13.474,4.745,new Rotation2d(Math.PI/3));
+  private int tag;
   public CenterLimelight() {
     // Use addRequirements() here to declare subsystem dependencies.
     this.addRequirements(Robot.cont.drivetrain);
@@ -38,6 +40,7 @@ public class CenterLimelight extends Command {
     this.offsetY = Units.Meters.of(0);
     this.centerPID = Constants.Drivetrain.Auto.centerLimelight.createController();
     this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
+    this.tag = Robot.cont.drivetrain.limelight.getTargetAprilTagID();
   }
   
 
@@ -47,6 +50,7 @@ public class CenterLimelight extends Command {
     this.offsetY = offsetY;      
     this.centerPID = Constants.Drivetrain.Auto.centerLimelight.createController();
     this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
+    this.tag = Robot.cont.drivetrain.limelight.getTargetAprilTagID();
   }
 
   // Called when the command is initially scheduled.
@@ -56,13 +60,15 @@ public class CenterLimelight extends Command {
   }
   @Override
   public void execute() {
-    Pose2d robotPoseTagspace = tag8.relativeTo(Robot.cont.drivetrain.limelight.getPoseMegatag().pose);
+    if(this.tag == Robot.cont.drivetrain.limelight.getTargetAprilTagID()){
+      robotPoseTagspace = tag8.relativeTo(Robot.cont.drivetrain.limelight.getPoseMegatag2().pose);
+    }
     xSpeed = robotPoseTagspace.getX();
     ySpeed = robotPoseTagspace.getY();
     thetaSpeed = robotPoseTagspace.getRotation().getRadians();
     xSpeedPid = centerPID.calculate(xSpeed,offsetX.in(Units.Meters));
     ySpeedPid = centerPID.calculate(ySpeed,offsetY.in(Units.Meters));
-    thetaPid = centerRotaionPid.calculate(thetaSpeed,Math.PI);
+    thetaPid = centerRotaionPid.calculate(thetaSpeed,0);
     if(Robot.cont.drivetrain.limelight.hasValidTargets()){
       Robot.cont.drivetrain
           .control(

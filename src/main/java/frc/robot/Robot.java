@@ -63,7 +63,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void robotInit() {
 		PathfindingCommand.warmupCommand().schedule();
-		cont.drivetrain.limelight.setIMUMode(0);
+		cont.drivetrain.limelight.setIMUMode(1);
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void disabledInit() {
 		CommandScheduler.getInstance().cancelAll();
-		cont.drivetrain.limelight.setIMUMode(0);
+		cont.drivetrain.limelight.setIMUMode(1);
 	}
 
 	@Override
@@ -93,7 +93,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void autonomousInit() {
 		CommandScheduler.getInstance().cancelAll();
-		cont.drivetrain.limelight.setIMUMode(0);
+
 		// Get selected routine from the dashboard
 		this.autonomousCommand = this.container.getAutonomousCommand();
 		this.container.drivetrain.resetAngleWithLimelight();
@@ -105,6 +105,7 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void autonomousPeriodic() {
+		cont.drivetrain.limelight.setIMUMode(2);
 	}
 
 	@Override
@@ -115,14 +116,14 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopInit() {
 		CommandScheduler.getInstance().cancelAll();
-		cont.drivetrain.limelight.setIMUMode(0);
-
 		this.container.drivetrain.setDefaultCommand(this.container.drivetrain.joystickDrive);
 		// this.container.drivetrain.resetAngleWithLimelight();
 	}
 
 	@Override
-	public void teleopPeriodic() {}
+	public void teleopPeriodic() {
+		cont.drivetrain.limelight.setIMUMode(2);
+	}
 
 	@Override
 	public void teleopExit() {}

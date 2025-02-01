@@ -64,7 +64,9 @@ public class Limelight {
 	// Robot transform in 3D field-space. Translation (X,Y,Z) Rotation(X,Y,Z)
 	public Pose3d getPose3d() { return LimelightHelpers.getBotPose3d(this.limelightName); }
 
-	public PoseEstimate getPoseMegatag() { return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(this.limelightName);}
+	public PoseEstimate getPoseMegatag2() { return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(this.limelightName);}
+
+	public PoseEstimate getPoseMegatag1(){ return LimelightHelpers.getBotPoseEstimate_wpiBlue(this.limelightName);}
 
 	public void setRobotOrientation(double yaw) { LimelightHelpers.SetRobotOrientation(limelightName, yaw,0,0,0,0,0);}
 
