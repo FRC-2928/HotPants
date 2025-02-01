@@ -1,16 +1,22 @@
 package frc.robot;
 
+import java.util.Map;
+
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.configs.AudioConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.google.errorprone.annotations.Immutable;
 import com.pathplanner.lib.config.PIDConstants;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -30,8 +36,6 @@ public class Constants {
 
 	public static final Mode mode = Constants.currentMode();
 	public static final boolean real = Constants.mode == Constants.Mode.REAL;
-	public static final Distance fieldWidth = Units.Meters.of(16.541); // Correlates to Field oriented x coordinate
-	public static final Distance fieldDepth = Units.Meters.of(8.211); // Correlates to Field oriented y coordinate
 
 	public static final AudioConfigs talonFXAudio = new AudioConfigs()
 		.withAllowMusicDurDisable(true)
@@ -67,6 +71,11 @@ public class Constants {
 	}
 
 	public static PIDConstants fromPIDValues(final PIDValues pid) { return new PIDConstants(pid.p, pid.d, pid.d); }
+
+	// public static final Distance fieldWidth = Units.Meters.of(16.541); // Correlates to Field oriented x coordinate
+	// public static final Distance fieldDepth = Units.Meters.of(8.211); // Correlates to Field oriented y coordinate
+
+	public static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
 	public static final class LimelightFX {
 		private LimelightFX() { throw new IllegalCallerException("Cannot instantiate `Constants.LimelightFX`"); }

@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.vision.LimelightHelpers.LimelightResults;
 import frc.robot.vision.LimelightHelpers.PoseEstimate;
+import frc.robot.vision.LimelightHelpers.RawFiducial;
 
 public class Limelight {
 	public final NetworkTable nt;
@@ -111,4 +112,16 @@ public class Limelight {
 
 	// 3D transform of the primary in-view AprilTag in the coordinate system of the Camera (array (6))
 	public Pose3d getCameraTagPose3d() { return LimelightHelpers.getTargetPose3d_CameraSpace(this.limelightName); }
+
+	public static int getClosestTagId(final PoseEstimate pose) {
+		double closestTagDistance = 999999;
+		int closestTagId = 0;
+		for (RawFiducial tag : pose.rawFiducials) {
+			if (tag.distToCamera < closestTagDistance) {
+				closestTagDistance = tag.distToCamera;
+				closestTagId = tag.id;
+			}
+		}
+		return closestTagId;
+	}
 }

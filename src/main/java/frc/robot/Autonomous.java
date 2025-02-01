@@ -324,8 +324,8 @@ public final class Autonomous {
 	private static Pose2d getPoseForAlliance(final Pose2d initialPose) {
 		if(DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
 			return new Pose2d(
-				Constants.fieldWidth.in(Units.Meters) - initialPose.getX(),
-				Constants.fieldDepth.in(Units.Meters) - initialPose.getY(),
+				Constants.FIELD_LAYOUT.getFieldLength() - initialPose.getX(),
+				Constants.FIELD_LAYOUT.getFieldWidth() - initialPose.getY(),
 				initialPose.getRotation().unaryMinus()
 			);
 		} else return initialPose;

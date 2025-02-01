@@ -4,10 +4,13 @@
 
 package frc.robot.commands.drivetrain;
 
+import java.util.Optional;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
@@ -15,6 +18,8 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.vision.Limelight;
+import frc.robot.vision.LimelightHelpers.PoseEstimate;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class CenterLimelight extends Command {
@@ -60,9 +65,14 @@ public class CenterLimelight extends Command {
   }
   @Override
   public void execute() {
-    if(this.tag == Robot.cont.drivetrain.limelight.getTargetAprilTagID()){
-      robotPoseTagspace = tag8.relativeTo(Robot.cont.drivetrain.limelight.getPoseMegatag2().pose);
+    PoseEstimate megatagPose = Robot.cont.drivetrain.limelight.getPoseMegatag2();
+    Optional<Pose3d> tagPose = Constants.FIELD_LAYOUT.getTagPose(Limelight.getClosestTagId(megatagPose));
+    if (tagPose.isPresent()) {
+      robotPoseTagspace = tagPose.get().toPose2d().relativeTo(Robot.cont.drivetrain.limelight.getPoseMegatag2().pose);
     }
+    // if(this.tag == Robot.cont.drivetrain.limelight.getTargetAprilTagID()){
+    //   robotPoseTagspace = tag8.relativeTo(megatagPose.pose);
+    // }
     xSpeed = robotPoseTagspace.getX();
     ySpeed = robotPoseTagspace.getY();
     thetaSpeed = robotPoseTagspace.getRotation().getRadians();

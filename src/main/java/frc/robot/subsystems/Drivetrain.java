@@ -273,7 +273,7 @@ public class Drivetrain extends SubsystemBase {
 		if(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
 			return this.est
 				.getEstimatedPosition()
-				.relativeTo(new Pose2d(Constants.fieldWidth, Constants.fieldDepth, Rotation2d.fromRadians(Math.PI)));
+				.relativeTo(new Pose2d(Constants.FIELD_LAYOUT.getFieldLength(), Constants.FIELD_LAYOUT.getFieldWidth(), Rotation2d.fromRadians(Math.PI)));
 		} else {
 			return this.est.getEstimatedPosition();
 		}
