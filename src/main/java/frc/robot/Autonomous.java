@@ -7,6 +7,7 @@ import org.littletonrobotics.junction.Logger;
 import choreo.trajectory.Trajectory;
 import choreo.trajectory.SwerveSample;
 import choreo.Choreo;
+import choreo.auto.AutoFactory;
 
 import com.pathplanner.lib.auto.*;
 import com.pathplanner.lib.path.*;
@@ -23,6 +24,7 @@ import frc.robot.commands.drivetrain.VoltageRampCommand;
 public final class Autonomous {
 	public static SendableChooser<Command> createAutonomousChooser() {
 		final SendableChooser<Command> chooser = new SendableChooser<>();
+		AutoFactory autoFactory = Robot.cont.drivetrain.autoFactory;
 
 		/*chooser
 			.addOption(
@@ -240,6 +242,8 @@ public final class Autonomous {
 		// 		)
 		// 	);
 		chooser.addOption("[testing] voltage ramp", new VoltageRampCommand());
+		chooser.addOption("SimpleScore", Commands.sequence(autoFactory.resetOdometry("SimpleScore"),
+		autoFactory.trajectoryCmd("SimpleScore")));
 		return chooser;
 	}
 
