@@ -16,6 +16,7 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
 
+import choreo.auto.AutoFactory;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -82,6 +83,7 @@ public class Drivetrain extends SubsystemBase {
 	public final JoystickDrive joystickDrive = new JoystickDrive(this);
 	public ChassisSpeeds joystickSpeeds = new ChassisSpeeds();
 	private ChassisSpeeds robotChassisSpeeds = new ChassisSpeeds();
+	public AutoFactory autoFactory;
 
 	// PathPlanner config constants
 	private static final double ROBOT_MASS_KG = /*74.088*/ 57;
@@ -148,6 +150,14 @@ public class Drivetrain extends SubsystemBase {
 			);
 		PathPlannerLogging.setLogCurrentPoseCallback(pose -> Logger.recordOutput("Drivetrain/Auto/CurrentPose", pose));
 		PathPlannerLogging.setLogTargetPoseCallback(pose -> Logger.recordOutput("Drivetrain/Auto/DesiredPose", pose));
+
+		autoFactory = new AutoFactory(
+            this.est::getEstimatedPosition, // A function that returns the current robot pose
+            this::reset, // A function that resets the current robot pose to the provided Pose2d
+            this::controlRobotOriented, // The drive subsystem trajectory follower 
+            false, // If alliance flipping should be enabled 
+            this // The drive subsystem
+        );
 	}
 
 	public void control(ChassisSpeeds speeds) {
