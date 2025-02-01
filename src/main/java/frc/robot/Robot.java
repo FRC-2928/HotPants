@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.commands.drivetrain.LockWheels;
 public class Robot extends LoggedRobot {
 	public static Robot instance;
@@ -62,20 +63,21 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void robotInit() {
 		PathfindingCommand.warmupCommand().schedule();
-		cont.drivetrain.limelight.setIMUMode(1);
+		cont.drivetrain.limelight.setIMUMode(0);
 	}
 
 	@Override
 	public void robotPeriodic() {
 		CommandScheduler.getInstance().run();
 		LoggedPowerDistribution.getInstance(Constants.CAN.Misc.pdh, ModuleType.kRev);
+		cont.drivetrain.limelight.setRobotOrientation(cont.drivetrain.est.getEstimatedPosition().getRotation().getDegrees()); 
 	}
 
 	// DISABLED //
 	@Override
 	public void disabledInit() {
 		CommandScheduler.getInstance().cancelAll();
-		cont.drivetrain.limelight.setIMUMode(1);
+		cont.drivetrain.limelight.setIMUMode(0);
 	}
 
 	@Override
@@ -91,10 +93,10 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void autonomousInit() {
 		CommandScheduler.getInstance().cancelAll();
-		cont.drivetrain.limelight.setIMUMode(2);
+		cont.drivetrain.limelight.setIMUMode(0);
 		// Get selected routine from the dashboard
 		this.autonomousCommand = this.container.getAutonomousCommand();
-
+		this.container.drivetrain.resetAngleWithLimelight();
 		// schedule the autonomous command (example)
 		if(this.autonomousCommand != null) {
 			this.autonomousCommand.schedule();
@@ -113,9 +115,10 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopInit() {
 		CommandScheduler.getInstance().cancelAll();
-		cont.drivetrain.limelight.setIMUMode(2);
+		cont.drivetrain.limelight.setIMUMode(0);
 
 		this.container.drivetrain.setDefaultCommand(this.container.drivetrain.joystickDrive);
+		// this.container.drivetrain.resetAngleWithLimelight();
 	}
 
 	@Override

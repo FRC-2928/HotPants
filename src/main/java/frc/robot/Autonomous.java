@@ -223,8 +223,7 @@ public final class Autonomous {
 		// 	);
 
 		chooser.addOption("Center On Limelight", 
-			new CenterLimelight(Units.Meters.of(0
-			),Units.Meters.of(0))
+			new CenterLimelight(Units.Meters.of(0.5),Units.Meters.of(0.5))
 		);
 		// chooser
 		// 	.addOption("[testing] dynamic path back", new SequentialCommandGroup(Autonomous.dynamic("forwardBack.2")));

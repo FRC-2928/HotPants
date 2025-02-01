@@ -72,6 +72,10 @@ public class Limelight {
 		LimelightHelpers.SetIMUMode(limelightName, mode);
 	}
 
+	public double getImuMode(){
+        return LimelightHelpers.getLimelightNTDouble(this.limelightName, "imumode_set");
+    }
+
 	// Robot transform in 2D field-space. Translation (X,Y) Rotation(Z)
 	@AutoLogOutput(key = "Odometry/Limelight")
 	public Pose2d getPose2d() {

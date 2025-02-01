@@ -25,7 +25,10 @@ public class CenterLimelight extends Command {
   private double xSpeedPid;
   private double ySpeed;
   private double ySpeedPid;
+  private double thetaSpeed;
+  private double thetaPid;
   private PIDController centerPID;
+  private PIDController centerRotaionPid;
   private final Distance halfRobotWidth = Units.Inches.of(16.5);
   public static final Pose2d tag8 = new Pose2d(13.474,4.745,new Rotation2d(Math.PI/3));
   public CenterLimelight() {
@@ -34,6 +37,7 @@ public class CenterLimelight extends Command {
     this.offsetX = Units.Meters.of(0);
     this.offsetY = Units.Meters.of(0);
     this.centerPID = Constants.Drivetrain.Auto.centerLimelight.createController();
+    this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
   }
   
 
@@ -42,6 +46,7 @@ public class CenterLimelight extends Command {
     this.offsetX = offsetX.plus(halfRobotWidth);
     this.offsetY = offsetY;      
     this.centerPID = Constants.Drivetrain.Auto.centerLimelight.createController();
+    this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
   }
 
   // Called when the command is initially scheduled.
@@ -54,17 +59,19 @@ public class CenterLimelight extends Command {
     Pose2d robotPoseTagspace = tag8.relativeTo(Robot.cont.drivetrain.limelight.getPoseMegatag().pose);
     xSpeed = robotPoseTagspace.getX();
     ySpeed = robotPoseTagspace.getY();
+    thetaSpeed = robotPoseTagspace.getRotation().getRadians();
     xSpeedPid = centerPID.calculate(xSpeed,offsetX.in(Units.Meters));
-    ySpeedPid = centerPID.calculate(ySpeed,0);
+    ySpeedPid = centerPID.calculate(ySpeed,offsetY.in(Units.Meters));
+    thetaPid = centerRotaionPid.calculate(thetaSpeed,Math.PI);
     if(Robot.cont.drivetrain.limelight.hasValidTargets()){
       Robot.cont.drivetrain
           .control(
             Robot.cont.drivetrain
               .rod(
                 new ChassisSpeeds(
-                  xSpeedPid,
-                  ySpeedPid,
-                  0
+                  0,
+                  0,
+                  thetaPid
                 )
               )
       );
@@ -76,6 +83,8 @@ public class CenterLimelight extends Command {
       Logger.recordOutput("Drivetrain/Auto/limelightHasValidTargets", Robot.cont.drivetrain.limelight.hasValidTargets());
       Logger.recordOutput("Drivetrain/Auto/Theta", Robot.cont.drivetrain.limelight.getBotPose3d_TargetSpace().getRotation().getAngle());
       Logger.recordOutput("Drivetrain/Auto/robotPoseTagSpace", robotPoseTagspace);
+      Logger.recordOutput("Drivetrain/Auto/thetaSpeed", thetaSpeed);
+      Logger.recordOutput("Drivetrain/Auto/thetaPid", thetaPid);
   }
 
   // Called once the command ends or is interrupted.

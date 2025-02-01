@@ -218,7 +218,6 @@ public class Drivetrain extends SubsystemBase {
 	}
 	public void setAngle(Angle angle){
 	this.reset(new Pose2d(this.est.getEstimatedPosition().getTranslation(), Rotation2d.fromDegrees(angle.in(Units.Degrees))));
-		((JoystickDrive) this.getDefaultCommand()).forTarget = Units.Radians.zero();
 	}
 	public void resetLimelightPose(){
 		if(this.limelightNote.hasValidTargets()){
@@ -227,7 +226,7 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void resetAngleWithLimelight(){
-		setAngle(Robot.cont.drivetrain.limelight.getBluePose2d().getRotation().getMeasure());
+		setAngle(Robot.cont.drivetrain.limelight.getPoseMegatag().pose.getRotation().getMeasure());
 	}
 
 	@AutoLogOutput
@@ -309,10 +308,14 @@ public class Drivetrain extends SubsystemBase {
 		Logger.recordOutput("Drivetrain/LimelightNotePose", this.limelightNote.getPose2d());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());	
 		Logger.recordOutput("Drivetrain/Pose with out limelight", this.noLimelightEst.getEstimatedPosition());
-		Logger.recordOutput("Drivetrain/PoseMegatag", this.limelight.getPoseMegatag().pose);
+		Logger.recordOutput("Drivetrain/poseMegatag", this.limelight.getPoseMegatag().pose);
+		Logger.recordOutput("Drivetrain/Imumode", limelight.getImuMode());
 	}
 
 	public void disabledPeriodic() {
-		this.limelight.setRobotOrientation(this.est.getEstimatedPosition().getRotation().getDegrees());
+		if(this.limelight.hasValidTargets()){
+			this.setAngle(this.limelight.getBluePose2d().getRotation().getMeasure());
+		}
+		this.limelight.setRobotOrientation(this.est.getEstimatedPosition().getRotation().getDegrees()); 
 	}
 }
