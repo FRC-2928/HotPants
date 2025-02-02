@@ -140,7 +140,7 @@ public class Constants {
 		public static final class Auto {
 			public static final PIDValues translationDynamic = new PIDValues(7.5, 0, 0.5, 0);
 			public static final PIDValues thetaDynamic = new PIDValues(5, 0, 0.02, 0);
-			public static final PIDValues centerLimelight = new PIDValues(1, 0, 0, 0);
+			public static final PIDValues centerLimelight = new PIDValues(3, 0, 0, 0);
 			public static final PIDValues centerTheta = new PIDValues(5, 0, 0.2, 0);
 		}
 

@@ -35,7 +35,7 @@ public final class Autonomous {
 			);
 
 		chooser.addOption("Center On Limelight", 
-			new CenterLimelight(Units.Meters.of(0.5),Units.Meters.of(0.5))
+			new CenterLimelight()
 		);
 
 		chooser.addOption("[testing] voltage ramp", new VoltageRampCommand());

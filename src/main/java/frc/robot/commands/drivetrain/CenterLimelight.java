@@ -4,6 +4,8 @@
 
 package frc.robot.commands.drivetrain;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.littletonrobotics.junction.Logger;
@@ -32,76 +34,83 @@ public class CenterLimelight extends Command {
   private double ySpeedPid;
   private double thetaSpeed;
   private double thetaPid;
-  private PIDController centerPID;
+  private PIDController centerPIDx;
+  private PIDController centerPIDy;
   private PIDController centerRotaionPid;
-  private final Distance halfRobotWidth = Units.Inches.of(16.5);
+  private final Distance halfRobotWidth = Units.Inches.of(20);
   private Pose2d robotPoseTagspace;
   public static final Pose2d tag8 = new Pose2d(13.474,4.745,new Rotation2d(Math.PI/3));
   private int tag;
+  private Pose3d tagPose;
+  private List<Integer> tagsToCheck;
   public CenterLimelight() {
     // Use addRequirements() here to declare subsystem dependencies.
     this.addRequirements(Robot.cont.drivetrain);
-    this.offsetX = Units.Meters.of(0);
+    this.offsetX = halfRobotWidth;
     this.offsetY = Units.Meters.of(0);
-    this.centerPID = Constants.Drivetrain.Auto.centerLimelight.createController();
+    this.centerPIDx = Constants.Drivetrain.Auto.centerLimelight.createController();
+    this.centerPIDy = Constants.Drivetrain.Auto.centerLimelight.createController();
     this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
     this.centerRotaionPid.enableContinuousInput(-Math.PI, Math.PI);
-    this.tag = Robot.cont.drivetrain.limelight.getTargetAprilTagID();
+    this.tagsToCheck = new ArrayList<>();
   }
   
 
-  public CenterLimelight(Distance offsetX, Distance offsetY) {
+  public CenterLimelight(Distance offsetX, Distance offsetY, final List<Integer> tagsToCheck) {
     this.addRequirements(Robot.cont.drivetrain);
     this.offsetX = offsetX.plus(halfRobotWidth);
     this.offsetY = offsetY;      
-    this.centerPID = Constants.Drivetrain.Auto.centerLimelight.createController();
+    this.centerPIDx = Constants.Drivetrain.Auto.centerLimelight.createController();
+    this.centerPIDy = Constants.Drivetrain.Auto.centerLimelight.createController();
     this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
     this.centerRotaionPid.enableContinuousInput(-Math.PI, Math.PI);
-    this.tag = Robot.cont.drivetrain.limelight.getTargetAprilTagID();
+    this.tagsToCheck = tagsToCheck;
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    Robot.cont.drivetrain.setAngle(Robot.cont.drivetrain.limelight.getBluePose2d().getRotation().getMeasure());
+    double smallst = Double.MAX_VALUE;
+    tagPose = Constants.FIELD_LAYOUT.getTagPose(17).get();
+    for(int tag : tagsToCheck){
+      Pose2d distance = Constants.FIELD_LAYOUT.getTagPose(tag).get().toPose2d().relativeTo(Robot.cont.drivetrain.est.getEstimatedPosition());
+      if(Math.hypot(distance.getX(), distance.getY()) < smallst){
+          tagPose = Constants.FIELD_LAYOUT.getTagPose(tag).get();
+          smallst = Math.hypot(distance.getX(), distance.getY());
+      }
+    }
+    Logger.recordOutput("Drivetrain/Auto/tagpose", tagPose);
+    
   }
 
   @Override
   public void execute() {
-    PoseEstimate megatagPose = Robot.cont.drivetrain.limelight.getPoseMegatag2();
-    Optional<Pose3d> tagPose = Constants.FIELD_LAYOUT.getTagPose(Limelight.getClosestTagId(megatagPose));
-    if (tagPose.isPresent()) {
-      robotPoseTagspace = tagPose.get().toPose2d().relativeTo(Robot.cont.drivetrain.limelight.getPoseMegatag2().pose);
-    }
+    robotPoseTagspace = tagPose.toPose2d().relativeTo(Robot.cont.drivetrain.est.getEstimatedPosition());
     xSpeed = robotPoseTagspace.getX();
     ySpeed = robotPoseTagspace.getY();
     thetaSpeed = robotPoseTagspace.getRotation().getRadians();
-    xSpeedPid = centerPID.calculate(xSpeed,offsetX.in(Units.Meters));
-    ySpeedPid = centerPID.calculate(ySpeed,offsetY.in(Units.Meters));
-    thetaPid = centerRotaionPid.calculate(thetaSpeed,Math.PI);
-    if(Robot.cont.drivetrain.limelight.hasValidTargets()){
-      Robot.cont.drivetrain
-          .control(
-            Robot.cont.drivetrain
-              .rod(
-                new ChassisSpeeds(
-                  0,
-                  0,
-                  thetaPid
-                )
+    xSpeedPid = -centerPIDx.calculate(xSpeed,offsetX.in(Units.Meters));
+    ySpeedPid = -centerPIDy.calculate(ySpeed,offsetY.in(Units.Meters));
+    thetaPid = -centerRotaionPid.calculate(thetaSpeed,Math.PI);
+    Robot.cont.drivetrain
+        .controlRobotOriented(
+              new ChassisSpeeds(
+                xSpeedPid,
+                ySpeedPid,
+                thetaPid
               )
-      );
-    }
-      Logger.recordOutput("Drivetrain/Auto/XSpeed", xSpeed);
-      Logger.recordOutput("Drivetrain/Auto/YSpeed",  ySpeed);
-      Logger.recordOutput("Drivetrain/Auto/Center Is Finished", false);
-      Logger.recordOutput("Drivetrain/Auto/CenterPid", xSpeedPid);
-      Logger.recordOutput("Drivetrain/Auto/limelightHasValidTargets", Robot.cont.drivetrain.limelight.hasValidTargets());
-      Logger.recordOutput("Drivetrain/Auto/Theta", Robot.cont.drivetrain.limelight.getBotPose3d_TargetSpace().getRotation().getAngle());
-      Logger.recordOutput("Drivetrain/Auto/robotPoseTagSpace", robotPoseTagspace);
-      Logger.recordOutput("Drivetrain/Auto/thetaSpeed", thetaSpeed);
-      Logger.recordOutput("Drivetrain/Auto/thetaPid", thetaPid);
-      Logger.recordOutput("Drivetrain/Auto/estPose", Robot.cont.drivetrain.est.getEstimatedPosition().getRotation());
+    );
+    Logger.recordOutput("Drivetrain/Auto/XSpeed", xSpeed);
+    Logger.recordOutput("Drivetrain/Auto/YSpeed",  ySpeed);
+    Logger.recordOutput("Drivetrain/Auto/Center Is Finished", false);
+    Logger.recordOutput("Drivetrain/Auto/XSpeedPid", xSpeedPid);
+    Logger.recordOutput("Drivetrain/Auto/limelightHasValidTargets", Robot.cont.drivetrain.limelight.hasValidTargets());
+    Logger.recordOutput("Drivetrain/Auto/Theta", Robot.cont.drivetrain.limelight.getBotPose3d_TargetSpace().getRotation().getAngle());
+    Logger.recordOutput("Drivetrain/Auto/robotPoseTagSpace", robotPoseTagspace);
+    Logger.recordOutput("Drivetrain/Auto/thetaSpeed", thetaSpeed);
+    Logger.recordOutput("Drivetrain/Auto/thetaPid", thetaPid);
+    Logger.recordOutput("Drivetrain/Auto/estPose", Robot.cont.drivetrain.est.getEstimatedPosition().getRotation());
+    Logger.recordOutput("Drivetrain/Auto/offsetX", offsetX);
   }
 
   // Called once the command ends or is interrupted.
@@ -114,6 +123,6 @@ public class CenterLimelight extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return (!Robot.cont.drivetrain.limelight.hasValidTargets());
+    return (Math.abs(xSpeed - offsetX.in(Units.Meters)) < 0.05) && (Math.abs(ySpeed - offsetY.in(Units.Meters)) < 0.05) && (Math.abs(thetaSpeed) < 0.05);
   }
 }

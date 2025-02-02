@@ -319,14 +319,16 @@ public class Drivetrain extends SubsystemBase {
 		Logger.recordOutput("Drivetrain/LimelightNotePose", this.limelightNote.getPose2d());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/Imumode", limelight.getImuMode());
-		if (this.limelight.hasValidTargets()) {
-			Logger.recordOutput("Drivetrain/Mt1", this.limelight.getPoseMegatag1().pose);
+		PoseEstimate mt1 = this.limelight.getPoseMegatag1();
+		if (mt1 != null) {
+			Logger.recordOutput("Drivetrain/Mt1", mt1.pose);
 		}
 	}
 
 	public void disabledPeriodic() {
-		if(this.limelight.hasValidTargets()){
-			this.setAngle(this.limelight.getPoseMegatag1().pose.getRotation().getMeasure());
+		PoseEstimate mt1 = this.limelight.getPoseMegatag1();
+		if(this.limelight.hasValidTargets() && mt1 != null){
+			this.setAngle(mt1.pose.getRotation().getMeasure());
 		}
 		this.limelight.setRobotOrientation(this.est.getEstimatedPosition().getRotation().getDegrees()); 
 	}
