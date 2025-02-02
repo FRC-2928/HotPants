@@ -1,11 +1,7 @@
 package frc.robot.oi;
 
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants;
-import frc.robot.Robot;
 
 public class OperatorOI extends BaseOI {
 	public OperatorOI(final CommandXboxController controller) {

@@ -1,6 +1,5 @@
 package frc.robot.vision;
 
-import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.AutoLogOutput;
 
 import edu.wpi.first.math.geometry.*;
@@ -34,7 +33,7 @@ public class Limelight {
 			return this.nt.getEntry("tv").getDouble(0) == 1;
 		} else {
 			// return this value in simulation
-			return true;
+			return false;
 		}
 	}
 

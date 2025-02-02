@@ -55,23 +55,18 @@ public class JoystickDrive extends Command {
 
 	private Translation2d translation() {
 		// get inputs, apply deadbands
-		final double axial = MathUtil.applyDeadband(this.oi.driveAxial.get(), 0.1);
-		final double lateral = MathUtil.applyDeadband(this.oi.driveLateral.get(), 0.1);
-		Logger.recordOutput("Drivetrain/JoystickDrive/Axial", this.oi.driveAxial.get());
-		Logger.recordOutput("Drivetrain/JoystickDrive/Lateral", this.oi.driveLateral.get());
-
-		// cartesian -> polar
-		final Rotation2d direction = Rotation2d.fromRadians(Math.atan2(lateral, axial)); // why?
+		final double axial = -MathUtil.applyDeadband(this.oi.driveAxial.get(), 0.1); // Negate b/c joystick Y is inverted from field X
+		final double lateral = -MathUtil.applyDeadband(this.oi.driveLateral.get(), 0.1); // Negate b/c joystick X is inverted from field Y
+		Logger.recordOutput("Drivetrain/JoystickDrive/Axial", axial);
+		Logger.recordOutput("Drivetrain/JoystickDrive/Lateral", lateral);
 
 		// Calculate the move magnitude
-		final double magnitude = Math.pow(MathUtil.clamp(Math.hypot(axial, lateral), 0, 1), 2); // get length and normalize
-
-		final double dx = Math.cos(direction.getRadians()) * magnitude;
-		final double dy = Math.sin(direction.getRadians()) * magnitude;
+		final double magnitude = Math.hypot(axial, lateral); // get length and normalize
+		final double desaturationFactor = Math.max(magnitude, 1.0); // guarantees the output is between -1 and 1
 
 		// Convert to m/s
-		final LinearVelocity vx = Constants.Drivetrain.maxVelocity.times(dx);
-		final LinearVelocity vy = Constants.Drivetrain.maxVelocity.times(dy);
+		final LinearVelocity vx = Constants.Drivetrain.maxVelocity.times(axial / desaturationFactor);
+		final LinearVelocity vy = Constants.Drivetrain.maxVelocity.times(lateral / desaturationFactor);
 
 		return new Translation2d(vx.in(Units.MetersPerSecond), vy.in(Units.MetersPerSecond));
 	}
@@ -81,7 +76,7 @@ public class JoystickDrive extends Command {
 
 		final String selectedDriveMode = Robot.cont.getDriveMode();
 		if("Swerve Drive".equals(selectedDriveMode)) {
-			theta = MathUtil.applyDeadband(this.oi.driveFORX.get(), 0.075);
+			theta = MathUtil.applyDeadband(-this.oi.driveFORX.get(), 0.075); // Negate this b/c joystick X is inverted from robot rotation
 		} else {
 			// Joystick Right Axis
 			final double rotX = this.oi.driveFORX.get();
@@ -93,9 +88,9 @@ public class JoystickDrive extends Command {
 
 			// Get a new rotation target if right joystick values are beyond the deadband.
 			// Otherwise, we'll keep the old one.
-			final boolean rotateRobot = this.forMagnitude > 0.5;
+			final boolean doRotateRobot = this.forMagnitude > 0.5;
 			Angle forTarget = Units.Radians.zero();
-			if (rotateRobot) {
+			if (doRotateRobot) {
 				forTarget = Units.Radians.of(-Math.atan2(rotX, rotY));
 				Logger.recordOutput("JoystickDrive/AbsoluteRotation/Target", forTarget);
 				final double measurement = this.drivetrain.getFieldOrientedAngle().in(Units.Rotations);

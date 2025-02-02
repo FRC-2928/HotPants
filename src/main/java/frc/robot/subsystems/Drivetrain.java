@@ -1,8 +1,6 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.units.Unit;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.units.Units.*;
 import edu.wpi.first.units.measure.*;
 import java.util.Arrays;
 
@@ -10,7 +8,6 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -27,12 +24,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Robot;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
@@ -110,7 +103,9 @@ public class Drivetrain extends SubsystemBase {
 		this.gyro = switch(Constants.mode) {
 		case REAL -> new GyroIOReal();
 		case REPLAY -> new GyroIO() {
+			
 		};
+		case SIM -> new GyroIOReal();
 		default -> throw new Error();
 		};
 
@@ -178,13 +173,13 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void controlRobotOriented(final ChassisSpeeds speeds) {
-		speeds.omegaRadiansPerSecond = speeds.omegaRadiansPerSecond * 0.45;
+		speeds.omegaRadiansPerSecond = speeds.omegaRadiansPerSecond * 0.45; // TODO: Do we need this adjustment?
 
 		Logger.recordOutput("Drivetrain/dx", speeds.vxMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
 
-		this.robotChassisSpeeds = ChassisSpeeds.discretize(speeds.unaryMinus(), 0.02);
+		this.robotChassisSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
 
 		this.control(this.kinematics.toSwerveModuleStates(this.robotChassisSpeeds));
 	}
@@ -300,29 +295,33 @@ public class Drivetrain extends SubsystemBase {
 
 		// Add vision measurements to pos est with megatag 2
 		PoseEstimate mt2 = this.limelight.getPoseMegatag2();
-		boolean doRejectUpdate = false;
+		if (mt2 != null) {
+			Logger.recordOutput("Drivetrain/poseMegatag", this.limelight.getPoseMegatag2().pose);
+			boolean doRejectUpdate = false;
 
-		// if our angular velocity is greater than 720 degrees per second, ignore vision updates
-		if(Math.abs(this.gyroInputs.yawVelocityRadPerSec.in(Units.DegreesPerSecond)) > 720) {
-			doRejectUpdate = true;
-		}
-
-		if(mt2.tagCount == 0) {
-			doRejectUpdate = true;
-		}
-
-		if(!doRejectUpdate) {
-			est.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
-			est.addVisionMeasurement(
-				mt2.pose,
-				mt2.timestampSeconds);
+			// if our angular velocity is greater than 720 degrees per second, ignore vision updates
+			if(Math.abs(this.gyroInputs.yawVelocityRadPerSec.in(Units.DegreesPerSecond)) > 720) {
+				doRejectUpdate = true;
+			}
+	
+			if(mt2.tagCount == 0) {
+				doRejectUpdate = true;
+			}
+	
+			if(!doRejectUpdate) {
+				est.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+				est.addVisionMeasurement(
+					mt2.pose,
+					mt2.timestampSeconds);
+			}
 		}
 
 		Logger.recordOutput("Drivetrain/LimelightNotePose", this.limelightNote.getPose2d());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
-		Logger.recordOutput("Drivetrain/poseMegatag", this.limelight.getPoseMegatag2().pose);
 		Logger.recordOutput("Drivetrain/Imumode", limelight.getImuMode());
-		Logger.recordOutput("Drivetrain/Mt1", this.limelight.getPoseMegatag1().pose);
+		if (this.limelight.hasValidTargets()) {
+			Logger.recordOutput("Drivetrain/Mt1", this.limelight.getPoseMegatag1().pose);
+		}
 	}
 
 	public void disabledPeriodic() {

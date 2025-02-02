@@ -13,8 +13,6 @@
 
 package frc.robot.subsystems;
 
-import org.littletonrobotics.junction.AutoLog;
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -28,6 +26,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
@@ -90,6 +89,8 @@ public class ModuleIOReal implements ModuleIO {
 		}
 
 		final TalonFXConfiguration driveConfig = new TalonFXConfiguration();
+		
+		driveConfig.MotorOutput.Inverted = (this.place == Place.FrontRight || this.place == Place.BackRight) ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
 		// Peak output amps
 		driveConfig.CurrentLimits.StatorCurrentLimit = 80.0;
 		driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
@@ -139,8 +140,6 @@ public class ModuleIOReal implements ModuleIO {
 
 		this.azimuth.getConfigurator().apply(azimuthConfig);
 		this.azimuth.setNeutralMode(NeutralModeValue.Brake);
-
-		if(this.place == Place.FrontRight || this.place == Place.BackRight) this.drive.setInverted(true);
 
 		final CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
 		MagnetSensorConfigs magnetSensorConfigs = new MagnetSensorConfigs();

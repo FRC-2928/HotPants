@@ -2,9 +2,6 @@ package frc.robot.subsystems;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -28,6 +25,9 @@ public class SwerveModule {
 		case REAL -> new ModuleIOReal(this);
 		case REPLAY -> new ModuleIO() {
 		};
+		case SIM -> new ModuleIO() {
+
+		};
 		default -> throw new Error();
 		};
 	}
@@ -35,9 +35,6 @@ public class SwerveModule {
 	public final Place place;
 	public final ModuleIO io;
 	public final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
-
-	private final SimpleMotorFeedforward driveFFW = Constants.Drivetrain.driveFFW;
-	private final PIDController drivePID = Constants.Drivetrain.drivePID.createController();
 
 	public SwerveModulePosition position = new SwerveModulePosition();
 	public SwerveModuleState current = new SwerveModuleState();
@@ -69,9 +66,7 @@ public class SwerveModule {
 	}
 
 	public void control(final SwerveModuleState state) {
-		state.speedMetersPerSecond = -state.speedMetersPerSecond;
-
-		if(Math.abs(state.angle.minus(Rotation2d.fromDegrees(this.inputs.angle.in(Units.Degrees))).getDegrees()) > 90) {
+		if(Math.abs(state.angle.minus(new Rotation2d(this.inputs.angle)).getDegrees()) > 90) {
 			state.speedMetersPerSecond = -state.speedMetersPerSecond;
 			state.angle = state.angle.rotateBy(Rotation2d.fromDegrees(180.0));
 		}
