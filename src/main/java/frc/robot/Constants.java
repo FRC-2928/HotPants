@@ -145,7 +145,7 @@ public class Constants {
 			public static final PIDValues translationDynamic = new PIDValues(7.5, 0, 0.5, 0);
 			public static final PIDValues thetaDynamic = new PIDValues(5, 0, 0.02, 0);
 			public static final PIDValues centerLimelight = new PIDValues(1, 0, 0, 0);
-			public static final PIDValues centerTheta = new PIDValues(4, 0, 0.1, 0);
+			public static final PIDValues centerTheta = new PIDValues(5, 0, 0.2, 0);
 		}
 
 		public static final SlotConfigs azimuth = new SlotConfigs()
@@ -178,7 +178,7 @@ public class Constants {
 
 		public static final double thetaCompensationFactor = 0.2;
 
-		public static final Distance wheelBase = Units.Inches.of(29 - 2.5 * 2);
+		public static final Distance wheelBase = Units.Inches.of(27 - 2.5 * 2);
 		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain`
 
 		// public static final Angle swerveFrontLeftOffset = Units.Rotations.of(0.227783);
@@ -219,7 +219,7 @@ public class Constants {
 		public static final double driveGearRatio = (50.0 / 14) * (16.0 / 28) * (45.0 / 15); // ~= 6.746
 		public static final double azimuthGearRatio = 150.0 / 7.0;
 
-		public static final Distance wheelRadius = Units.Inches.of(2);
+		public static final Distance wheelRadius = Units.Inches.of(1.875);
 		public static final Distance wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
 
 		public static final LinearVelocity maxVelocity = Units.Meters.per(Units.Second).of(5.0);

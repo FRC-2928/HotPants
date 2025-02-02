@@ -96,7 +96,7 @@ public class Robot extends LoggedRobot {
 
 		// Get selected routine from the dashboard
 		this.autonomousCommand = this.container.getAutonomousCommand();
-		this.container.drivetrain.resetAngleWithLimelight();
+
 		// schedule the autonomous command (example)
 		if(this.autonomousCommand != null) {
 			this.autonomousCommand.schedule();

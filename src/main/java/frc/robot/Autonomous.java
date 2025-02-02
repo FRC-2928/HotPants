@@ -69,7 +69,7 @@ public final class Autonomous {
 			.addOption(
 				"[Test] Forward Back",
 				new SequentialCommandGroup(
-					Autonomous.setInitialPose("forwardBack"),
+					Autonomous.setInitialPose("ForwardBack"),
 					Autonomous.path("ForwardBack")
 				)
 			);
@@ -241,8 +241,11 @@ public final class Autonomous {
 		// 		)
 		// 	);
 		chooser.addOption("[testing] voltage ramp", new VoltageRampCommand());
-		chooser.addOption("SimpleScore", Commands.sequence(autoFactory.resetOdometry("SimpleScore"),
-		autoFactory.trajectoryCmd("SimpleScore")));
+		chooser.addOption("SimpleScore", Commands.sequence(autoFactory.trajectoryCmd("SimpleScore")));
+		chooser.addOption("SimpleFromRight", Commands.sequence(
+			autoFactory.trajectoryCmd("SimpleFromRight")
+		));
+		chooser.addOption("PP_SimpleFromRight", Autonomous.path("SimpleFromRight"));
 		return chooser;
 	}
 

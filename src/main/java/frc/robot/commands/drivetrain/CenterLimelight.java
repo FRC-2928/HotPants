@@ -45,6 +45,7 @@ public class CenterLimelight extends Command {
     this.offsetY = Units.Meters.of(0);
     this.centerPID = Constants.Drivetrain.Auto.centerLimelight.createController();
     this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
+    this.centerRotaionPid.enableContinuousInput(-Math.PI, Math.PI);
     this.tag = Robot.cont.drivetrain.limelight.getTargetAprilTagID();
   }
   
@@ -55,6 +56,7 @@ public class CenterLimelight extends Command {
     this.offsetY = offsetY;      
     this.centerPID = Constants.Drivetrain.Auto.centerLimelight.createController();
     this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
+    this.centerRotaionPid.enableContinuousInput(-Math.PI, Math.PI);
     this.tag = Robot.cont.drivetrain.limelight.getTargetAprilTagID();
   }
 
@@ -63,6 +65,7 @@ public class CenterLimelight extends Command {
   public void initialize() {
     Robot.cont.drivetrain.setAngle(Robot.cont.drivetrain.limelight.getBluePose2d().getRotation().getMeasure());
   }
+
   @Override
   public void execute() {
     PoseEstimate megatagPose = Robot.cont.drivetrain.limelight.getPoseMegatag2();
@@ -70,15 +73,12 @@ public class CenterLimelight extends Command {
     if (tagPose.isPresent()) {
       robotPoseTagspace = tagPose.get().toPose2d().relativeTo(Robot.cont.drivetrain.limelight.getPoseMegatag2().pose);
     }
-    // if(this.tag == Robot.cont.drivetrain.limelight.getTargetAprilTagID()){
-    //   robotPoseTagspace = tag8.relativeTo(megatagPose.pose);
-    // }
     xSpeed = robotPoseTagspace.getX();
     ySpeed = robotPoseTagspace.getY();
     thetaSpeed = robotPoseTagspace.getRotation().getRadians();
     xSpeedPid = centerPID.calculate(xSpeed,offsetX.in(Units.Meters));
     ySpeedPid = centerPID.calculate(ySpeed,offsetY.in(Units.Meters));
-    thetaPid = centerRotaionPid.calculate(thetaSpeed,0);
+    thetaPid = centerRotaionPid.calculate(thetaSpeed,Math.PI);
     if(Robot.cont.drivetrain.limelight.hasValidTargets()){
       Robot.cont.drivetrain
           .control(
@@ -101,6 +101,7 @@ public class CenterLimelight extends Command {
       Logger.recordOutput("Drivetrain/Auto/robotPoseTagSpace", robotPoseTagspace);
       Logger.recordOutput("Drivetrain/Auto/thetaSpeed", thetaSpeed);
       Logger.recordOutput("Drivetrain/Auto/thetaPid", thetaPid);
+      Logger.recordOutput("Drivetrain/Auto/estPose", Robot.cont.drivetrain.est.getEstimatedPosition().getRotation());
   }
 
   // Called once the command ends or is interrupted.

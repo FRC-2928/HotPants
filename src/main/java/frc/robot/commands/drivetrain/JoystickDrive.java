@@ -7,11 +7,13 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.units.measure.*;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.oi.DriverOI;
@@ -37,7 +39,6 @@ public class JoystickDrive extends Command {
 	public final Drivetrain drivetrain;
 	public final DriverOI oi = Robot.cont.driverOI;
 
-	public Angle forTarget = Units.Radians.zero();
 	public double forMagnitude = 0.5;
 	private final ProfiledPIDController absoluteController = Constants.Drivetrain.absoluteRotationPID
 		.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
@@ -76,7 +77,7 @@ public class JoystickDrive extends Command {
 	}
 
 	private AngularVelocity theta() {
-		final double theta;
+		double theta = 0;
 
 		final String selectedDriveMode = Robot.cont.getDriveMode();
 		if("Swerve Drive".equals(selectedDriveMode)) {
@@ -93,19 +94,20 @@ public class JoystickDrive extends Command {
 			// Get a new rotation target if right joystick values are beyond the deadband.
 			// Otherwise, we'll keep the old one.
 			final boolean rotateRobot = this.forMagnitude > 0.5;
-			if(rotateRobot) this.forTarget = Units.Radians.of(-Math.atan2(rotX, rotY));
-			Logger.recordOutput("JoystickDrive/AbsoluteRotation/Target", this.forTarget);
-
-			this.forMagnitude = this.forMagnitude * 0.5 + 0.5;
-
-			final double measurement = this.drivetrain.est.getEstimatedPosition().getRotation().getRotations();
-			final double setpoint = this.forTarget.in(Units.Rotations);
-
-			theta = MathUtil
-				.applyDeadband(
+			Angle forTarget = Units.Radians.zero();
+			if (rotateRobot) {
+				forTarget = Units.Radians.of(-Math.atan2(rotX, rotY));
+				Logger.recordOutput("JoystickDrive/AbsoluteRotation/Target", forTarget);
+				final double measurement = this.drivetrain.getFieldOrientedAngle().in(Units.Rotations);
+				final double setpoint = forTarget.in(Units.Rotations);
+				
+				theta = MathUtil.applyDeadband(
 					-(this.absoluteController.calculate(measurement, setpoint)), // todo: determine whether this - is ok
 					0.075
 				);
+			}
+
+			this.forMagnitude = this.forMagnitude * 0.5 + 0.5;
 		}
 
 		return Constants.Drivetrain.maxAngularVelocity.times(theta * this.forMagnitude);

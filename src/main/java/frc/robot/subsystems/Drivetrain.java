@@ -17,6 +17,8 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
 
 import choreo.auto.AutoFactory;
+import choreo.trajectory.SwerveSample;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -34,6 +36,7 @@ import frc.robot.Robot;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
+import frc.robot.vision.LimelightHelpers.PoseEstimate;
 
 public class Drivetrain extends SubsystemBase {
 	public static class State {
@@ -74,13 +77,13 @@ public class Drivetrain extends SubsystemBase {
 
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
 	public final SwerveDrivePoseEstimator est;
-	public final SwerveDrivePoseEstimator noLimelightEst;
 	public final Limelight limelightNote = new Limelight("limelight-note");
 	public final Limelight limelightShooter = new Limelight("limelight-shooter");
 	public final Limelight limelightRear = new Limelight("limelight-rear");
 	public final Limelight limelight = new Limelight("limelight");
 
 	public final JoystickDrive joystickDrive = new JoystickDrive(this);
+	private Rotation2d joystickFOROffset;
 	public ChassisSpeeds joystickSpeeds = new ChassisSpeeds();
 	private ChassisSpeeds robotChassisSpeeds = new ChassisSpeeds();
 	public AutoFactory autoFactory;
@@ -122,12 +125,8 @@ public class Drivetrain extends SubsystemBase {
 			this.modulePositions(),
 			new Pose2d()
 		);
-		this.noLimelightEst = new SwerveDrivePoseEstimator(
-			this.kinematics,
-			new Rotation2d(this.gyroInputs.yawPosition),
-			this.modulePositions(),
-			new Pose2d()
-		);
+
+		this.joystickFOROffset = new Rotation2d(this.gyroInputs.yawPosition);
 
 		// PathPlannerLib auto configuration. Refer https://pathplanner.dev/pplib-getting-started.html
 		AutoBuilder
@@ -154,8 +153,8 @@ public class Drivetrain extends SubsystemBase {
 		autoFactory = new AutoFactory(
             this.est::getEstimatedPosition, // A function that returns the current robot pose
             this::reset, // A function that resets the current robot pose to the provided Pose2d
-            this::controlRobotOriented, // The drive subsystem trajectory follower 
-            false, // If alliance flipping should be enabled 
+            this::controlSwerveSample, // The drive subsystem trajectory follower 
+            true, // If alliance flipping should be enabled 
             this // The drive subsystem
         );
 	}
@@ -172,6 +171,10 @@ public class Drivetrain extends SubsystemBase {
 		this.robotChassisSpeeds = speeds;
 
 		this.control(this.kinematics.toSwerveModuleStates(speeds));
+	}
+
+	public void controlSwerveSample(final SwerveSample sample) {
+		controlRobotOriented(sample.getChassisSpeeds());
 	}
 
 	public void controlRobotOriented(final ChassisSpeeds speeds) {
@@ -201,11 +204,11 @@ public class Drivetrain extends SubsystemBase {
 	public void halt() { this.control(State.locked()); }
 
 	public ChassisSpeeds fod(final ChassisSpeeds speeds) {
-		return ChassisSpeeds.fromFieldRelativeSpeeds(speeds, this.est.getEstimatedPosition().getRotation());
+		return ChassisSpeeds.fromFieldRelativeSpeeds(speeds, new Rotation2d(getFieldOrientedAngle()));
 	}
 
 	public ChassisSpeeds rod(final ChassisSpeeds speeds) {
-		return ChassisSpeeds.fromRobotRelativeSpeeds(speeds, this.est.getEstimatedPosition().getRotation());
+		return ChassisSpeeds.fromRobotRelativeSpeeds(speeds, new Rotation2d(getFieldOrientedAngle()));
 	}
 
 	public ChassisSpeeds compensate(final ChassisSpeeds original) {
@@ -218,25 +221,20 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void resetAngle() {
-		this.reset(new Pose2d(this.est.getEstimatedPosition().getTranslation(), Rotation2d.fromRadians(0)));
-		((JoystickDrive) this.getDefaultCommand()).forTarget = Units.Radians.zero();
+		// this.reset(new Pose2d(this.est.getEstimatedPosition().getTranslation(), Rotation2d.fromRadians(0)));
+		this.joystickFOROffset = new Rotation2d(this.gyroInputs.yawPosition);
+		// ((JoystickDrive) this.getDefaultCommand()).forTarget = Units.Radians.zero();
+	}
+
+	public Angle getFieldOrientedAngle() {
+		return this.gyroInputs.yawPosition.minus(this.joystickFOROffset.getMeasure());
 	}
 
 	public void reset(final Pose2d newPose) {
 		this.est.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
-		this.noLimelightEst.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);	
 	}
 	public void setAngle(Angle angle){
-	this.reset(new Pose2d(this.est.getEstimatedPosition().getTranslation(), Rotation2d.fromDegrees(angle.in(Units.Degrees))));
-	}
-	public void resetLimelightPose(){
-		if(this.limelightNote.hasValidTargets()){
-			this.est.resetPose(this.limelightNote.getPose2d());
-		}
-	}
-
-	public void resetAngleWithLimelight(){
-		setAngle(Robot.cont.drivetrain.limelight.getPoseMegatag2().pose.getRotation().getMeasure());
+		this.reset(new Pose2d(this.est.getEstimatedPosition().getTranslation(), Rotation2d.fromDegrees(angle.in(Units.Degrees))));
 	}
 
 	@AutoLogOutput
@@ -270,13 +268,13 @@ public class Drivetrain extends SubsystemBase {
 	// Returns the current odometry pose, transformed to blue origin coordinates.
 	@AutoLogOutput(key = "Odometry/BlueOriginPose")
 	public Pose2d blueOriginPose() {
-		if(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-			return this.est
-				.getEstimatedPosition()
-				.relativeTo(new Pose2d(Constants.FIELD_LAYOUT.getFieldLength(), Constants.FIELD_LAYOUT.getFieldWidth(), Rotation2d.fromRadians(Math.PI)));
-		} else {
+		// if(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+		// 	return this.est
+		// 		.getEstimatedPosition()
+		// 		.relativeTo(new Pose2d(Constants.FIELD_LAYOUT.getFieldLength(), Constants.FIELD_LAYOUT.getFieldWidth(), Rotation2d.fromRadians(Math.PI)));
+		// } else {
 			return this.est.getEstimatedPosition();
-		}
+		// }
 	}
 
 	public Pose2d getEstimatedPosition(){
@@ -299,25 +297,29 @@ public class Drivetrain extends SubsystemBase {
 
 		// Update the odometry pose
 		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
-		this.noLimelightEst.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 
-		// Fuse odometry pose with vision data if we have it.
-		if(this.limelightShooter.hasValidTargets()) {
-			// final distance from current final pose to vision final estimated pose
-			final double poseDifference = this.est
-				.getEstimatedPosition()
-				.getTranslation()
-				.getDistance(this.limelightNote.getPose2d().getTranslation());
+		// Add vision measurements to pos est with megatag 2
+		PoseEstimate mt2 = this.limelight.getPoseMegatag2();
+		boolean doRejectUpdate = false;
 
-			if(poseDifference < 0.5) {
-				//0.3 subtracted to account for cam delay
-				this.est.addVisionMeasurement(this.limelightShooter.getPose2d(), Timer.getFPGATimestamp() - 0.3);
-
-			}
+		// if our angular velocity is greater than 720 degrees per second, ignore vision updates
+		if(Math.abs(this.gyroInputs.yawVelocityRadPerSec.in(Units.DegreesPerSecond)) > 720) {
+			doRejectUpdate = true;
 		}
+
+		if(mt2.tagCount == 0) {
+			doRejectUpdate = true;
+		}
+
+		if(!doRejectUpdate) {
+			est.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+			est.addVisionMeasurement(
+				mt2.pose,
+				mt2.timestampSeconds);
+		}
+
 		Logger.recordOutput("Drivetrain/LimelightNotePose", this.limelightNote.getPose2d());
-		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());	
-		Logger.recordOutput("Drivetrain/Pose with out limelight", this.noLimelightEst.getEstimatedPosition());
+		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/poseMegatag", this.limelight.getPoseMegatag2().pose);
 		Logger.recordOutput("Drivetrain/Imumode", limelight.getImuMode());
 		Logger.recordOutput("Drivetrain/Mt1", this.limelight.getPoseMegatag1().pose);
