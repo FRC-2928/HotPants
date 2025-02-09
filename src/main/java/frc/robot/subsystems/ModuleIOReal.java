@@ -202,8 +202,7 @@ public class ModuleIOReal implements ModuleIO {
 			.of(this.drivePosition.getValueAsDouble())
 			.divide(Constants.Drivetrain.driveGearRatio);
 		inputs.driveVelocity = Units.MetersPerSecond
-			.of(this.driveVelocity.getValueAsDouble() * Constants.Drivetrain.wheelCircumference.in(Units.Meters))
-			.divide(Constants.Drivetrain.driveGearRatio);
+			.of(this.driveVelocity.getValueAsDouble());
 		inputs.driveCurrent = Units.Amps.of(this.driveCurrent.getValueAsDouble());
 
 		inputs.azimuthCurrent = Units.Amps.of(this.azimuthCurrent.getValueAsDouble());

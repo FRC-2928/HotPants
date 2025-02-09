@@ -138,22 +138,22 @@ public class Constants {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
 		public static final class Auto {
-			public static final PIDValues translationDynamic = new PIDValues(7.5, 0, 0.5, 0);
-			public static final PIDValues thetaDynamic = new PIDValues(5, 0, 0.02, 0);
-			public static final PIDValues centerLimelight = new PIDValues(3, 0, 0, 0);
+			public static final PIDValues translationDynamic = new PIDValues(0, 0, 0, 0);
+			public static final PIDValues thetaDynamic = new PIDValues(0, 0, 0, 0);
+			public static final PIDValues centerLimelight = new PIDValues(2, 0, 0, 0);
 			public static final PIDValues centerTheta = new PIDValues(5, 0, 0.2, 0);
 		}
 
 		public static final SlotConfigs azimuth = new SlotConfigs()
-			.withKP(-60)
+			.withKP(-80)
 			.withKI(0)
-			.withKD(0)
+			.withKD(-0.1)
 			.withKS(0)
 			.withKV(0)
 			.withKA(0);
 
 		public static final SlotConfigs drive = new SlotConfigs()
-			.withKP(4) /* 0.15 */
+			.withKP(4.75) /* 0.15 */
 			.withKI(0.0)
 			.withKD(0.15)
 			.withKS(0.225)

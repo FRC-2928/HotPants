@@ -68,7 +68,7 @@ public class Limelight {
 
 	public PoseEstimate getPoseMegatag1(){ return LimelightHelpers.getBotPoseEstimate_wpiBlue(this.limelightName);}
 
-	public void setRobotOrientation(double yaw) { LimelightHelpers.SetRobotOrientation(limelightName, yaw,0,0,0,0,0);}
+	public void setRobotOrientation(Angle yaw) { LimelightHelpers.SetRobotOrientation(limelightName, yaw.in(Units.Degrees),0,0,0,0,0);}
 
 	public void setIMUMode(int mode) {
 		LimelightHelpers.SetIMUMode(limelightName, mode);

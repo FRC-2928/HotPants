@@ -2,7 +2,10 @@ package frc.robot;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import com.pathplanner.lib.auto.NamedCommands;
+
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.oi.DriverOI;
@@ -22,6 +25,8 @@ public class RobotContainer {
 
 		Tuning.flywheelVelocity.get(); // load the class to put the tuning controls on the dashboard
 		this.drivetrain = new Drivetrain();
+
+		NamedCommands.registerCommand("ScoreL4", new RunCommand(() -> {}).withTimeout(2));
 
 		this.autonomousChooser = new LoggedDashboardChooser<>(
 			"Autonomous Routine",

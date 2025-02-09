@@ -10,9 +10,11 @@ import choreo.Choreo;
 import choreo.auto.AutoFactory;
 
 import com.pathplanner.lib.auto.*;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -29,21 +31,42 @@ public final class Autonomous {
 			.addOption(
 				"[Test] Forward Back",
 				new SequentialCommandGroup(
-					Autonomous.setInitialPose("ForwardBack"),
-					Autonomous.path("ForwardBack")
+					autoFactory.resetOdometry("forwardBack"),
+					Autonomous.path("forwardBack")
+				)
+			);
+			chooser
+			.addOption(
+				"[Test] Forward Back Choreo",
+				new SequentialCommandGroup(
+					autoFactory.resetOdometry("forwardBack").withTimeout(1),
+					autoFactory.trajectoryCmd("forwardBack")
 				)
 			);
 
 		chooser.addOption("Center On Limelight", 
 			new CenterLimelight()
 		);
-
+		
 		chooser.addOption("[testing] voltage ramp", new VoltageRampCommand());
 		chooser.addOption("SimpleScore", Commands.sequence(autoFactory.trajectoryCmd("SimpleScore")));
 		chooser.addOption("SimpleFromRight", Commands.sequence(
 			autoFactory.trajectoryCmd("SimpleFromRight")
 		));
-		chooser.addOption("PP_SimpleFromRight", Autonomous.path("SimpleFromRight"));
+		chooser.addOption("SimpleFromRight Path Planner gen", Commands.sequence(
+			new PathPlannerAuto("SimpleFromRightTest")
+		));
+		chooser.addOption("GoFastRotate", 
+		new RunCommand(() -> {
+			Robot.cont.drivetrain.controlRobotOriented(
+				new ChassisSpeeds(
+					100,0,Math.PI
+				));
+			}
+		).withTimeout(2));
+		chooser.addOption("PP_SimpleFromRight", 
+			Autonomous.path("SimpleFromRight")
+		);
 		return chooser;
 	}
 
@@ -54,6 +77,7 @@ public final class Autonomous {
 
 			return Commands.runOnce(() -> {
 				Robot.cont.drivetrain.reset(initial);
+				
 
 				Logger.recordOutput("Drivetrain/Auto/x0", initial.getX());
 				Logger.recordOutput("Drivetrain/Auto/y0", initial.getY());
@@ -70,6 +94,17 @@ public final class Autonomous {
 		try {
 			final PathPlannerPath choreoPath = PathPlannerPath.fromChoreoTrajectory(name);
 			return AutoBuilder.followPath(choreoPath);
+		} catch (Exception e) {
+			System.out.println(e.toString());
+			return new InstantCommand();
+		}
+
+	}
+
+	public static Command pathPlannerpath(final String name) {
+		try {
+			final PathPlannerPath path = PathPlannerPath.fromPathFile(name);
+			return AutoBuilder.followPath(path);
 		} catch (Exception e) {
 			System.out.println(e.toString());
 			return new InstantCommand();

@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.*;
+import edu.wpi.first.wpilibj.DriverStation;
+
 import java.util.Arrays;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -127,14 +129,14 @@ public class Drivetrain extends SubsystemBase {
 		AutoBuilder
 			.configure(
 				this::getEstimatedPosition,
-				null,
+				(pose) -> {},
 				this::getCurrentChassisSpeeds,
 				this::controlRobotOriented,
 				new PPHolonomicDriveController(
 					Constants.fromPIDValues(Constants.Drivetrain.Auto.translationDynamic),
 					Constants.fromPIDValues(Constants.Drivetrain.Auto.thetaDynamic)),
 				PP_CONFIG,
-				() -> false,
+				() -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
 				this
 			);
 
@@ -152,6 +154,7 @@ public class Drivetrain extends SubsystemBase {
             true, // If alliance flipping should be enabled 
             this // The drive subsystem
         );
+
 	}
 
 	public void control(ChassisSpeeds speeds) {
@@ -173,13 +176,20 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void controlRobotOriented(final ChassisSpeeds speeds) {
-		speeds.omegaRadiansPerSecond = speeds.omegaRadiansPerSecond * 0.45; // TODO: Do we need this adjustment?
-
+		// speeds.omegaRadiansPerSecond = speeds.omegaRadiansPerSecond * 0.45; // TODO: Do we need this adjustment?
+		Logger.recordOutput("Drivetrain/DPosePre", speeds);
+		double speedHypot=Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+		if(speedHypot > 5){
+			speeds.vxMetersPerSecond = speeds.vxMetersPerSecond / speedHypot * 5;
+			speeds.vyMetersPerSecond = speeds.vyMetersPerSecond / speedHypot * 5;
+		}
+		this.robotChassisSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
+		Logger.recordOutput("Drivetrain/DPose", speeds);
 		Logger.recordOutput("Drivetrain/dx", speeds.vxMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
 
-		this.robotChassisSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
+		
 
 		this.control(this.kinematics.toSwerveModuleStates(this.robotChassisSpeeds));
 	}
@@ -227,6 +237,8 @@ public class Drivetrain extends SubsystemBase {
 
 	public void reset(final Pose2d newPose) {
 		this.est.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
+		this.limelight.setIMUMode(1);
+		this.limelight.setRobotOrientation(newPose.getRotation().getMeasure());
 	}
 	public void setAngle(Angle angle){
 		this.reset(new Pose2d(this.est.getEstimatedPosition().getTranslation(), Rotation2d.fromDegrees(angle.in(Units.Degrees))));
@@ -330,6 +342,6 @@ public class Drivetrain extends SubsystemBase {
 		if(this.limelight.hasValidTargets() && mt1 != null){
 			this.setAngle(mt1.pose.getRotation().getMeasure());
 		}
-		this.limelight.setRobotOrientation(this.est.getEstimatedPosition().getRotation().getDegrees()); 
+		// this.limelight.setRobotOrientation(this.est.getEstimatedPosition().getRotation().getMeasure()); 
 	}
 }

@@ -66,7 +66,7 @@ public class Robot extends LoggedRobot {
 	public void robotPeriodic() {
 		CommandScheduler.getInstance().run();
 		LoggedPowerDistribution.getInstance(Constants.CAN.Misc.pdh, ModuleType.kRev);
-		cont.drivetrain.limelight.setRobotOrientation(cont.drivetrain.est.getEstimatedPosition().getRotation().getDegrees()); 
+		cont.drivetrain.limelight.setRobotOrientation(cont.drivetrain.est.getEstimatedPosition().getRotation().getMeasure()); 
 	}
 
 	// DISABLED //
