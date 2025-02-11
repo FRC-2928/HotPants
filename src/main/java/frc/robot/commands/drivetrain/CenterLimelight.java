@@ -123,6 +123,6 @@ public class CenterLimelight extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return (Math.abs(xSpeed - offsetX.in(Units.Meters)) < 0.05) && (Math.abs(ySpeed - offsetY.in(Units.Meters)) < 0.05) && (Math.abs(thetaSpeed) < 0.05);
+    return (Math.abs(xSpeedPid) < 0.09) && (Math.abs(ySpeedPid) < 0.2) && (Math.abs(thetaPid) < 0.09);
   }
 }

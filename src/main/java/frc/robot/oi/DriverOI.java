@@ -69,7 +69,7 @@ public class DriverOI extends BaseOI {
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
 		this.intake.whileTrue(new RunIntake());
 		this.resetAngle.onTrue(new InstantCommand(Robot.cont.drivetrain::disabledPeriodic));
-		this.ceneterReefLeft.whileTrue(new CenterLimelight(Units.Feet.of(0),Units.Inches.of(-6.5), reefTags));
+		this.ceneterReefLeft.onTrue(new CenterLimelight(Units.Feet.of(0),Units.Inches.of(-6.5), reefTags));
 		this.ceneterReefRight.whileTrue(new CenterLimelight(Units.Feet.of(0),Units.Inches.of(6.5), reefTags));
 	}
 }

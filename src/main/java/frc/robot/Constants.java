@@ -138,10 +138,10 @@ public class Constants {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
 		public static final class Auto {
-			public static final PIDValues translationDynamic = new PIDValues(0, 0, 0, 0);
-			public static final PIDValues thetaDynamic = new PIDValues(0, 0, 0, 0);
+			public static final PIDValues translationDynamic = /*new PIDValues(7.5, 0, 0.5, 0);*/ new PIDValues(0, 0, 0, 0);
+			public static final PIDValues thetaDynamic = /*new PIDValues(5, 0, 0.0, 0);*/ new PIDValues(0, 0, 0, 0);
 			public static final PIDValues centerLimelight = new PIDValues(2, 0, 0, 0);
-			public static final PIDValues centerTheta = new PIDValues(5, 0, 0.2, 0);
+			public static final PIDValues centerTheta = new PIDValues(4, 0, 0.2, 0);
 		}
 
 		public static final SlotConfigs azimuth = new SlotConfigs()

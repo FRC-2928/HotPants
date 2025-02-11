@@ -15,9 +15,12 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
 
+import choreo.Choreo;
 import choreo.auto.AutoFactory;
+import choreo.trajectory.*;
 import choreo.trajectory.SwerveSample;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -83,6 +86,9 @@ public class Drivetrain extends SubsystemBase {
 	private ChassisSpeeds robotChassisSpeeds = new ChassisSpeeds();
 	public AutoFactory autoFactory;
 
+	private final PIDController xController = new PIDController(0, 0, 0);
+	private final PIDController yController = new PIDController(0, 0, 0);
+	private final PIDController headingController = new PIDController(0, 0, 0);
 	// PathPlanner config constants
 	private static final double ROBOT_MASS_KG = /*74.088*/ 57;
 	private static final double ROBOT_MOI = 6.883;
@@ -150,7 +156,7 @@ public class Drivetrain extends SubsystemBase {
 		autoFactory = new AutoFactory(
             this.est::getEstimatedPosition, // A function that returns the current robot pose
             this::reset, // A function that resets the current robot pose to the provided Pose2d
-            this::controlSwerveSample, // The drive subsystem trajectory follower 
+            this::controlChoreoSample, // The drive subsystem trajectory follower 
             true, // If alliance flipping should be enabled 
             this // The drive subsystem
         );
@@ -174,7 +180,17 @@ public class Drivetrain extends SubsystemBase {
 	public void controlSwerveSample(final SwerveSample sample) {
 		controlRobotOriented(sample.getChassisSpeeds());
 	}
+	public void controlChoreoSample(final SwerveSample sample){
+		Pose2d pose = this.est.getEstimatedPosition();
+		Logger.recordOutput("Drivetrain/Auto/SwerveSample", sample);
+		ChassisSpeeds speeds = new ChassisSpeeds(
+			sample.vx + xController.calculate(pose.getX(), sample.x),
+			sample.vy + yController.calculate(pose.getY(), sample.y),
+			0
+		);
+		controlRobotOriented(speeds);
 
+	}
 	public void controlRobotOriented(final ChassisSpeeds speeds) {
 		// speeds.omegaRadiansPerSecond = speeds.omegaRadiansPerSecond * 0.45; // TODO: Do we need this adjustment?
 		Logger.recordOutput("Drivetrain/DPosePre", speeds);
@@ -331,6 +347,7 @@ public class Drivetrain extends SubsystemBase {
 		Logger.recordOutput("Drivetrain/LimelightNotePose", this.limelightNote.getPose2d());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/Imumode", limelight.getImuMode());
+		Logger.recordOutput("Drivetrain/forwardBack", Choreo.loadTrajectory("forwardBack").get().getPoses());
 		PoseEstimate mt1 = this.limelight.getPoseMegatag1();
 		if (mt1 != null) {
 			Logger.recordOutput("Drivetrain/Mt1", mt1.pose);
