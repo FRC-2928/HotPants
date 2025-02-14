@@ -24,11 +24,14 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.commands.drivetrain.JoystickDrive;
@@ -85,10 +88,10 @@ public class Drivetrain extends SubsystemBase {
 	public ChassisSpeeds joystickSpeeds = new ChassisSpeeds();
 	private ChassisSpeeds robotChassisSpeeds = new ChassisSpeeds();
 	public AutoFactory autoFactory;
-
-	private final PIDController xController = new PIDController(0, 0, 0);
-	private final PIDController yController = new PIDController(0, 0, 0);
-	private final PIDController headingController = new PIDController(0, 0, 0);
+	// Choreo PID controllers have to be created in our code
+	private final PIDController xController = new PIDController(10.0, 0.0, 0.0);
+    private final PIDController yController = new PIDController(10.0, 0.0, 0.0);
+    private final PIDController headingController = new PIDController(5, 0.0, 0.0);
 	// PathPlanner config constants
 	private static final double ROBOT_MASS_KG = /*74.088*/ 57;
 	private static final double ROBOT_MOI = 6.883;
@@ -161,6 +164,7 @@ public class Drivetrain extends SubsystemBase {
             this // The drive subsystem
         );
 
+		headingController.enableContinuousInput(-Math.PI, Math.PI);
 	}
 
 	public void control(ChassisSpeeds speeds) {
@@ -178,7 +182,19 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void controlSwerveSample(final SwerveSample sample) {
-		controlRobotOriented(sample.getChassisSpeeds());
+		// Get the current pose of the robot
+        Pose2d pose = getEstimatedPosition();
+
+		Logger.recordOutput("Drivetrain/Choreo/TargetPose", sample.getPose());
+        // Generate the next speeds for the robot
+        ChassisSpeeds speeds = new ChassisSpeeds(
+            sample.vx + xController.calculate(pose.getX(), sample.x),
+            sample.vy + yController.calculate(pose.getY(), sample.y),
+            sample.omega + headingController.calculate(pose.getRotation().getRadians(), sample.heading)
+        );
+
+        // Apply the generated speeds
+		control(speeds);
 	}
 	public void controlChoreoSample(final SwerveSample sample){
 		Pose2d pose = this.est.getEstimatedPosition();
@@ -223,6 +239,10 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void halt() { this.control(State.locked()); }
+
+	public Command haltCommand() {
+		return new InstantCommand(() -> halt());
+	}
 
 	public ChassisSpeeds fod(final ChassisSpeeds speeds) {
 		return ChassisSpeeds.fromFieldRelativeSpeeds(speeds, new Rotation2d(getFieldOrientedAngle()));

@@ -51,8 +51,8 @@ public final class Autonomous {
 		chooser.addOption("[testing] voltage ramp", new VoltageRampCommand());
 		chooser.addOption("SimpleScore", Commands.sequence(autoFactory.trajectoryCmd("SimpleScore")));
 		chooser.addOption("SimpleFromRight", Commands.sequence(
-			autoFactory.resetOdometry("SimpleFromRight"),
-			autoFactory.trajectoryCmd("SimpleFromRight")
+			autoFactory.trajectoryCmd("SimpleFromRight"),
+			Robot.cont.drivetrain.haltCommand()
 		));
 		chooser.addOption("SimpleFromRight Path Planner gen", Commands.sequence(
 			new PathPlannerAuto("SimpleFromRightTest")
