@@ -32,6 +32,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.commands.drivetrain.JoystickDrive;
@@ -89,9 +90,9 @@ public class Drivetrain extends SubsystemBase {
 	private ChassisSpeeds robotChassisSpeeds = new ChassisSpeeds();
 	public AutoFactory autoFactory;
 	// Choreo PID controllers have to be created in our code
-	private final PIDController xController = new PIDController(10.0, 0.0, 0.0);
-    private final PIDController yController = new PIDController(10.0, 0.0, 0.0);
-    private final PIDController headingController = new PIDController(5, 0.0, 0.0);
+	private final PIDController xController = new PIDController(5, 0.0, 0);
+    private final PIDController yController = new PIDController(5, 0.0, 0);
+    private final PIDController headingController = new PIDController(5, 0.0, 0);
 	// PathPlanner config constants
 	private static final double ROBOT_MASS_KG = /*74.088*/ 57;
 	private static final double ROBOT_MOI = 6.883;
@@ -159,7 +160,7 @@ public class Drivetrain extends SubsystemBase {
 		autoFactory = new AutoFactory(
             this.est::getEstimatedPosition, // A function that returns the current robot pose
             this::reset, // A function that resets the current robot pose to the provided Pose2d
-            this::controlChoreoSample, // The drive subsystem trajectory follower 
+            this::controlSwerveSample, // The drive subsystem trajectory follower 
             true, // If alliance flipping should be enabled 
             this // The drive subsystem
         );
@@ -171,9 +172,8 @@ public class Drivetrain extends SubsystemBase {
 		Logger.recordOutput("Drivetrain/dx", speeds.vxMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
+		Logger.recordOutput("Drivetrain/DemandedChassisSpeedsROD", speeds);
 
-		speeds = this.fod(speeds);
-		speeds = this.compensate(speeds);
 		speeds = ChassisSpeeds.discretize(speeds, 0.02);
 
 		this.robotChassisSpeeds = speeds;
@@ -185,7 +185,7 @@ public class Drivetrain extends SubsystemBase {
 		// Get the current pose of the robot
         Pose2d pose = getEstimatedPosition();
 
-		Logger.recordOutput("Drivetrain/Choreo/TargetPose", sample.getPose());
+		Logger.recordOutput("Drivetrain/Auto/SwerveSample", sample);
         // Generate the next speeds for the robot
         ChassisSpeeds speeds = new ChassisSpeeds(
             sample.vx + xController.calculate(pose.getX(), sample.x),
@@ -194,6 +194,7 @@ public class Drivetrain extends SubsystemBase {
         );
 
         // Apply the generated speeds
+		speeds = this.fod(speeds, this.getEstimatedPosition().getRotation().getMeasure());
 		control(speeds);
 	}
 	public void controlChoreoSample(final SwerveSample sample){
@@ -241,24 +242,15 @@ public class Drivetrain extends SubsystemBase {
 	public void halt() { this.control(State.locked()); }
 
 	public Command haltCommand() {
-		return new InstantCommand(() -> halt());
+		return new RunCommand(() -> halt(), this).withTimeout(0.1);
 	}
 
-	public ChassisSpeeds fod(final ChassisSpeeds speeds) {
-		return ChassisSpeeds.fromFieldRelativeSpeeds(speeds, new Rotation2d(getFieldOrientedAngle()));
+	public ChassisSpeeds fod(final ChassisSpeeds speeds, final Angle fieldOrientedAngle) {
+		return ChassisSpeeds.fromFieldRelativeSpeeds(speeds, new Rotation2d(fieldOrientedAngle));
 	}
 
-	public ChassisSpeeds rod(final ChassisSpeeds speeds) {
-		return ChassisSpeeds.fromRobotRelativeSpeeds(speeds, new Rotation2d(getFieldOrientedAngle()));
-	}
-
-	public ChassisSpeeds compensate(final ChassisSpeeds original) {
-		// using this function because its just an easy way to rotate the axial/lateral speeds
-		return ChassisSpeeds
-			.fromFieldRelativeSpeeds(
-				original,
-				Rotation2d.fromRadians(original.omegaRadiansPerSecond * -Constants.Drivetrain.thetaCompensationFactor)
-			);
+	public ChassisSpeeds rod(final ChassisSpeeds speeds, final Angle fieldOrientedAngle) {
+		return ChassisSpeeds.fromRobotRelativeSpeeds(speeds, new Rotation2d(fieldOrientedAngle));
 	}
 
 	public void resetAngle() {
@@ -330,7 +322,10 @@ public class Drivetrain extends SubsystemBase {
 		Logger.processInputs("Drivetrain/Gyro", this.gyroInputs);
         Logger.recordOutput("Drivetrain/Botpose",limelightNote.getBluePose3d());
 		this.joystickSpeeds = this.joystickDrive.speeds();
-		if(this.getCurrentCommand() == this.joystickDrive) this.control(this.joystickSpeeds);
+		if(this.getCurrentCommand() == this.joystickDrive) {
+			this.joystickSpeeds = this.fod(this.joystickSpeeds, getFieldOrientedAngle());
+			this.control(this.joystickSpeeds);
+		}
 
 		for(final SwerveModule module : this.modules) {
 			if (module != null) {
@@ -367,7 +362,6 @@ public class Drivetrain extends SubsystemBase {
 		Logger.recordOutput("Drivetrain/LimelightNotePose", this.limelightNote.getPose2d());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/Imumode", limelight.getImuMode());
-		Logger.recordOutput("Drivetrain/forwardBack", Choreo.loadTrajectory("forwardBack").get().getPoses());
 		PoseEstimate mt1 = this.limelight.getPoseMegatag1();
 		if (mt1 != null) {
 			Logger.recordOutput("Drivetrain/Mt1", mt1.pose);
@@ -380,5 +374,18 @@ public class Drivetrain extends SubsystemBase {
 			this.setAngle(mt1.pose.getRotation().getMeasure());
 		}
 		// this.limelight.setRobotOrientation(this.est.getEstimatedPosition().getRotation().getMeasure()); 
+	}
+	public void seedLimelightImu(){
+		disabledPeriodic();
+		// PoseEstimate mt1 = this.limelight.getPoseMegatag1();
+		// if(mt1 != null && this.limelight.hasValidTargets()){
+		// 	this.limelight.setIMUMode(1);
+		// 	this.limelight.setRobotOrientation(mt1.pose.getRotation().getMeasure());
+		// }
+		// System.out.println("Seed Limelight !!!!!!!!!!!!");
+	}
+	public void setImuMode2(){
+		this.limelight.setIMUMode(2);
+		// System.out.println("SetImuMode2 yay Limelight !!!!!!!!!!!!");
 	}
 }

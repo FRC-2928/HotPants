@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
@@ -68,8 +69,9 @@ public class DriverOI extends BaseOI {
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
 		this.intake.whileTrue(new RunIntake());
-		this.resetAngle.onTrue(new InstantCommand(Robot.cont.drivetrain::disabledPeriodic));
-		this.ceneterReefLeft.onTrue(new CenterLimelight(Units.Feet.of(0),Units.Inches.of(-6.5), reefTags));
+		this.resetAngle.whileTrue(new RunCommand(Robot.cont.drivetrain::seedLimelightImu));
+		this.resetAngle.whileFalse(new RunCommand(Robot.cont.drivetrain::setImuMode2));
+		this.ceneterReefLeft.whileTrue(new CenterLimelight(Units.Feet.of(0),Units.Inches.of(-6.5), reefTags));
 		this.ceneterReefRight.whileTrue(new CenterLimelight(Units.Feet.of(0),Units.Inches.of(6.5), reefTags));
 	}
 }

@@ -11,10 +11,13 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import com.pathplanner.lib.commands.PathfindingCommand;
 
+import choreo.auto.AutoChooser;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 public class Robot extends LoggedRobot {
 	public static Robot instance;
 	public static RobotContainer cont;
@@ -23,7 +26,6 @@ public class Robot extends LoggedRobot {
 
 	public RobotContainer container;
 
-	private Command autonomousCommand;
 
 	public Robot() {
 		super();
@@ -58,7 +60,7 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void robotInit() {
-		PathfindingCommand.warmupCommand().schedule();
+		// PathfindingCommand.warmupCommand().schedule();
 		cont.drivetrain.limelight.setIMUMode(1);
 	}
 
@@ -88,15 +90,16 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void autonomousInit() {
-		CommandScheduler.getInstance().cancelAll();
+		// CommandScheduler.getInstance().cancelAll();
 
 		// Get selected routine from the dashboard
-		this.autonomousCommand = this.container.getAutonomousCommand();
+		// this.autonomousCommand = this.container.getAutonomousCommand();
+
 
 		// schedule the autonomous command (example)
-		if(this.autonomousCommand != null) {
-			this.autonomousCommand.schedule();
-		}
+		// if(this.autonomousCommand != null) {
+		// 	this.autonomousCommand.schedule();
+		// }
 	}
 
 	@Override
@@ -118,7 +121,6 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void teleopPeriodic() {
-		cont.drivetrain.limelight.setIMUMode(2);
 	}
 
 	@Override

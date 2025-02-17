@@ -97,7 +97,7 @@ public class JoystickDrive extends Command {
 				final double setpoint = forTarget.in(Units.Rotations);
 				
 				theta = MathUtil.applyDeadband(
-					-(this.absoluteController.calculate(measurement, setpoint)), // todo: determine whether this - is ok
+					this.absoluteController.calculate(measurement, setpoint),
 					0.075
 				);
 			}

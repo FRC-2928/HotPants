@@ -145,20 +145,20 @@ public class Constants {
 		}
 
 		public static final SlotConfigs azimuth = new SlotConfigs()
-			.withKP(-80)
+			.withKP(-50)
 			.withKI(0)
-			.withKD(-0.1)
-			.withKS(0)
-			.withKV(0)
-			.withKA(0);
+			.withKD(-0.5)
+			.withKS(-2);
+			// .withKV(0)
+			// .withKA(-0.5);
 
 		public static final SlotConfigs drive = new SlotConfigs()
-			.withKP(4.75) /* 0.15 */
+			.withKP(1) /* 0.15 */
 			.withKI(0.0)
 			.withKD(0.15)
 			.withKS(0.225)
 			.withKV(2.62) 
-			.withKA(0);
+			.withKA(0.25);
 
 		// todo: tune
 		public final static PIDValues drivePID = new PIDValues(0.1, 0, 0, 0);
@@ -218,7 +218,7 @@ public class Constants {
 		public static final Distance wheelRadius = Units.Inches.of(1.875);
 		public static final Distance wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
 
-		public static final LinearVelocity maxVelocity = Units.Meters.per(Units.Second).of(5.0);
+		public static final LinearVelocity maxVelocity = Units.Feet.per(Units.Second).of(15.5);  // MK4i max speed L2
 
 		// max angular velocity computes to 6.41 radians per second
 		public static final AngularVelocity maxAngularVelocity = Units.RotationsPerSecond

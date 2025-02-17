@@ -7,6 +7,7 @@ import org.littletonrobotics.junction.Logger;
 import choreo.trajectory.Trajectory;
 import choreo.trajectory.SwerveSample;
 import choreo.Choreo;
+import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 
 import com.pathplanner.lib.auto.*;
@@ -51,7 +52,10 @@ public final class Autonomous {
 		chooser.addOption("[testing] voltage ramp", new VoltageRampCommand());
 		chooser.addOption("SimpleScore", Commands.sequence(autoFactory.trajectoryCmd("SimpleScore")));
 		chooser.addOption("SimpleFromRight", Commands.sequence(
-			autoFactory.trajectoryCmd("SimpleFromRight"),
+			// autoFactory.resetOdometry("SimpleFromRight"),
+			autoFactory.trajectoryCmd("SimpleFromRight", 0),
+			// new WaitCommand(2),
+			autoFactory.trajectoryCmd("SimpleFromRight", 1),
 			Robot.cont.drivetrain.haltCommand()
 		));
 		chooser.addOption("SimpleFromRight Path Planner gen", Commands.sequence(
@@ -69,6 +73,25 @@ public final class Autonomous {
 			Autonomous.path("SimpleFromRight")
 		);
 		return chooser;
+	}
+
+	public static AutoChooser getChoreoAutoChooser() {
+		final AutoChooser choreoChooser = new AutoChooser();
+		AutoFactory autoFactory = Robot.cont.drivetrain.autoFactory;
+
+		choreoChooser.addCmd("SimpleFromRight", () -> Commands.sequence(
+			// autoFactory.resetOdometry("SimpleFromRight"),
+			new InstantCommand(() -> {Logger.recordOutput("Autonomous/StartedCommand", true);}),
+			autoFactory.trajectoryCmd("StartToF"),
+			new InstantCommand(() -> {Logger.recordOutput("Autonomous/FinishedPath", true);}),
+			// new WaitCommand(2),
+			autoFactory.trajectoryCmd("FtoB1Reverse")
+			// Robot.cont.drivetrain.haltCommand()
+		));
+
+		choreoChooser.addCmd("SimpleScore", () -> Commands.sequence(autoFactory.trajectoryCmd("SimpleScore")));
+
+		return choreoChooser;
 	}
 
 	public static Command setInitialPose(final String name) {

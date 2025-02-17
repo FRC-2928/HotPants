@@ -21,6 +21,7 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -106,6 +107,11 @@ public class ModuleIOReal implements ModuleIO {
 		driveConfig.Feedback.SensorToMechanismRatio =  Constants.Drivetrain.driveGearRatio/Constants.Drivetrain.wheelCircumference.in(Units.Meters);
 		driveConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
 
+		// Motion magic configuration
+		driveConfig.MotionMagic.MotionMagicCruiseVelocity = Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond);
+		driveConfig.MotionMagic.MotionMagicAcceleration = 50;
+		driveConfig.MotionMagic.MotionMagicJerk = 500;
+
 		// PID values
 		driveConfig.Slot0 = Slot0Configs.from(Constants.Drivetrain.drive);
 
@@ -177,7 +183,7 @@ public class ModuleIOReal implements ModuleIO {
 
 	@Override
 	public void drive(final LinearVelocity demand) {
-		this.drive.setControl(new VelocityVoltage(MathUtil.applyDeadband(demand.in(Units.MetersPerSecond), 0.1)));
+		this.drive.setControl(new MotionMagicVelocityVoltage(MathUtil.applyDeadband(demand.in(Units.MetersPerSecond), 0.1)));
 	}
 
 	@Override
