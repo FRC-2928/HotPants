@@ -43,18 +43,27 @@ public class CenterLimelight extends Command {
   private int tag;
   private Pose3d tagPose;
   private List<Integer> tagsToCheck;
-  public CenterLimelight() {
-    // Use addRequirements() here to declare subsystem dependencies.
-    this.addRequirements(Robot.cont.drivetrain);
-    this.offsetX = halfRobotWidth;
-    this.offsetY = Units.Meters.of(0);
-    this.centerPIDx = Constants.Drivetrain.Auto.centerLimelight.createController();
-    this.centerPIDy = Constants.Drivetrain.Auto.centerLimelight.createController();
-    this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
-    this.centerRotaionPid.enableContinuousInput(-Math.PI, Math.PI);
-    this.tagsToCheck = new ArrayList<>();
-  }
-  
+  private final static List<Integer> reefTags = List.of(6,7,8,9,10,11,17,18,19,20,21,22);
+    public CenterLimelight() {
+      // Use addRequirements() here to declare subsystem dependencies.
+      this.addRequirements(Robot.cont.drivetrain);
+      this.offsetX = halfRobotWidth;
+      this.offsetY = Units.Meters.of(0);
+      this.centerPIDx = Constants.Drivetrain.Auto.centerLimelight.createController();
+      this.centerPIDy = Constants.Drivetrain.Auto.centerLimelight.createController();
+      this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
+      this.centerRotaionPid.enableContinuousInput(-Math.PI, Math.PI);
+      this.tagsToCheck = new ArrayList<>();
+    }
+    public static CenterLimelight CenterLimelightLeft(){
+      return new CenterLimelight(Units.Feet.of(0),Units.Inches.of(-6.5), reefTags);
+    }
+    public static CenterLimelight CenterLimelightRight(){
+      return new CenterLimelight(Units.Feet.of(0),Units.Inches.of(6.5), reefTags);
+    }
+    public static CenterLimelight CenterLimelightCenter(){
+      return new CenterLimelight(Units.Feet.of(0),Units.Inches.of(0), reefTags);
+    }
 
   public CenterLimelight(Distance offsetX, Distance offsetY, final List<Integer> tagsToCheck) {
     this.addRequirements(Robot.cont.drivetrain);
@@ -104,6 +113,7 @@ public class CenterLimelight extends Command {
     Logger.recordOutput("Drivetrain/Auto/YSpeed",  ySpeed);
     Logger.recordOutput("Drivetrain/Auto/Center Is Finished", false);
     Logger.recordOutput("Drivetrain/Auto/XSpeedPid", xSpeedPid);
+    Logger.recordOutput("Drivetrain/Auto/YSpeedPid", ySpeedPid);
     Logger.recordOutput("Drivetrain/Auto/limelightHasValidTargets", Robot.cont.drivetrain.limelight.hasValidTargets());
     Logger.recordOutput("Drivetrain/Auto/Theta", Robot.cont.drivetrain.limelight.getBotPose3d_TargetSpace().getRotation().getAngle());
     Logger.recordOutput("Drivetrain/Auto/robotPoseTagSpace", robotPoseTagspace);
@@ -123,6 +133,6 @@ public class CenterLimelight extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return (Math.abs(xSpeedPid) < 0.09) && (Math.abs(ySpeedPid) < 0.2) && (Math.abs(thetaPid) < 0.09);
+    return (Math.abs(xSpeedPid) < 0.09) && (Math.abs(ySpeedPid) < 0.2) && (Math.abs(thetaPid) < 0.15);
   }
 }

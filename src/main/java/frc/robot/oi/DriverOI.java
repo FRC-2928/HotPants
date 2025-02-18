@@ -71,7 +71,7 @@ public class DriverOI extends BaseOI {
 		this.intake.whileTrue(new RunIntake());
 		this.resetAngle.whileTrue(new RunCommand(Robot.cont.drivetrain::seedLimelightImu));
 		this.resetAngle.whileFalse(new RunCommand(Robot.cont.drivetrain::setImuMode2));
-		this.ceneterReefLeft.whileTrue(new CenterLimelight(Units.Feet.of(0),Units.Inches.of(-6.5), reefTags));
-		this.ceneterReefRight.whileTrue(new CenterLimelight(Units.Feet.of(0),Units.Inches.of(6.5), reefTags));
+		this.ceneterReefLeft.whileTrue(CenterLimelight.CenterLimelightLeft());
+		this.ceneterReefRight.whileTrue(CenterLimelight.CenterLimelightRight());
 	}
 }

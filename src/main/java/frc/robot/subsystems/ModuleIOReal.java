@@ -183,7 +183,7 @@ public class ModuleIOReal implements ModuleIO {
 
 	@Override
 	public void drive(final LinearVelocity demand) {
-		this.drive.setControl(new MotionMagicVelocityVoltage(MathUtil.applyDeadband(demand.in(Units.MetersPerSecond), 0.1)));
+		this.drive.setControl(new VelocityVoltage(MathUtil.applyDeadband(demand.in(Units.MetersPerSecond), 0.1)));
 	}
 
 	@Override

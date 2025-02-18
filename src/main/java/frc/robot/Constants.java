@@ -36,7 +36,7 @@ public class Constants {
 	public static final AudioConfigs talonFXAudio = new AudioConfigs()
 		.withAllowMusicDurDisable(true)
 		.withBeepOnBoot(true)
-		.withBeepOnConfig(false);
+		.withBeepOnConfig(true);
 
 	public static enum Mode {
 		/** Running on a real robot. */
@@ -153,11 +153,11 @@ public class Constants {
 			// .withKA(-0.5);
 
 		public static final SlotConfigs drive = new SlotConfigs()
-			.withKP(1) /* 0.15 */
+			.withKP(0) /* 0.15 */
 			.withKI(0.0)
-			.withKD(0.15)
-			.withKS(0.225)
-			.withKV(2.62) 
+			.withKD(0)
+			.withKS(0)
+			.withKV(12.0/Units.FeetPerSecond.of(15.5).in(Units.MetersPerSecond)) 
 			.withKA(0.25);
 
 		// todo: tune
@@ -215,10 +215,10 @@ public class Constants {
 		public static final double driveGearRatio = (50.0 / 14) * (16.0 / 28) * (45.0 / 15); // ~= 6.746
 		public static final double azimuthGearRatio = 150.0 / 7.0;
 
-		public static final Distance wheelRadius = Units.Inches.of(1.875);
+		public static final Distance wheelRadius = Units.Inches.of(1.85)/*Units.Inches.of(1.875)*/;
 		public static final Distance wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
 
-		public static final LinearVelocity maxVelocity = Units.Feet.per(Units.Second).of(15.5);  // MK4i max speed L2
+		public static final LinearVelocity maxVelocity = Units.FeetPerSecond.of(15.5);  // MK4i max speed L2
 
 		// max angular velocity computes to 6.41 radians per second
 		public static final AngularVelocity maxAngularVelocity = Units.RotationsPerSecond

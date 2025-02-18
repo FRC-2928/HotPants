@@ -92,7 +92,7 @@ public class Drivetrain extends SubsystemBase {
 	// Choreo PID controllers have to be created in our code
 	private final PIDController xController = new PIDController(5, 0.0, 0);
     private final PIDController yController = new PIDController(5, 0.0, 0);
-    private final PIDController headingController = new PIDController(5, 0.0, 0);
+    private final PIDController headingController = new PIDController(5, 0.0, 0.2);
 	// PathPlanner config constants
 	private static final double ROBOT_MASS_KG = /*74.088*/ 57;
 	private static final double ROBOT_MOI = 6.883;

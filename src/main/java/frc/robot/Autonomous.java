@@ -50,28 +50,6 @@ public final class Autonomous {
 		);
 		
 		chooser.addOption("[testing] voltage ramp", new VoltageRampCommand());
-		chooser.addOption("SimpleScore", Commands.sequence(autoFactory.trajectoryCmd("SimpleScore")));
-		chooser.addOption("SimpleFromRight", Commands.sequence(
-			// autoFactory.resetOdometry("SimpleFromRight"),
-			autoFactory.trajectoryCmd("SimpleFromRight", 0),
-			// new WaitCommand(2),
-			autoFactory.trajectoryCmd("SimpleFromRight", 1),
-			Robot.cont.drivetrain.haltCommand()
-		));
-		chooser.addOption("SimpleFromRight Path Planner gen", Commands.sequence(
-			new PathPlannerAuto("SimpleFromRightTest")
-		));
-		chooser.addOption("GoFastRotate", 
-		new RunCommand(() -> {
-			Robot.cont.drivetrain.controlRobotOriented(
-				new ChassisSpeeds(
-					100,0,Math.PI
-				));
-			}
-		).withTimeout(2));
-		chooser.addOption("PP_SimpleFromRight", 
-			Autonomous.path("SimpleFromRight")
-		);
 		return chooser;
 	}
 
@@ -84,7 +62,7 @@ public final class Autonomous {
 			new InstantCommand(() -> {Logger.recordOutput("Autonomous/StartedCommand", true);}),
 			autoFactory.trajectoryCmd("StartToF"),
 			new InstantCommand(() -> {Logger.recordOutput("Autonomous/FinishedPath", true);}),
-			// new WaitCommand(2),
+			CenterLimelight.CenterLimelightRight().withTimeout(2),
 			autoFactory.trajectoryCmd("FtoB1Reverse")
 			// Robot.cont.drivetrain.haltCommand()
 		));
