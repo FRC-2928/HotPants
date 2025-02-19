@@ -6,7 +6,6 @@ package frc.robot.commands.drivetrain;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -20,8 +19,6 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
-import frc.robot.vision.Limelight;
-import frc.robot.vision.LimelightHelpers.PoseEstimate;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class CenterLimelight extends Command {
@@ -102,7 +99,7 @@ public class CenterLimelight extends Command {
     ySpeedPid = -centerPIDy.calculate(ySpeed,offsetY.in(Units.Meters));
     thetaPid = -centerRotaionPid.calculate(thetaSpeed,Math.PI);
     Robot.cont.drivetrain
-        .controlRobotOriented(
+        .control(
               new ChassisSpeeds(
                 xSpeedPid,
                 ySpeedPid,

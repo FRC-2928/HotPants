@@ -4,7 +4,6 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
@@ -43,9 +42,14 @@ public class JoystickDrive extends Command {
 	private final ProfiledPIDController absoluteController = Constants.Drivetrain.absoluteRotationPID
 		.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
 
-	// no execute method, drivetrain handles that
+	@Override
+	public void execute() {
+		final ChassisSpeeds robotOrientedSpeeds = drivetrain.fod(speeds(), drivetrain.getFieldOrientedAngle());
 
-	// this is a separate method so that drivetrain can call it to get base speeds to modify
+		drivetrain.control(robotOrientedSpeeds);
+	}
+
+	// Returns the Field-oriented ChassisSpeeds based on the joystick inputs
 	public ChassisSpeeds speeds() {
 		if(DriverStation.isAutonomous()) return new ChassisSpeeds();
 
@@ -53,10 +57,11 @@ public class JoystickDrive extends Command {
 		return new ChassisSpeeds(translation.getX(), translation.getY(), this.theta().in(Units.RadiansPerSecond));
 	}
 
+	// Returns the translation (X and Y) component from the joystick
 	private Translation2d translation() {
 		// get inputs, apply deadbands
-		final double axial = -MathUtil.applyDeadband(this.oi.driveAxial.get(), 0.1); // Negate b/c joystick Y is inverted from field X
-		final double lateral = -MathUtil.applyDeadband(this.oi.driveLateral.get(), 0.1); // Negate b/c joystick X is inverted from field Y
+		final double axial = -MathUtil.applyDeadband(this.oi.driveAxial.get(), 0.25); // Negate b/c joystick Y is inverted from field X
+		final double lateral = -MathUtil.applyDeadband(this.oi.driveLateral.get(), 0.25); // Negate b/c joystick X is inverted from field Y
 		Logger.recordOutput("Drivetrain/JoystickDrive/Axial", axial);
 		Logger.recordOutput("Drivetrain/JoystickDrive/Lateral", lateral);
 
@@ -71,6 +76,7 @@ public class JoystickDrive extends Command {
 		return new Translation2d(vx.in(Units.MetersPerSecond), vy.in(Units.MetersPerSecond));
 	}
 
+	// Returns the rotation component from the joystick
 	private AngularVelocity theta() {
 		double theta = 0;
 
