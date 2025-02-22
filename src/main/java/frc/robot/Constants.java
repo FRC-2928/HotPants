@@ -175,7 +175,7 @@ public class Constants {
 		public static final double thetaCompensationFactor = 0.2;
 
 		public static final Distance wheelBase = Units.Inches.of(27 - 2.5 * 2);
-		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain`
+		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain
 
 		// public static final Angle swerveFrontLeftOffset = Units.Rotations.of(0.227783);
 		// public static final Angle swerveFrontLeftOffset = Units.Rotations.of(0.349609375);

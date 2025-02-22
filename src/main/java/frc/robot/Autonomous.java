@@ -59,11 +59,16 @@ public final class Autonomous {
 
 		choreoChooser.addCmd("SimpleFromRight", () -> Commands.sequence(
 			// autoFactory.resetOdometry("SimpleFromRight"),
-			new InstantCommand(() -> {Logger.recordOutput("Autonomous/StartedCommand", true);}),
 			autoFactory.trajectoryCmd("StartToF"),
-			new InstantCommand(() -> {Logger.recordOutput("Autonomous/FinishedPath", true);}),
-			CenterLimelight.CenterLimelightRight().withTimeout(2),
-			autoFactory.trajectoryCmd("FtoB1Reverse")
+			Commands.deadline(new WaitCommand(2), CenterLimelight.CenterLimelightF()),
+			autoFactory.trajectoryCmd("FToB1Reverse"),
+			Commands.deadline(new WaitCommand(2), CenterLimelight.CenterLimelightB1Reverse()),
+			autoFactory.trajectoryCmd("B1ReverseToC"),
+			Commands.deadline(new WaitCommand(2), CenterLimelight.CenterLimelightC()),
+			autoFactory.trajectoryCmd("CToB1Reverse"),
+			Commands.deadline(new WaitCommand(2), CenterLimelight.CenterLimelightB1Reverse()),
+			autoFactory.trajectoryCmd("B1ReverseToD"),
+			Commands.deadline(new WaitCommand(2), CenterLimelight.CenterLimelightD())
 			// Robot.cont.drivetrain.haltCommand()
 		));
 

@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
@@ -28,6 +29,7 @@ public class CenterLimelight extends Command {
   /** Creates a new centerLimelight. */
   private Distance offsetX;
   private Distance offsetY;
+  private Angle offsetTheta;
   private double xSpeed;
   private double xSpeedPid;
   private double ySpeed;
@@ -39,7 +41,6 @@ public class CenterLimelight extends Command {
   private PIDController centerRotaionPid;
   private final Distance halfRobotWidth = Units.Inches.of(20);
   private Pose2d robotPoseTagspace;
-  public static final Pose2d tag8 = new Pose2d(13.474,4.745,new Rotation2d(Math.PI/3));
   private int tag;
   private Pose3d tagPose;
   private List<Integer> tagsToCheck;
@@ -49,6 +50,7 @@ public class CenterLimelight extends Command {
       this.addRequirements(Robot.cont.drivetrain);
       this.offsetX = halfRobotWidth;
       this.offsetY = Units.Meters.of(0);
+      this.offsetTheta = Units.Radians.of(Math.PI);
       this.centerPIDx = Constants.Drivetrain.Auto.centerLimelight.createController();
       this.centerPIDy = Constants.Drivetrain.Auto.centerLimelight.createController();
       this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
@@ -65,10 +67,39 @@ public class CenterLimelight extends Command {
       return new CenterLimelight(Units.Feet.of(0),Units.Inches.of(0), reefTags);
     }
 
+    public static CenterLimelight CenterLimelightC(){
+      return new CenterLimelight(Units.Feet.of(0),Units.Inches.of(-6.5), List.of(8, 17));
+    }
+
+    public static CenterLimelight CenterLimelightD(){
+      return new CenterLimelight(Units.Feet.of(0),Units.Inches.of(6.5), List.of(8, 17));
+    }
+
+    public static CenterLimelight CenterLimelightF(){
+      return new CenterLimelight(Units.Feet.of(0),Units.Inches.of(6.5), List.of(9, 22));
+    }
+
+    public static CenterLimelight CenterLimelightB1Reverse() {
+      return new CenterLimelight(Units.Feet.of(0),Units.Inches.of(-15), Units.Radians.of(0), List.of(2, 12));
+    }
+
   public CenterLimelight(Distance offsetX, Distance offsetY, final List<Integer> tagsToCheck) {
+    this(offsetX, offsetY, Units.Radians.of(Math.PI), tagsToCheck);
+    // this.addRequirements(Robot.cont.drivetrain);
+    // this.offsetX = offsetX.plus(halfRobotWidth);
+    // this.offsetY = offsetY;
+    // this.offsetTheta = Units.Radians.of(Math.PI);
+    // this.centerPIDx = Constants.Drivetrain.Auto.centerLimelight.createController();
+    // this.centerPIDy = Constants.Drivetrain.Auto.centerLimelight.createController();
+    // this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
+    // this.centerRotaionPid.enableContinuousInput(-Math.PI, Math.PI);
+    // this.tagsToCheck = tagsToCheck;
+  }
+  public CenterLimelight(Distance offsetX, Distance offsetY, Angle offsetTheta, final List<Integer> tagsToCheck) {
     this.addRequirements(Robot.cont.drivetrain);
-    this.offsetX = offsetX.plus(halfRobotWidth);
-    this.offsetY = offsetY;      
+    this.offsetX = offsetX.plus(halfRobotWidth.times(Math.cos(Math.PI + offsetTheta.in(Units.Radians))));
+    this.offsetY = offsetY.plus(halfRobotWidth.times(Math.sin(Math.PI + offsetTheta.in(Units.Radians))));
+    this.offsetTheta = offsetTheta;
     this.centerPIDx = Constants.Drivetrain.Auto.centerLimelight.createController();
     this.centerPIDy = Constants.Drivetrain.Auto.centerLimelight.createController();
     this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
@@ -81,7 +112,7 @@ public class CenterLimelight extends Command {
   public void initialize() {
     double smallst = Double.MAX_VALUE;
     tagPose = Constants.FIELD_LAYOUT.getTagPose(17).get();
-    for(int tag : tagsToCheck){
+    for(int tag : tagsToCheck) {
       Pose2d distance = Constants.FIELD_LAYOUT.getTagPose(tag).get().toPose2d().relativeTo(Robot.cont.drivetrain.est.getEstimatedPosition());
       if(Math.hypot(distance.getX(), distance.getY()) < smallst){
           tagPose = Constants.FIELD_LAYOUT.getTagPose(tag).get();
@@ -89,7 +120,6 @@ public class CenterLimelight extends Command {
       }
     }
     Logger.recordOutput("Drivetrain/Auto/tagpose", tagPose);
-    
   }
 
   @Override
@@ -100,7 +130,7 @@ public class CenterLimelight extends Command {
     thetaSpeed = robotPoseTagspace.getRotation().getRadians();
     xSpeedPid = -centerPIDx.calculate(xSpeed,offsetX.in(Units.Meters));
     ySpeedPid = -centerPIDy.calculate(ySpeed,offsetY.in(Units.Meters));
-    thetaPid = -centerRotaionPid.calculate(thetaSpeed,Math.PI);
+    thetaPid = -centerRotaionPid.calculate(thetaSpeed,offsetTheta.in(Units.Radians));
     Robot.cont.drivetrain
         .controlRobotOriented(
               new ChassisSpeeds(
