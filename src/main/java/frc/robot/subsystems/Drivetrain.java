@@ -339,7 +339,7 @@ public class Drivetrain extends SubsystemBase {
 		// Add vision measurements to pos est with megatag 2
 		PoseEstimate mt2 = this.limelight.getPoseMegatag2();
 		if (mt2 != null) {
-			Logger.recordOutput("Drivetrain/poseMegatag", this.limelight.getPoseMegatag2().pose);
+			Logger.recordOutput("Drivetrain/poseMegatag", mt2.pose);
 			boolean doRejectUpdate = false;
 
 			// if our angular velocity is greater than 720 degrees per second, ignore vision updates
@@ -351,6 +351,7 @@ public class Drivetrain extends SubsystemBase {
 				doRejectUpdate = true;
 			}
 	
+			Logger.recordOutput("Drivetrain/doRejectUpdate", doRejectUpdate);
 			if(!doRejectUpdate) {
 				est.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
 				est.addVisionMeasurement(

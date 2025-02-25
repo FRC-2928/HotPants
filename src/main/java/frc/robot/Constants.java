@@ -71,7 +71,7 @@ public class Constants {
 	// public static final Distance fieldWidth = Units.Meters.of(16.541); // Correlates to Field oriented x coordinate
 	// public static final Distance fieldDepth = Units.Meters.of(8.211); // Correlates to Field oriented y coordinate
 
-	public static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+	public static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 
 	public static final class LimelightFX {
 		private LimelightFX() { throw new IllegalCallerException("Cannot instantiate `Constants.LimelightFX`"); }
@@ -176,6 +176,8 @@ public class Constants {
 
 		public static final Distance wheelBase = Units.Inches.of(27 - 2.5 * 2);
 		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain
+		public static final Distance halfRobotWidth = Units.Inches.of(27.0/2);
+		public static final Distance halfRobotWidthBumpersOn = Units.Inches.of(27.0/2 + 3);
 
 		// public static final Angle swerveFrontLeftOffset = Units.Rotations.of(0.227783);
 		// public static final Angle swerveFrontLeftOffset = Units.Rotations.of(0.349609375);

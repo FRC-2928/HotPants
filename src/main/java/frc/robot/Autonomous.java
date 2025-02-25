@@ -61,12 +61,12 @@ public final class Autonomous {
 			// autoFactory.resetOdometry("SimpleFromRight"),
 			autoFactory.trajectoryCmd("StartToF"),
 			Commands.deadline(new WaitCommand(2), CenterLimelight.CenterLimelightF()),
-			autoFactory.trajectoryCmd("FToB1Reverse"),
-			Commands.deadline(new WaitCommand(2), CenterLimelight.CenterLimelightB1Reverse()),
+			autoFactory.trajectoryCmd("FToB2Reverse"),
+			Commands.deadline(new WaitCommand(2), CenterLimelight.CenterLimelightB2Reverse()),
 			autoFactory.trajectoryCmd("B1ReverseToC"),
 			Commands.deadline(new WaitCommand(2), CenterLimelight.CenterLimelightC()),
 			autoFactory.trajectoryCmd("CToB1Reverse"),
-			Commands.deadline(new WaitCommand(2), CenterLimelight.CenterLimelightB1Reverse()),
+			Commands.deadline(new WaitCommand(2), CenterLimelight.CenterLimelightB2Reverse()),
 			autoFactory.trajectoryCmd("B1ReverseToD"),
 			Commands.deadline(new WaitCommand(2), CenterLimelight.CenterLimelightD())
 			// Robot.cont.drivetrain.haltCommand()
