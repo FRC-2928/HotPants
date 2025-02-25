@@ -39,8 +39,6 @@ public abstract class BaseOI {
 
 	/**
 	 * C-Stop, the most useful command you'll ever have Press this magical button (start/left "window" button) to stop *all running commands*.
-	 *
-	 * @implNote If you remove this command I will haunt you forever
 	 */
 	public final Trigger cstop;
 

@@ -72,6 +72,7 @@ public class Robot extends LoggedRobot {
 	}
 
 	// DISABLED //
+
 	@Override
 	public void disabledInit() {
 		CommandScheduler.getInstance().cancelAll();
