@@ -14,7 +14,7 @@
     "**/.factorypath": true,
     "**/*~": true
   },
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
   "editor.tabSize": 4,
   "editor.insertSpaces": false,
   "editor.defaultFormatter": "redhat.java",
@@ -25,7 +25,6 @@
     "addDeprecated",
     "stringConcatToTextBlock",
     "invertEquals",
-    "addFinalModifier",
     "instanceofPatternMatch",
     "lambdaExpression",
     "switchExpression",

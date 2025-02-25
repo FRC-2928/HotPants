@@ -1,20 +1,12 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.VelocityDutyCycle;
-import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.NeutralModeValue;
+import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.*;
 import frc.robot.Constants;
 
 public class SwerveModule {
@@ -26,124 +18,81 @@ public class SwerveModule {
 		public final int index;
 	}
 
-	public static class State {
-		public final SwerveModuleState[] states;
+	public SwerveModule(final Place place) {
+		this.place = place;
 
-		public State() { this.states = new SwerveModuleState[4]; }
+		this.io = switch(Constants.mode) {
+		case REAL -> new ModuleIOReal(this);
+		case REPLAY -> new ModuleIO() {
+		};
+		case SIM -> new ModuleIO() {
 
-		public State(final SwerveModuleState[] states) { this.states = states; }
-
-		public static State forward() {
-			return new State()
-				.set(Place.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
-				.set(Place.FrontRight, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
-				.set(Place.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(0)))
-				.set(Place.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
-		}
-
-		public static State locked() {
-			return new State()
-				.set(Place.FrontLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(-45)))
-				.set(Place.FrontRight, new SwerveModuleState(0, Rotation2d.fromDegrees(45)))
-				.set(Place.BackLeft, new SwerveModuleState(0, Rotation2d.fromDegrees(-135)))
-				.set(Place.BackRight, new SwerveModuleState(0, Rotation2d.fromDegrees(135)));
-		}
-
-		public SwerveModuleState get(final Place place) { return this.states[place.index]; }
-
-		public State set(final Place place, final SwerveModuleState state) {
-			this.states[place.index] = state;
-			return this;
-		}
+		};
+		default -> throw new Error();
+		};
 	}
 
 	public final Place place;
+	public final ModuleIO io;
+	public final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
 
-	public final TalonFX azimuth;
-	public final TalonFX drive;
-	public final CANcoder encoder;
+	public SwerveModulePosition position = new SwerveModulePosition();
+	public SwerveModuleState current = new SwerveModuleState();
+	public SwerveModuleState desired = new SwerveModuleState();
 
-	private final PIDController pid = Constants.Drivetrain.swerveAzimuthPID.createController();
-
-	private boolean backwards = false;
-
-	public Rotation2d target = new Rotation2d();
-	public double targetVelocity = 0;
-
-	public SwerveModule(
-		final Place place,
-		final TalonFX azimuth,
-		final TalonFX drive,
-		final CANcoder encoder,
-		final double encoderOffset
-	) {
-		this.place = place;
-		this.azimuth = azimuth;
-		this.drive = drive;
-		this.encoder = encoder;
-
-		final var azimuthConfig = new TalonFXConfiguration();
-		azimuthConfig.CurrentLimits.StatorCurrentLimit = 30.0;
-		azimuthConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-		azimuth.getConfigurator().apply(azimuthConfig);
-		azimuth.setNeutralMode(NeutralModeValue.Brake);
-
-		final var driveConfig = new TalonFXConfiguration();
-		driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
-		driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-		drive.getConfigurator().apply(driveConfig);
-		drive.setNeutralMode(NeutralModeValue.Brake);
-
-		final CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
-		encoderConfig.MagnetSensor.MagnetOffset = encoderOffset;
-		encoder.getConfigurator().apply(encoderConfig);
-
-		this.pid.enableContinuousInput(-180, 180);
+	public Distance drivePosition() {
+		return Units.Meters
+			.of(
+				this.inputs.drivePosition.in(Units.Rotations) * Constants.Drivetrain.wheelCircumference.in(Units.Meters)
+			);
 	}
 
-	public SwerveModulePosition pos() {
-		return new SwerveModulePosition(
-			Constants.Drivetrain.driveGearMotorToWheel
-				.forward(
-					Constants.Drivetrain.motorEncoderToRotations.forward(this.drive.getRotorPosition().getValue())
-				),
-			Rotation2d.fromRotations(this.encoder.getAbsolutePosition().getValue())
+	public void halt() { this.io.setDriveVoltage(0); }
+
+	private void azimuth(final Angle desired) { this.io.azimuth(desired); }
+
+	private void drive(final LinearVelocity speed) {
+		/*
+		// Calculate drive power
+		final double ffw = this.driveFFW.calculate(speed.in(Units.MetersPerSecond));
+		final double output = this.drivePID
+			.calculate(this.inputs.driveVelocity.in(Units.MetersPerSecond), speed.in(Units.MetersPerSecond));
+		
+		// inputs.driveAppliedVolts will track the applied voltage
+		this.io.setDriveVoltage(ffw + output);
+		*/
+
+		this.io.drive(speed);
+	}
+
+	public void control(final SwerveModuleState state) {
+		if(Math.abs(state.angle.minus(new Rotation2d(this.inputs.angle)).getDegrees()) > 90) {
+			state.speedMetersPerSecond = -state.speedMetersPerSecond;
+			state.angle = state.angle.rotateBy(Rotation2d.fromDegrees(180.0));
+		}
+
+		this.azimuth(Units.Degrees.of(state.angle.getDegrees()));
+		this.drive(Units.MetersPerSecond.of(state.speedMetersPerSecond));
+
+		this.desired = state;
+	}
+
+	public void runCharacterization(final double volts) {
+		this.azimuth(Units.Degrees.of(0));
+		this.io.setDriveVoltage(volts);
+	}
+
+	public void periodic() {
+		this.io.updateInputs(this.inputs);
+		Logger.processInputs("Drivetrain/" + this.place.name(), this.inputs);
+
+		this.position = new SwerveModulePosition(
+			this.drivePosition().in(Units.Meters),
+			new Rotation2d(this.inputs.angle)
 		);
-	}
-
-	public void applyState(final SwerveModuleState state) {
-		final double ffw = Constants.Drivetrain.driveFFW.calculate(state.speedMetersPerSecond);
-
-		this.target = state.angle.unaryMinus();
-		this.targetVelocity = ffw;
-	}
-
-	public void halt() { this.drive.stopMotor(); }
-
-	void update() {
-		SmartDashboard.putNumber(this.place.name() + " Angle", this.pos().angle.getDegrees());
-
-		this.backwards = Constants.Drivetrain.Flags.wheelOptimization
-			&& Constants.angleDistance(this.target.getDegrees(), this.pos().angle.getDegrees()) > 90;
-		final double target = this.backwards
-			? Constants.angleNorm(this.target.getDegrees() + 180)
-			: this.target.getDegrees();
-
-		SmartDashboard.putNumber(this.place.name() + " Target", target);
-		SmartDashboard
-			.putNumber(
-				this.place.name() + " Distance From Target",
-				Constants.angleDistance(target, this.pos().angle.getDegrees())
-			);
-
-		final double turn = this.pid.calculate(this.pos().angle.getDegrees(), target);
-
-		// this.azimuth.set(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)));
-		this.azimuth
-			.setControl(
-				new DutyCycleOut(Constants.Drivetrain.azimuthGearMotorToWheel.forward(MathUtil.clamp(-turn, -90, 90)))
-			);
-		// this.drive.set(this.backwards ? -this.targetVelocity : this.targetVelocity);
-		this.drive.setControl(new DutyCycleOut(this.backwards ? -this.targetVelocity : this.targetVelocity));
+		this.current = new SwerveModuleState(
+			this.inputs.driveVelocity.in(Units.MetersPerSecond),
+			new Rotation2d(this.inputs.angle)
+		);
 	}
 }

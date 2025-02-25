@@ -1,40 +1,77 @@
 package frc.robot.oi;
 
+import java.util.List;
 import java.util.function.Supplier;
 
+import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants;
+import frc.robot.Robot;
+import frc.robot.Constants.Mode;
+import frc.robot.commands.drivetrain.CenterLimelight;
+import frc.robot.commands.drivetrain.LockWheels;
+import frc.robot.commands.drivetrain.RunIntake;
 
 public class DriverOI extends BaseOI {
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
 
-		this.moveAxial = this.controller::getLeftY;
-		this.moveLateral = this.controller::getLeftX;
+		this.driveAxial = this.controller::getLeftY;
+		this.driveLateral = this.controller::getLeftX;
 
-		this.moveTheta = this.controller::getRightX;
+		if(Constants.mode == Mode.REAL) {
+			this.driveFORX = this.controller::getRightX;
+			this.driveFORY = () -> -this.controller.getRightY();
+		} else {
+			this.driveFORX = () -> this.hid.getRawAxis(2);
+			this.driveFORY = () -> this.hid.getRawAxis(3);
+		}
+		this.manualRotation = this.controller.rightStick();
 
-		this.moveRotationX = this.controller::getRightX;
-		this.moveRotationY = this.controller::getRightY;
+		this.ceneterReefLeft = this.controller.leftBumper();
+		this.ceneterReefRight = this.controller.rightBumper();
+		this.intake = this.controller.b();
 
-		this.slow = this.controller::getRightTriggerAxis;
-
-		this.lock = this.controller.leftBumper();
+		this.ferry = this.controller.rightBumper();
 
 		this.resetFOD = this.controller.y();
+
+		this.resetAngle = this.controller.a();
+
+		this.lockWheels = this.controller.x();
 	}
 
-	public final Supplier<Double> moveAxial;
-	public final Supplier<Double> moveLateral;
+	public final Supplier<Double> driveAxial;
+	public final Supplier<Double> driveLateral;
 
-	public final Supplier<Double> moveTheta;
+	public final Supplier<Double> driveFORX;
+	public final Supplier<Double> driveFORY;
+	public final Trigger manualRotation;
 
-	public final Supplier<Double> moveRotationX;
-	public final Supplier<Double> moveRotationY;
+	public final Trigger ceneterReefLeft;
+	public final Trigger ceneterReefRight;
+	public final Trigger intake;
 
-	public final Supplier<Double> slow;
-
-	public final Trigger lock;
+	public final Trigger lockWheels;
 
 	public final Trigger resetFOD;
+	public final List<Integer> reefTags = List.of(6,7,8,9,10,11,17,18,19,20,21,22);
+	public final List<Integer> proccesorTags = List.of(3,16);
+	public final List<Integer> humanStationTags = List.of(1,2,12,13);
+	public final List<Integer> bargeTags = List.of(4,5,14,15);
+	public final Trigger ferry;
+	public final Trigger resetAngle;
+	public void configureControls() {
+
+		this.lockWheels.whileTrue(new LockWheels());
+		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
+		this.intake.whileTrue(new RunIntake());
+		this.resetAngle.whileTrue(new RunCommand(Robot.cont.drivetrain::seedLimelightImu));
+		this.resetAngle.whileFalse(new RunCommand(Robot.cont.drivetrain::setImuMode2));
+		this.ceneterReefLeft.whileTrue(CenterLimelight.CenterLimelightLeft());
+		this.ceneterReefRight.whileTrue(CenterLimelight.CenterLimelightRightRotated());
+	}
 }
