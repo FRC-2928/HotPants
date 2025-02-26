@@ -1,13 +1,9 @@
 package frc.robot.vision;
 
-import org.littletonrobotics.junction.AutoLogOutput;
-
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.*;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.vision.LimelightHelpers.LimelightResults;
 import frc.robot.vision.LimelightHelpers.PoseEstimate;
@@ -68,30 +64,15 @@ public class Limelight {
 
 	public PoseEstimate getPoseMegatag1(){ return LimelightHelpers.getBotPoseEstimate_wpiBlue(this.limelightName);}
 
-	public void setRobotOrientation(Angle yaw) { LimelightHelpers.SetRobotOrientation(limelightName, yaw.in(Units.Degrees),0,0,0,0,0);}
+	public void setRobotOrientation(Angle yaw) { LimelightHelpers.SetRobotOrientation(this.limelightName, yaw.in(Units.Degrees),0,0,0,0,0);}
 
 	public void setIMUMode(int mode) {
-		LimelightHelpers.SetIMUMode(limelightName, mode);
+		LimelightHelpers.SetIMUMode(this.limelightName, mode);
 	}
 
 	public double getImuMode(){
         return LimelightHelpers.getLimelightNTDouble(this.limelightName, "imumode_set");
     }
-
-	// Robot transform in 2D field-space. Translation (X,Y) Rotation(Z)
-	@AutoLogOutput(key = "Odometry/Limelight")
-	public Pose2d getPose2d() {
-		// Pose2d botPose = getBotPose2d().relativeTo(new Pose2d(-8.27, -4.105, new Rotation2d()));
-		// This should do the same thing as the commented out line above, without need for manual coordinate transformation
-		if(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-			return LimelightHelpers.getBotPose2d_wpiRed(this.limelightName);
-		} else {
-			return LimelightHelpers.getBotPose2d_wpiBlue(this.limelightName);
-		}
-	}
-
-	//@AutoLogOutput(key = "Odometry/BotPose")
-	public Pose2d getBotPose2d() { return LimelightHelpers.getBotPose2d(this.limelightName); }
 
 	// Robot transform in field-space (blue driverstation WPILIB origin). Translation (X,Y,Z) Rotation(X,Y,Z)
 	public Pose3d getBluePose3d() { return LimelightHelpers.getBotPose3d_wpiBlue(this.limelightName); }
@@ -104,13 +85,6 @@ public class Limelight {
 
 	// Robot transform in field-space (red driverstation WPILIB origin). Translation (X,Y,Z) Rotation(X,Y,Z)
 	public Pose3d getRedPose3d() { return LimelightHelpers.getBotPose3d_wpiRed(this.limelightName); }
-
-	// 3D transform of the primary in-view AprilTag in the coordinate system of the Robot (array (6))
-	//@AutoLogOutput(key = "limelight/Pose3d")
-	public Pose3d getRobotTagPose3d() { return LimelightHelpers.getTargetPose3d_RobotSpace(this.limelightName); }
-
-	// 3D transform of the primary in-view AprilTag in the coordinate system of the Camera (array (6))
-	public Pose3d getCameraTagPose3d() { return LimelightHelpers.getTargetPose3d_CameraSpace(this.limelightName); }
 
 	public static int getClosestTagId(final PoseEstimate pose) {
 		double closestTagDistance = 999999;

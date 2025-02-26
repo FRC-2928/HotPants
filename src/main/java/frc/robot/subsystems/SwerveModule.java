@@ -25,9 +25,7 @@ public class SwerveModule {
 		case REAL -> new ModuleIOReal(this);
 		case REPLAY -> new ModuleIO() {
 		};
-		case SIM -> new ModuleIO() {
-
-		};
+		case SIM -> new ModuleIOReal(this);
 		default -> throw new Error();
 		};
 	}
@@ -49,36 +47,20 @@ public class SwerveModule {
 
 	public void halt() { this.io.setDriveVoltage(0); }
 
-	private void azimuth(final Angle desired) { this.io.azimuth(desired); }
-
-	private void drive(final LinearVelocity speed) {
-		/*
-		// Calculate drive power
-		final double ffw = this.driveFFW.calculate(speed.in(Units.MetersPerSecond));
-		final double output = this.drivePID
-			.calculate(this.inputs.driveVelocity.in(Units.MetersPerSecond), speed.in(Units.MetersPerSecond));
-		
-		// inputs.driveAppliedVolts will track the applied voltage
-		this.io.setDriveVoltage(ffw + output);
-		*/
-
-		this.io.drive(speed);
-	}
-
 	public void control(final SwerveModuleState state) {
 		if(Math.abs(state.angle.minus(new Rotation2d(this.inputs.angle)).getDegrees()) > 90) {
 			state.speedMetersPerSecond = -state.speedMetersPerSecond;
 			state.angle = state.angle.rotateBy(Rotation2d.fromDegrees(180.0));
 		}
 
-		this.azimuth(Units.Degrees.of(state.angle.getDegrees()));
-		this.drive(Units.MetersPerSecond.of(state.speedMetersPerSecond));
+		this.io.azimuth(state.angle.getMeasure());
+		this.io.drive(Units.MetersPerSecond.of(state.speedMetersPerSecond));
 
 		this.desired = state;
 	}
 
 	public void runCharacterization(final double volts) {
-		this.azimuth(Units.Degrees.of(0));
+		this.io.azimuth(Units.Degrees.of(0));
 		this.io.setDriveVoltage(volts);
 	}
 
@@ -94,5 +76,9 @@ public class SwerveModule {
 			this.inputs.driveVelocity.in(Units.MetersPerSecond),
 			new Rotation2d(this.inputs.angle)
 		);
+	}
+
+	public void simulationPeriodic() {
+		this.io.updateSimulation(0.02);
 	}
 }

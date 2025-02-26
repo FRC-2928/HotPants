@@ -2,18 +2,11 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.*;
-import edu.wpi.first.wpilibj.DriverStation;
 
 import java.util.Arrays;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
-
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.config.ModuleConfig;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.util.PathPlannerLogging;
 
 import choreo.auto.AutoFactory;
 import choreo.trajectory.SwerveSample;
@@ -26,7 +19,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -68,50 +60,28 @@ public class Drivetrain extends SubsystemBase {
 		}
 	}
 
-	public final GyroIO gyro;
-	public final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+	private final GyroIO gyro;
+	private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
 
-	public final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
+	private final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
 
-	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
-	public final SwerveDrivePoseEstimator est;
-	public final Limelight limelightNote = new Limelight("limelight-note");
-	public final Limelight limelightShooter = new Limelight("limelight-shooter");
-	public final Limelight limelightRear = new Limelight("limelight-rear");
+	private final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
+	private final SwerveDrivePoseEstimator est;
 	public final Limelight limelight = new Limelight("limelight");
 
-	public final JoystickDrive joystickDrive = new JoystickDrive(this);
+	private final JoystickDrive joystickDrive = new JoystickDrive(this);
 	private Rotation2d joystickFOROffset;
-	public ChassisSpeeds joystickSpeeds = new ChassisSpeeds();
+
 	public AutoFactory autoFactory;
 	// Choreo PID controllers have to be created in our code
 	private final PIDController xController = new PIDController(5, 0.0, 0);
     private final PIDController yController = new PIDController(5, 0.0, 0);
     private final PIDController headingController = new PIDController(5, 0.0, 0.2);
-	// PathPlanner config constants
-	private static final double ROBOT_MASS_KG = /*74.088*/ 57;
-	private static final double ROBOT_MOI = 6.883;
-	private static final double WHEEL_COF = 1.2;
-	private static final RobotConfig PP_CONFIG = /* TODO: TUNE THESE FOR OUR ROBOT */
-      new RobotConfig(
-          ROBOT_MASS_KG,
-          ROBOT_MOI,
-          new ModuleConfig(
-              Constants.Drivetrain.wheelRadius,
-              Constants.Drivetrain.maxVelocity,
-              WHEEL_COF,
-              DCMotor.getKrakenX60Foc(1)
-                  .withReduction(Constants.Drivetrain.driveGearRatio),
-              (Current)Units.Amps.of(120),
-              1),
-          Constants.Drivetrain.kinematics.getModules());
 
 	public Drivetrain() {
 		this.gyro = switch(Constants.mode) {
 		case REAL -> new GyroIOReal();
-		case REPLAY -> new GyroIO() {
-			
-		};
+		case REPLAY -> new GyroIO() {};
 		case SIM -> new GyroIOReal();
 		default -> throw new Error();
 		};
@@ -129,28 +99,6 @@ public class Drivetrain extends SubsystemBase {
 		);
 
 		this.joystickFOROffset = new Rotation2d(this.gyroInputs.yawPosition);
-
-		// PathPlannerLib auto configuration. Refer https://pathplanner.dev/pplib-getting-started.html
-		AutoBuilder
-			.configure(
-				this::getEstimatedPosition,
-				(pose) -> {},
-				this::getCurrentChassisSpeeds,
-				this::control,
-				new PPHolonomicDriveController(
-					Constants.fromPIDValues(Constants.Drivetrain.Auto.translationDynamic),
-					Constants.fromPIDValues(Constants.Drivetrain.Auto.thetaDynamic)),
-				PP_CONFIG,
-				() -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
-				this
-			);
-
-		PathPlannerLogging
-			.setLogActivePathCallback(
-				poses -> Logger.recordOutput("Drivetrain/Auto/PathPoses", poses.toArray(Pose2d[]::new))
-			);
-		PathPlannerLogging.setLogCurrentPoseCallback(pose -> Logger.recordOutput("Drivetrain/Auto/CurrentPose", pose));
-		PathPlannerLogging.setLogTargetPoseCallback(pose -> Logger.recordOutput("Drivetrain/Auto/DesiredPose", pose));
 
 		autoFactory = new AutoFactory(
             this.est::getEstimatedPosition, // A function that returns the current robot pose
@@ -187,7 +135,7 @@ public class Drivetrain extends SubsystemBase {
         );
 
         // Convert the speeds to robot-oriented and control
-		speeds = this.fod(speeds, this.getEstimatedPosition().getRotation().getMeasure());
+		speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, this.getEstimatedPosition().getRotation());
 		control(speeds);
 	}
 
@@ -207,14 +155,6 @@ public class Drivetrain extends SubsystemBase {
 
 	public Command haltCommand() {
 		return new RunCommand(() -> halt(), this).withTimeout(0.1);
-	}
-
-	public ChassisSpeeds fod(final ChassisSpeeds speeds, final Angle fieldOrientedAngle) {
-		return ChassisSpeeds.fromFieldRelativeSpeeds(speeds, new Rotation2d(fieldOrientedAngle));
-	}
-
-	public ChassisSpeeds rod(final ChassisSpeeds speeds, final Angle fieldOrientedAngle) {
-		return ChassisSpeeds.fromRobotRelativeSpeeds(speeds, new Rotation2d(fieldOrientedAngle));
 	}
 
 	public void resetAngle() {
@@ -271,7 +211,6 @@ public class Drivetrain extends SubsystemBase {
 	public void periodic() {
 		this.gyro.updateInputs(this.gyroInputs);
 		Logger.processInputs("Drivetrain/Gyro", this.gyroInputs);
-        Logger.recordOutput("Drivetrain/Botpose",limelightNote.getBluePose3d());
 
 		for(final SwerveModule module : this.modules) {
 			if (module != null) {
@@ -306,7 +245,6 @@ public class Drivetrain extends SubsystemBase {
 			}
 		}
 
-		Logger.recordOutput("Drivetrain/LimelightNotePose", this.limelightNote.getPose2d());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/Imumode", limelight.getImuMode());
 		PoseEstimate mt1 = this.limelight.getPoseMegatag1();
@@ -320,19 +258,26 @@ public class Drivetrain extends SubsystemBase {
 		if(this.limelight.hasValidTargets() && mt1 != null){
 			this.setAngle(mt1.pose.getRotation().getMeasure());
 		}
-		// this.limelight.setRobotOrientation(this.est.getEstimatedPosition().getRotation().getMeasure()); 
 	}
+
 	public void seedLimelightImu(){
 		disabledPeriodic();
-		// PoseEstimate mt1 = this.limelight.getPoseMegatag1();
-		// if(mt1 != null && this.limelight.hasValidTargets()){
-		// 	this.limelight.setIMUMode(1);
-		// 	this.limelight.setRobotOrientation(mt1.pose.getRotation().getMeasure());
-		// }
-		// System.out.println("Seed Limelight !!!!!!!!!!!!");
 	}
+
 	public void setImuMode2(){
 		this.limelight.setIMUMode(2);
-		// System.out.println("SetImuMode2 yay Limelight !!!!!!!!!!!!");
+	}
+
+	public void setDefaultCommand() {
+		this.setDefaultCommand(this.joystickDrive);
+	}
+
+	@Override
+	public void simulationPeriodic() {
+		for (SwerveModule s: this.modules) {
+			s.simulationPeriodic();
+		}
+		final ChassisSpeeds simulatedTwist = this.kinematics.toChassisSpeeds(this.currentModuleStates());
+		gyro.simulationPeriodic(Units.Radians.of(simulatedTwist.omegaRadiansPerSecond * 0.02));
 	}
 }

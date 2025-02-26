@@ -12,7 +12,6 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -67,9 +66,6 @@ public class Constants {
 	}
 
 	public static PIDConstants fromPIDValues(final PIDValues pid) { return new PIDConstants(pid.p, pid.d, pid.d); }
-
-	// public static final Distance fieldWidth = Units.Meters.of(16.541); // Correlates to Field oriented x coordinate
-	// public static final Distance fieldDepth = Units.Meters.of(8.211); // Correlates to Field oriented y coordinate
 
 	public static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 
@@ -137,90 +133,19 @@ public class Constants {
 	public static final class Drivetrain {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
-		public static final class Auto {
-			public static final PIDValues translationDynamic = /*new PIDValues(7.5, 0, 0.5, 0);*/ new PIDValues(0, 0, 0, 0);
-			public static final PIDValues thetaDynamic = /*new PIDValues(5, 0, 0.0, 0);*/ new PIDValues(0, 0, 0, 0);
-			public static final PIDValues centerLimelight = new PIDValues(2, 0, 0, 0);
-			public static final PIDValues centerTheta = new PIDValues(4, 0, 0.2, 0);
-		}
+		// Gear ratios for SDS MK4i L2, adjust as necessary
+		public static final double driveGearRatio = (50.0 / 14) * (16.0 / 28) * (45.0 / 15); // ~= 6.746
+		public static final double azimuthGearRatio = 150.0 / 7.0;
 
-		public static final SlotConfigs azimuth = new SlotConfigs()
-			.withKP(-50)
-			.withKI(0)
-			.withKD(-0.5)
-			.withKS(-2);
-			// .withKV(0)
-			// .withKA(-0.5);
+		public static final Distance wheelRadius = Units.Inches.of(1.85);
+		public static final Distance wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
 
-		public static final SlotConfigs drive = new SlotConfigs()
-			.withKP(0) /* 0.15 */
-			.withKI(0.0)
-			.withKD(0)
-			.withKS(0)
-			.withKV(12.0/Units.FeetPerSecond.of(15.5).in(Units.MetersPerSecond)) 
-			.withKA(0.25);
-
-		// todo: tune
-		public final static PIDValues drivePID = new PIDValues(0.1, 0, 0, 0);
-		//public static final PIDValues swerveAzimuthPID = new PIDValues(0.01, 0, 0.005, 0);
-		public static final PIDValues absoluteRotationPID = new PIDValues(2.3, 0, 0.15, 0);
-		public static final TrapezoidProfile.Constraints absoluteRotationConstraints = new TrapezoidProfile.Constraints(
-			1,
-			17
-		);
-		public static final SimpleMotorFeedforward absoluteRotationFeedforward = new SimpleMotorFeedforward(2, 1);
-		// todo: find
-		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 2.5, 0);
-
-		public static final double thetaCompensationFactor = 0.2;
+		public static final LinearVelocity maxVelocity = Units.FeetPerSecond.of(15.5);  // MK4i max speed L2
 
 		public static final Distance wheelBase = Units.Inches.of(27 - 2.5 * 2);
 		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain
 		public static final Distance halfRobotWidth = Units.Inches.of(27.0/2);
 		public static final Distance halfRobotWidthBumpersOn = Units.Inches.of(27.0/2 + 3);
-
-		// public static final Angle swerveFrontLeftOffset = Units.Rotations.of(0.227783);
-		// public static final Angle swerveFrontLeftOffset = Units.Rotations.of(0.349609375);
-		public static final Angle swerveFrontLeftOffset = Units.Rotations.of(-0.385009765625);
-		public static final Translation2d swerveFrontLeftTranslation = new Translation2d(
-			Constants.Drivetrain.wheelBase,
-			Constants.Drivetrain.trackWidth
-		);
-		// public static final Angle swerveFrontRightOffset = Units.Rotations.of(-0.150146484375);
-		public static final Angle swerveFrontRightOffset = Units.Rotations.of(-0.38671875);
-		public static final Translation2d swerveFrontRightTranslation = new Translation2d(
-			Constants.Drivetrain.wheelBase,
-			Constants.Drivetrain.trackWidth.negate()
-		);
-		// public static final Angle swerveBackLeftOffset = Units.Rotations.of(-0.136474609375);
-		public static final Angle swerveBackLeftOffset = Units.Rotations.of(-0.19384765625);
-		public static final Translation2d swerveBackLeftTranslation = new Translation2d(
-			Constants.Drivetrain.wheelBase.negate(),
-			Constants.Drivetrain.trackWidth
-		);
-		// public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.4404296875);
-		public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.404296875);
-		public static final Translation2d swerveBackRightTranslation = new Translation2d(
-			Constants.Drivetrain.wheelBase.negate(),
-			Constants.Drivetrain.trackWidth.negate()
-		);
-
-		public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
-			Constants.Drivetrain.swerveFrontLeftTranslation,
-			Constants.Drivetrain.swerveFrontRightTranslation,
-			Constants.Drivetrain.swerveBackLeftTranslation,
-			Constants.Drivetrain.swerveBackRightTranslation
-		);
-
-		// Gear ratios for SDS MK4i L2, adjust as necessary
-		// public static final double driveGearRatio = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0); // ~= 6.746
-		public static final double driveGearRatio = (50.0 / 14) * (16.0 / 28) * (45.0 / 15); // ~= 6.746
-		public static final double azimuthGearRatio = 150.0 / 7.0;
-
-		public static final Distance wheelRadius = Units.Inches.of(1.85)/*Units.Inches.of(1.875)*/;
-		public static final Distance wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
-
-		public static final LinearVelocity maxVelocity = Units.FeetPerSecond.of(15.5);  // MK4i max speed L2
 
 		// max angular velocity computes to 6.41 radians per second
 		public static final AngularVelocity maxAngularVelocity = Units.RotationsPerSecond
@@ -234,6 +159,61 @@ public class Constants {
 								Drivetrain.wheelBase.divide(2).in(Units.Meters)
 							))
 			);
+
+		public static final class Auto {
+			public static final PIDValues translationDynamic = new PIDValues(10, 0, 0, 0);
+			public static final PIDValues thetaDynamic = new PIDValues(10, 0, 0, 0);
+			public static final PIDValues centerLimelight = new PIDValues(2, 0, 0, 0);
+			public static final PIDValues centerTheta = new PIDValues(4, 0, 0.2, 0);
+		}
+
+		public static final SlotConfigs azimuth = new SlotConfigs()
+			.withKP(-50)
+			.withKI(0)
+			.withKD(-0.5)
+			.withKS(-2);
+
+		public static final SlotConfigs drive = new SlotConfigs()
+			.withKP(0)
+			.withKI(0.0)
+			.withKD(0)
+			.withKS(0)
+			.withKV(12.0/maxVelocity.in(Units.MetersPerSecond));
+			// .withKA(0.25);
+
+		public static final PIDValues absoluteRotationPID = new PIDValues(2.3, 0, 0.15, 0);
+		public static final TrapezoidProfile.Constraints absoluteRotationConstraints = new TrapezoidProfile.Constraints(
+			1,
+			17
+		);
+
+		public static final Angle swerveFrontLeftOffset = Units.Rotations.of(-0.385009765625);
+		public static final Translation2d swerveFrontLeftTranslation = new Translation2d(
+			Constants.Drivetrain.wheelBase,
+			Constants.Drivetrain.trackWidth
+		);
+		public static final Angle swerveFrontRightOffset = Units.Rotations.of(-0.38671875);
+		public static final Translation2d swerveFrontRightTranslation = new Translation2d(
+			Constants.Drivetrain.wheelBase,
+			Constants.Drivetrain.trackWidth.unaryMinus()
+		);
+		public static final Angle swerveBackLeftOffset = Units.Rotations.of(-0.19384765625);
+		public static final Translation2d swerveBackLeftTranslation = new Translation2d(
+			Constants.Drivetrain.wheelBase.unaryMinus(),
+			Constants.Drivetrain.trackWidth
+		);
+		public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.404296875);
+		public static final Translation2d swerveBackRightTranslation = new Translation2d(
+			Constants.Drivetrain.wheelBase.unaryMinus(),
+			Constants.Drivetrain.trackWidth.unaryMinus()
+		);
+
+		public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
+			Constants.Drivetrain.swerveFrontLeftTranslation,
+			Constants.Drivetrain.swerveFrontRightTranslation,
+			Constants.Drivetrain.swerveBackLeftTranslation,
+			Constants.Drivetrain.swerveBackRightTranslation
+		);
 	}
 
 	public static class Shooter {
@@ -288,8 +268,6 @@ public class Constants {
 
 		public static final FlywheelConfiguration flywheels = FlywheelConfiguration.greenBane;
 
-		// todo: fill angles
-
 		// a little above intake height to avoid hitting floor but to be ready
 		public static final Angle readyIntake = Units.Rotations.of(-0.1085);
 		// min angle before hitting floor
@@ -298,7 +276,6 @@ public class Constants {
 		public static final Angle readyDrive = Units.Degrees.zero();
 		public static final Angle readyShootFront = Units.Rotations.of(0.122);
 		public static final Angle readyShootRear = Units.Degrees.of(125);
-		// public static final Angle readyShootRearSub = Units.Degrees.of(105);
 		public static final Angle shootAmp = Units.Degrees.of(110);
 
 		public static final double ampBarServoAExtend = 1.0;

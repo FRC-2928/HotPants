@@ -30,4 +30,6 @@ public interface GyroIO {
 
 	public default void reset() {}
 	public default void setYaw(Angle yaw){}
+
+	public default void simulationPeriodic(Angle rotation) {}
 }

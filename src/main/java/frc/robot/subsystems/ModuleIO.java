@@ -36,4 +36,6 @@ public interface ModuleIO {
 	public default void azimuth(final Angle desired) {}
 
 	public default void updateInputs(final ModuleIOInputs inputs) {}
+
+	public default void updateSimulation(final double dt) {}
 }

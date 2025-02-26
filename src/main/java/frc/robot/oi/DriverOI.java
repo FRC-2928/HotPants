@@ -3,7 +3,6 @@ package frc.robot.oi;
 import java.util.List;
 import java.util.function.Supplier;
 
-import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -59,19 +58,19 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger resetFOD;
 	public final List<Integer> reefTags = List.of(6,7,8,9,10,11,17,18,19,20,21,22);
-	public final List<Integer> proccesorTags = List.of(3,16);
+	public final List<Integer> processorTags = List.of(3,16);
 	public final List<Integer> humanStationTags = List.of(1,2,12,13);
 	public final List<Integer> bargeTags = List.of(4,5,14,15);
 	public final Trigger ferry;
 	public final Trigger resetAngle;
-	public void configureControls() {
 
+	public void configureControls() {
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
 		this.intake.whileTrue(new RunIntake());
 		this.resetAngle.whileTrue(new RunCommand(Robot.cont.drivetrain::seedLimelightImu));
 		this.resetAngle.whileFalse(new RunCommand(Robot.cont.drivetrain::setImuMode2));
-		this.ceneterReefLeft.whileTrue(CenterLimelight.CenterLimelightLeft());
-		this.ceneterReefRight.whileTrue(CenterLimelight.CenterLimelightRightRotated());
+		this.ceneterReefLeft.whileTrue(CenterLimelight.centerLimelightLeft());
+		this.ceneterReefRight.whileTrue(CenterLimelight.centerLimelightRightRotated());
 	}
 }

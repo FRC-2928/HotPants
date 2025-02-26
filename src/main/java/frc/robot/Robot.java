@@ -9,20 +9,13 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
-import com.pathplanner.lib.commands.PathfindingCommand;
-
-import choreo.auto.AutoChooser;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+
 public class Robot extends LoggedRobot {
 	public static Robot instance;
 	public static RobotContainer cont;
-	public static Command commandToRun;
-	public static boolean needToLookOtherWay;
 
 	public RobotContainer container;
 
@@ -60,7 +53,6 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void robotInit() {
-		// PathfindingCommand.warmupCommand().schedule();
 		cont.drivetrain.limelight.setIMUMode(1);
 	}
 
@@ -68,7 +60,7 @@ public class Robot extends LoggedRobot {
 	public void robotPeriodic() {
 		CommandScheduler.getInstance().run();
 		LoggedPowerDistribution.getInstance(Constants.CAN.Misc.pdh, ModuleType.kRev);
-		cont.drivetrain.limelight.setRobotOrientation(cont.drivetrain.est.getEstimatedPosition().getRotation().getMeasure()); 
+		cont.drivetrain.limelight.setRobotOrientation(cont.drivetrain.getEstimatedPosition().getRotation().getMeasure()); 
 	}
 
 	// DISABLED //
@@ -92,16 +84,6 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void autonomousInit() {
-		// CommandScheduler.getInstance().cancelAll();
-
-		// Get selected routine from the dashboard
-		// this.autonomousCommand = this.container.getAutonomousCommand();
-
-
-		// schedule the autonomous command (example)
-		// if(this.autonomousCommand != null) {
-		// 	this.autonomousCommand.schedule();
-		// }
 	}
 
 	@Override
@@ -117,8 +99,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopInit() {
 		CommandScheduler.getInstance().cancelAll();
-		this.container.drivetrain.setDefaultCommand(this.container.drivetrain.joystickDrive);
-		// this.container.drivetrain.resetAngleWithLimelight();
+		this.container.drivetrain.setDefaultCommand();
 	}
 
 	@Override
@@ -133,8 +114,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
-
-		this.container.drivetrain.setDefaultCommand(this.container.drivetrain.joystickDrive);
+		this.container.drivetrain.setDefaultCommand();
 	}
 
 	@Override

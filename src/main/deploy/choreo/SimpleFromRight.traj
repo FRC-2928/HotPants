@@ -13,8 +13,13 @@
     {"from":"first", "to":"last", "data":{"type":"KeepInRectangle", "props":{"x":0.0, "y":0.0, "w":17.548, "h":8.052}}, "enabled":true},
     {"from":1, "to":3, "data":{"type":"KeepOutCircle", "props":{"x":4.48123849183321, "y":3.2910937666893005, "r":0.25}}, "enabled":true},
     {"from":1, "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
-    {"from":"first", "to":"last", "data":{"type":"MaxVelocity", "props":{"max":2.0}}, "enabled":true},
-    {"from":0, "to":3, "data":{"type":"KeepOutCircle", "props":{"x":4.49960764311254, "y":4.018733389675617, "r":1.0}}, "enabled":true}],
+    {"from":"first", "to":"last", "data":{"type":"MaxVelocity", "props":{"max":4.5}}, "enabled":true},
+    {"from":0, "to":3, "data":{"type":"KeepOutCircle", "props":{"x":4.49960764311254, "y":4.018733389675617, "r":1.0}}, "enabled":true},
+    {"from":"first", "to":"last", "data":{"type":"MaxAngularVelocity", "props":{"max":1.5}}, "enabled":true},
+    {"from":3, "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
+    {"from":5, "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
+    {"from":4, "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
+    {"from":6, "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true}],
   "targetDt":0.05
  },
  "params":{
@@ -29,8 +34,13 @@
     {"from":"first", "to":"last", "data":{"type":"KeepInRectangle", "props":{"x":{"exp":"0 m", "val":0.0}, "y":{"exp":"0 m", "val":0.0}, "w":{"exp":"17.548 m", "val":17.548}, "h":{"exp":"8.052 m", "val":8.052}}}, "enabled":true},
     {"from":1, "to":3, "data":{"type":"KeepOutCircle", "props":{"x":{"exp":"4.48123849183321 m", "val":4.48123849183321}, "y":{"exp":"3.2910937666893005 m", "val":3.2910937666893005}, "r":{"exp":"0.25 m", "val":0.25}}}, "enabled":true},
     {"from":1, "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
-    {"from":"first", "to":"last", "data":{"type":"MaxVelocity", "props":{"max":{"exp":"2 m / s", "val":2.0}}}, "enabled":true},
-    {"from":0, "to":3, "data":{"type":"KeepOutCircle", "props":{"x":{"exp":"4.49960764311254 m", "val":4.49960764311254}, "y":{"exp":"4.018733389675617 m", "val":4.018733389675617}, "r":{"exp":"1 m", "val":1.0}}}, "enabled":true}],
+    {"from":"first", "to":"last", "data":{"type":"MaxVelocity", "props":{"max":{"exp":"4.5 m / s", "val":4.5}}}, "enabled":true},
+    {"from":0, "to":3, "data":{"type":"KeepOutCircle", "props":{"x":{"exp":"4.49960764311254 m", "val":4.49960764311254}, "y":{"exp":"4.018733389675617 m", "val":4.018733389675617}, "r":{"exp":"1 m", "val":1.0}}}, "enabled":true},
+    {"from":"first", "to":"last", "data":{"type":"MaxAngularVelocity", "props":{"max":{"exp":"1.5 rad / s", "val":1.5}}}, "enabled":true},
+    {"from":3, "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
+    {"from":5, "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
+    {"from":4, "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
+    {"from":6, "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true}],
   "targetDt":{
    "exp":"0.05 s",
    "val":0.05
@@ -38,7 +48,7 @@
  },
  "trajectory":{
   "sampleType":"Swerve",
-  "waypoints":[0.0,0.93102,1.87156,3.41063],
+  "waypoints":[0.0,0.47769,1.01761,1.69962,2.56582,3.43203,4.26054],
   "samples":[
     {"t":0.0, "x":7.10468, "y":2.6452, "heading":2.1389, "vx":0.0, "vy":0.0, "omega":0.0, "ax":-40.58672, "ay":4.23739, "alpha":16.03724, "fx":[-704.88134,-644.03887,-679.53761,-733.01638], "fy":[-1.79423,57.89599,146.98816,85.21719]},
     {"t":0.049, "x":7.05595, "y":2.65029, "heading":2.1389, "vx":-1.9888, "vy":0.20764, "omega":0.78585, "ax":0.00013, "ay":0.00137, "alpha":9.91567, "fx":[-8.10539,36.72569,8.10033,-36.71189], "fy":[-36.76968,-8.106,36.81985,8.14883]},
@@ -121,5 +131,5 @@
   "splits":[0,19]
  },
  "events":[
-   {"name":"Score", "from":{"target":1, "targetTimestamp":0.93102, "offset":{"exp":"0 s", "val":0.0}}, "event":{"type":"named", "data":{"name":"ScoreL4"}}}]
+   {"name":"Score", "from":{"target":1, "targetTimestamp":0.47769, "offset":{"exp":"0 s", "val":0.0}}, "event":{"type":"named", "data":{"name":"ScoreL4"}}}]
 }

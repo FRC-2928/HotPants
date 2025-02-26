@@ -18,6 +18,7 @@ import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.sim.Pigeon2SimState;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.*;
@@ -50,4 +51,10 @@ public class GyroIOReal implements GyroIO {
 	}
 	@Override
 	public void reset() { this.pigeon.reset(); }
+
+	@Override
+	public void simulationPeriodic(Angle rotation) {
+		Pigeon2SimState simState = pigeon.getSimState();
+		simState.setRawYaw(pigeon.getYaw().getValue().plus(rotation));
+	}
 }

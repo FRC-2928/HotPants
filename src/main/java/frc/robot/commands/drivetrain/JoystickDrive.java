@@ -4,6 +4,7 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
@@ -19,11 +20,16 @@ import frc.robot.oi.DriverOI;
 import frc.robot.subsystems.Drivetrain;
 
 public class JoystickDrive extends Command {
+	public final Drivetrain drivetrain;
+	public final DriverOI oi = Robot.cont.driverOI;
+	public double forMagnitude = 0.5;
+	
+	private final ProfiledPIDController absoluteController = Constants.Drivetrain.absoluteRotationPID
+		.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
+
 	public JoystickDrive(final Drivetrain drivetrain) {
 		this.drivetrain = drivetrain;
-
 		this.addRequirements(this.drivetrain);
-
 		this.absoluteController.enableContinuousInput(-0.5, 0.5);
 	}
 
@@ -35,17 +41,9 @@ public class JoystickDrive extends Command {
 		return chooser;
 	}
 
-	public final Drivetrain drivetrain;
-	public final DriverOI oi = Robot.cont.driverOI;
-
-	public double forMagnitude = 0.5;
-	private final ProfiledPIDController absoluteController = Constants.Drivetrain.absoluteRotationPID
-		.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
-
 	@Override
 	public void execute() {
-		final ChassisSpeeds robotOrientedSpeeds = drivetrain.fod(speeds(), drivetrain.getFieldOrientedAngle());
-
+		final ChassisSpeeds robotOrientedSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds(), new Rotation2d(drivetrain.getFieldOrientedAngle()));
 		drivetrain.control(robotOrientedSpeeds);
 	}
 
