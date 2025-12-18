@@ -8,6 +8,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.*;
 import frc.robot.Constants;
+import frc.robot.subsystems.drive.SwerveIOCTRE;
 
 public class SwerveModule {
 	public static enum Place {
@@ -22,19 +23,16 @@ public class SwerveModule {
 		this.place = place;
 
 		this.io = switch(Constants.mode) {
-		case REAL -> new ModuleIOReal(this);
-		case REPLAY -> new ModuleIO() {
-		};
-		case SIM -> new ModuleIO() {
-
-		};
+		case REAL -> new SwerveIOCTRE(Constants.Drivetrain.swerveDrivetrainConstants, Constants.swerveModuleConstants());
+		case REPLAY -> new SwerveIOCTRE(Constants.Drivetrain.swerveDrivetrainConstants, Constants.swerveModuleConstants());
+		case SIM -> new SwerveIOCTRE(Constants.Drivetrain.swerveDrivetrainConstants, Constants.swerveModuleConstants());
 		default -> throw new Error();
 		};
 	}
 
 	public final Place place;
-	public final ModuleIO io;
-	public final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
+	public final SwerveIOCTRE io;
+	public final SwerveIO inputs = new ModuleIOInputsAutoLogged();
 
 	public SwerveModulePosition position = new SwerveModulePosition();
 	public SwerveModuleState current = new SwerveModuleState();
@@ -49,7 +47,7 @@ public class SwerveModule {
 
 	public void halt() { this.io.setDriveVoltage(0); }
 
-	private void azimuth(final Angle desired) { this.io.azimuth(desired); }
+	private void azimuth(final Angle desired) { this.io.(desired); }
 
 	private void drive(final LinearVelocity speed) {
 		/*

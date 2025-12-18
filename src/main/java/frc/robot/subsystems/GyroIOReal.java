@@ -28,6 +28,7 @@ public class GyroIOReal implements GyroIO {
 	private final Pigeon2 pigeon = new Pigeon2(Constants.CAN.CTRE.pigeon, Constants.CAN.CTRE.bus);
 	private final StatusSignal<Angle> yaw = this.pigeon.getYaw();
 	private final StatusSignal<AngularVelocity> yawVelocity = this.pigeon.getAngularVelocityZWorld();
+	private Pigeon2Configuration configuration = new Pigeon2Configuration();
 
 	public GyroIOReal() {
 		this.pigeon.getConfigurator().apply(new Pigeon2Configuration());

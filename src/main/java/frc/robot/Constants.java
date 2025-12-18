@@ -3,10 +3,17 @@ package frc.robot;
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.configs.AudioConfigs;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SlotConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.pathplanner.lib.config.PIDConstants;
+import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -20,6 +27,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
+import frc.robot.subsystems.SwerveModule.Place;
 import edu.wpi.first.units.Units;
 public class Constants {
 	private static Mode currentMode() {
@@ -221,7 +229,9 @@ public class Constants {
 		public static final Distance wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
 
 		public static final LinearVelocity maxVelocity = Units.FeetPerSecond.of(15.5);  // MK4i max speed L2
+		public static final SwerveModuleConstants[] moduleConstants = new SwerveModuleConstants[4];
 
+		
 		// max angular velocity computes to 6.41 radians per second
 		public static final AngularVelocity maxAngularVelocity = Units.RotationsPerSecond
 			.of(
@@ -234,6 +244,13 @@ public class Constants {
 								Drivetrain.wheelBase.divide(2).in(Units.Meters)
 							))
 			);
+
+		public static final SwerveDrivetrainConstants swerveDrivetrainConstants = new SwerveDrivetrainConstants()
+			.withCANBusName(Constants.CAN.CTRE.bus)
+			.withPigeon2Id(Constants.CAN.CTRE.pigeon)
+			.withPigeon2Configs(new Pigeon2Configuration());
+		
+		
 	}
 
 	public static class Shooter {
@@ -288,6 +305,8 @@ public class Constants {
 
 		public static final FlywheelConfiguration flywheels = FlywheelConfiguration.greenBane;
 
+		
+
 		// todo: fill angles
 
 		// a little above intake height to avoid hitting floor but to be ready
@@ -315,6 +334,189 @@ public class Constants {
 		public static final Angle max = Units.Rotations.of(0.39);
 
 		public static final double fireTimeout = 0.3;
+	}
+
+	public static SwerveModuleConstants[] swerveModuleConstants() {
+
+		var driveConfigs = new TalonFXConfiguration();
+        driveConfigs.CurrentLimits.SupplyCurrentLimitEnable = true;
+        driveConfigs.CurrentLimits.StatorCurrentLimitEnable = true;
+        driveConfigs.CurrentLimits.SupplyCurrentLimit = 50.0;
+        driveConfigs.CurrentLimits.StatorCurrentLimit = 100.0;
+		final TalonFXConfiguration driveConfig = new TalonFXConfiguration();
+		
+		// driveConfig.MotorOutput.Inverted = (this.place == Place.FrontRight || this.place == Place.BackRight) ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
+		// Peak output amps
+		driveConfig.CurrentLimits.StatorCurrentLimit = 80.0;
+		driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+		driveConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
+		driveConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
+
+		// Supply current limits
+		driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+		driveConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
+		driveConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
+		driveConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
+
+		driveConfig.Feedback.SensorToMechanismRatio =  Constants.Drivetrain.driveGearRatio/Constants.Drivetrain.wheelCircumference.in(Units.Meters);
+		driveConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
+
+		// Motion magic configuration
+		driveConfig.MotionMagic.MotionMagicCruiseVelocity = Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond);
+		driveConfig.MotionMagic.MotionMagicAcceleration = 50;
+		driveConfig.MotionMagic.MotionMagicJerk = 500;
+
+		final TalonFXConfiguration azimuthConfig = new TalonFXConfiguration();
+		// Peak output of 40 amps
+		azimuthConfig.CurrentLimits.StatorCurrentLimit = 40.0;
+		azimuthConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+		azimuthConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
+		azimuthConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
+		azimuthConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
+
+		// Supply current limits
+		azimuthConfig.CurrentLimits.SupplyCurrentLimit = 35;
+		azimuthConfig.CurrentLimits.SupplyCurrentLimit = 60;  	   // max current draw allowed
+		azimuthConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // maximum current allowed *after* the supply current limit is reached
+		azimuthConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
+
+		azimuthConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+		azimuthConfig.Feedback.RotorToSensorRatio = Constants.Drivetrain.azimuthGearRatio;
+
+		SwerveModuleConstants[] moduleConstants = new SwerveModuleConstants[4];
+        moduleConstants[0] = new SwerveModuleConstants<
+                        TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>()
+                .withDriveMotorId(Constants.CAN.CTRE.swerveFrontLeftDrive)
+                .withSteerMotorId(Constants.CAN.CTRE.swerveFrontLeftAzimuth)
+				//TODO: ENCODER ID WAS HERE
+                .withDriveMotorGearRatio(Constants.Drivetrain.driveGearRatio)
+                .withSteerMotorGearRatio(Constants.Drivetrain.azimuthGearRatio)
+                // .withCouplingGearRatio(COUPLING_GEAR_RATIO)
+                .withDriveMotorInverted(false)
+                .withSteerMotorInverted(false)
+                .withEncoderInverted(false)
+                // .withEncoderOffset(FRONT_LEFT_STEER_OFFSET_ROTATIONS)
+                .withLocationX(Constants.Drivetrain.wheelBase.in(Units.Meters) / 2)
+                .withLocationY(Constants.Drivetrain.trackWidth.in(Units.Meters) / 2)
+                .withDriveMotorClosedLoopOutput(SwerveModuleConstants.ClosedLoopOutputType.Voltage)
+                .withSteerMotorClosedLoopOutput(SwerveModuleConstants.ClosedLoopOutputType.Voltage)
+                .withDriveMotorGains(Slot0Configs.from(Constants.Drivetrain.drive))
+                .withSteerMotorGains(Slot0Configs.from(Constants.Drivetrain.azimuth))
+				//TODO: Make Sure the talon stuff is right
+                .withDriveMotorType(SwerveModuleConstants.DriveMotorArrangement.TalonFX_Integrated)
+                .withSteerMotorType(SwerveModuleConstants.SteerMotorArrangement.TalonFX_Integrated)
+                .withDriveMotorInitialConfigs(driveConfigs)
+                .withSteerMotorInitialConfigs(azimuthConfig)
+                .withEncoderInitialConfigs(new CANcoderConfiguration())
+                .withDriveFrictionVoltage(0.25)
+                .withSteerFrictionVoltage(0.001)
+                .withDriveInertia(0.001)
+                .withSteerInertia(0.00001)
+                .withSlipCurrent(120) // TODO MEASURE
+                .withFeedbackSource(SwerveModuleConstants.SteerFeedbackType.FusedCANcoder)
+                .withSpeedAt12Volts(Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond))
+                .withWheelRadius(Constants.Drivetrain.wheelRadius);
+
+        moduleConstants[1] = new SwerveModuleConstants<
+                        TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>()
+					.withDriveMotorId(Constants.CAN.CTRE.swerveFrontRightDrive)
+					.withSteerMotorId(Constants.CAN.CTRE.swerveFrontRightAzimuth)
+					//TODO: ENCODER ID WAS HERE
+					.withDriveMotorGearRatio(Constants.Drivetrain.driveGearRatio)
+					.withSteerMotorGearRatio(Constants.Drivetrain.azimuthGearRatio)
+					// .withCouplingGearRatio(COUPLING_GEAR_RATIO)
+					.withDriveMotorInverted(false)
+					.withSteerMotorInverted(false)
+					.withEncoderInverted(false)
+					// .withEncoderOffset(FRONT_LEFT_STEER_OFFSET_ROTATIONS)
+					.withLocationX(Constants.Drivetrain.wheelBase.in(Units.Meters) / 2)
+					.withLocationY(Constants.Drivetrain.trackWidth.in(Units.Meters) / 2)
+					.withDriveMotorClosedLoopOutput(SwerveModuleConstants.ClosedLoopOutputType.Voltage)
+					.withSteerMotorClosedLoopOutput(SwerveModuleConstants.ClosedLoopOutputType.Voltage)
+					.withDriveMotorGains(Slot0Configs.from(Constants.Drivetrain.drive))
+					.withSteerMotorGains(Slot0Configs.from(Constants.Drivetrain.azimuth))
+					//TODO: Make Sure the talon stuff is right
+					.withDriveMotorType(SwerveModuleConstants.DriveMotorArrangement.TalonFX_Integrated)
+					.withSteerMotorType(SwerveModuleConstants.SteerMotorArrangement.TalonFX_Integrated)
+					.withDriveMotorInitialConfigs(driveConfigs)
+					.withSteerMotorInitialConfigs(azimuthConfig)
+					.withEncoderInitialConfigs(new CANcoderConfiguration())
+					.withDriveFrictionVoltage(0.25)
+					.withSteerFrictionVoltage(0.001)
+					.withDriveInertia(0.001)
+					.withSteerInertia(0.00001)
+					.withSlipCurrent(120) // TODO MEASURE
+					.withFeedbackSource(SwerveModuleConstants.SteerFeedbackType.FusedCANcoder)
+					.withSpeedAt12Volts(Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond))
+					.withWheelRadius(Constants.Drivetrain.wheelRadius);
+
+        moduleConstants[2] = new SwerveModuleConstants<
+				TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>()
+			.withDriveMotorId(Constants.CAN.CTRE.swerveBackLeftDrive)
+			.withSteerMotorId(Constants.CAN.CTRE.swerveBackLeftAzimuth)
+			//TODO: ENCODER ID WAS HERE
+			.withDriveMotorGearRatio(Constants.Drivetrain.driveGearRatio)
+			.withSteerMotorGearRatio(Constants.Drivetrain.azimuthGearRatio)
+			// .withCouplingGearRatio(COUPLING_GEAR_RATIO)
+			.withDriveMotorInverted(false)
+			.withSteerMotorInverted(false)
+			.withEncoderInverted(false)
+			// .withEncoderOffset(FRONT_LEFT_STEER_OFFSET_ROTATIONS)
+			.withLocationX(Constants.Drivetrain.wheelBase.in(Units.Meters) / 2)
+			.withLocationY(Constants.Drivetrain.trackWidth.in(Units.Meters) / 2)
+			.withDriveMotorClosedLoopOutput(SwerveModuleConstants.ClosedLoopOutputType.Voltage)
+			.withSteerMotorClosedLoopOutput(SwerveModuleConstants.ClosedLoopOutputType.Voltage)
+			.withDriveMotorGains(Slot0Configs.from(Constants.Drivetrain.drive))
+			.withSteerMotorGains(Slot0Configs.from(Constants.Drivetrain.azimuth))
+			//TODO: Make Sure the talon stuff is right
+			.withDriveMotorType(SwerveModuleConstants.DriveMotorArrangement.TalonFX_Integrated)
+			.withSteerMotorType(SwerveModuleConstants.SteerMotorArrangement.TalonFX_Integrated)
+			.withDriveMotorInitialConfigs(driveConfigs)
+			.withSteerMotorInitialConfigs(azimuthConfig)
+			.withEncoderInitialConfigs(new CANcoderConfiguration())
+			.withDriveFrictionVoltage(0.25)
+			.withSteerFrictionVoltage(0.001)
+			.withDriveInertia(0.001)
+			.withSteerInertia(0.00001)
+			.withSlipCurrent(120) // TODO MEASURE
+			.withFeedbackSource(SwerveModuleConstants.SteerFeedbackType.FusedCANcoder)
+			.withSpeedAt12Volts(Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond))
+			.withWheelRadius(Constants.Drivetrain.wheelRadius);
+
+        moduleConstants[3] = new SwerveModuleConstants<
+					TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>()
+				.withDriveMotorId(Constants.CAN.CTRE.swerveBackLeftDrive)
+				.withSteerMotorId(Constants.CAN.CTRE.swerveBackLeftAzimuth)
+				//TODO: ENCODER ID WAS HERE
+				.withDriveMotorGearRatio(Constants.Drivetrain.driveGearRatio)
+				.withSteerMotorGearRatio(Constants.Drivetrain.azimuthGearRatio)
+				// .withCouplingGearRatio(COUPLING_GEAR_RATIO)
+				.withDriveMotorInverted(false)
+				.withSteerMotorInverted(false)
+				.withEncoderInverted(false)
+				// .withEncoderOffset(FRONT_LEFT_STEER_OFFSET_ROTATIONS)
+				.withLocationX(Constants.Drivetrain.wheelBase.in(Units.Meters) / 2)
+				.withLocationY(Constants.Drivetrain.trackWidth.in(Units.Meters) / 2)
+				.withDriveMotorClosedLoopOutput(SwerveModuleConstants.ClosedLoopOutputType.Voltage)
+				.withSteerMotorClosedLoopOutput(SwerveModuleConstants.ClosedLoopOutputType.Voltage)
+				.withDriveMotorGains(Slot0Configs.from(Constants.Drivetrain.drive))
+				.withSteerMotorGains(Slot0Configs.from(Constants.Drivetrain.azimuth))
+				//TODO: Make Sure the talon stuff is right
+				.withDriveMotorType(SwerveModuleConstants.DriveMotorArrangement.TalonFX_Integrated)
+				.withSteerMotorType(SwerveModuleConstants.SteerMotorArrangement.TalonFX_Integrated)
+				.withDriveMotorInitialConfigs(driveConfigs)
+				.withSteerMotorInitialConfigs(azimuthConfig)
+				.withEncoderInitialConfigs(new CANcoderConfiguration())
+				.withDriveFrictionVoltage(0.25)
+				.withSteerFrictionVoltage(0.001)
+				.withDriveInertia(0.001)
+				.withSteerInertia(0.00001)
+				.withSlipCurrent(120) // TODO MEASURE
+				.withFeedbackSource(SwerveModuleConstants.SteerFeedbackType.FusedCANcoder)
+				.withSpeedAt12Volts(Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond))
+				.withWheelRadius(Constants.Drivetrain.wheelRadius);
+			return moduleConstants;
+
 	}
 
 	public static class Climber {
