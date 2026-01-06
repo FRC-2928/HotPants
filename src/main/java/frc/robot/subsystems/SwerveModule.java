@@ -9,6 +9,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.*;
 import frc.robot.Constants;
 import frc.robot.subsystems.drive.SwerveIOCTRE;
+import frc.robot.subsystems.drive.SwerveIO;
 
 public class SwerveModule {
 	public static enum Place {
@@ -17,6 +18,9 @@ public class SwerveModule {
 		private Place(final int index) { this.index = index; }
 
 		public final int index;
+		public int getPlace(){
+			return index;
+		}
 	}
 
 	public SwerveModule(final Place place) {
@@ -32,7 +36,7 @@ public class SwerveModule {
 
 	public final Place place;
 	public final SwerveIOCTRE io;
-	public final SwerveIO inputs = new ModuleIOInputsAutoLogged();
+	public final SwerveIO inputs = new SwerveIO(){};
 
 	public SwerveModulePosition position = new SwerveModulePosition();
 	public SwerveModuleState current = new SwerveModuleState();
@@ -41,7 +45,7 @@ public class SwerveModule {
 	public Distance drivePosition() {
 		return Units.Meters
 			.of(
-				this.inputs.drivePosition.in(Units.Rotations) * Constants.Drivetrain.wheelCircumference.in(Units.Meters)
+				this.inputs..in(Units.Rotations) * Constants.Drivetrain.wheelCircumference.in(Units.Meters)
 			);
 	}
 
