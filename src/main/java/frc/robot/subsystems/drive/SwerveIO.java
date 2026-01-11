@@ -7,11 +7,13 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.robot.subsystems.ModuleIOInputsAutoLogged;
+
 import org.littletonrobotics.junction.AutoLog;
 
 public interface SwerveIO {
     @AutoLog
-    class SwerveIOInputs {
+    public class SwerveIOInputs {
         public Pose2d Pose = new Pose2d();
         public ChassisSpeeds Speeds = new ChassisSpeeds();
         public SwerveModuleState[] ModuleStates;
@@ -38,7 +40,7 @@ public interface SwerveIO {
     }
 
     @AutoLog
-    class ModuleIOInputs {
+    public class ModuleIOInputs {
         public double driveSupplyCurrentAmps = 0.0;
         public double driveStatorCurrentAmps = 0.0;
         public double driveAppliedVolts = 0.0;
@@ -67,4 +69,7 @@ public interface SwerveIO {
     default void resetRobotTranslation(Translation2d translation2d) {}
 
     default void refreshData() {}
+
+    default void runCharacterization(final double volts) {}
+
 }

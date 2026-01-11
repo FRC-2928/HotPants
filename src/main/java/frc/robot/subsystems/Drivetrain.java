@@ -5,16 +5,18 @@ import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.DriverStation;
 
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
-
+import com.ctre.phoenix6.swerve.SwerveModule;
 import choreo.auto.AutoFactory;
 import choreo.trajectory.SwerveSample;
 import edu.wpi.first.math.VecBuilder;
@@ -33,6 +35,11 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
+import frc.robot.subsystems.drive.SwerveIO;
+import frc.robot.subsystems.drive.SwerveIOCTRE;
+import frc.robot.subsystems.drive.SwerveIOInputsAutoLogged;
+import frc.robot.subsystems.drive.SwerveIO.SwerveIOInputs;
+import frc.robot.subsystems.drive.SwerveIO.ModuleIOInputs;
 import frc.robot.vision.Limelight;
 import frc.robot.vision.LimelightHelpers.PoseEstimate;
 
@@ -70,8 +77,7 @@ public class Drivetrain extends SubsystemBase {
 
 	public final GyroIO gyro;
 	public final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
-
-	public final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
+	private SwerveIO io = new SwerveIO() {}; // FL, FR, BL, BR
 
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
 	public final SwerveDrivePoseEstimator est;
@@ -88,6 +94,12 @@ public class Drivetrain extends SubsystemBase {
 	private final PIDController xController = new PIDController(5, 0.0, 0);
     private final PIDController yController = new PIDController(5, 0.0, 0);
     private final PIDController headingController = new PIDController(5, 0.0, 0.2);
+	
+	final SwerveIOInputs swerveInputs = new SwerveIOInputs();
+    ModuleIOInputs frontLeftInputs = new ModuleIOInputs();
+    ModuleIOInputs frontRightInputs = new ModuleIOInputs();
+    ModuleIOInputs backLeftInputs = new ModuleIOInputs();
+    ModuleIOInputs backRightInputs = new ModuleIOInputs();
 	// PathPlanner config constants
 	private static final double ROBOT_MASS_KG = /*74.088*/ 57;
 	private static final double ROBOT_MOI = 6.883;
@@ -116,10 +128,7 @@ public class Drivetrain extends SubsystemBase {
 		default -> throw new Error();
 		};
 
-		this.modules[0] = new SwerveModule(Place.FrontLeft);
-		this.modules[1] = new SwerveModule(Place.FrontRight);
-		this.modules[2] = new SwerveModule(Place.BackLeft);
-		this.modules[3] = new SwerveModule(Place.BackRight);
+		this.io = new SwerveIOCTRE(Constants.Drivetrain.swerveDrivetrainConstants, Constants.swerveModuleConstants());
 
 		this.est = new SwerveDrivePoseEstimator(
 			this.kinematics,
@@ -171,7 +180,10 @@ public class Drivetrain extends SubsystemBase {
 		// When the robot is translating while rotating, the motion is actually along an arc, but ChassisSpeeds is representing linear movement.
 		// So, it figures out what arc movement gets the robot to the correct spot after 1 program loop based on the provided ChassisSpeeds.
 		speeds = ChassisSpeeds.discretize(speeds, 0.02);
-		this.control(this.kinematics.toSwerveModuleStates(speeds));
+		io.setSwerveState(new SwerveRequest.ApplyFieldSpeeds()
+                        .withSpeeds(speeds)
+                        .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage));
+		// this.control(this.kinematics.toSwerveModuleStates(speeds));
 	}
 
 	public void controlSwerveSample(final SwerveSample sample) {
@@ -194,13 +206,15 @@ public class Drivetrain extends SubsystemBase {
 	public void control(final Drivetrain.State state) { this.control(state.states); }
 
 	public void control(final SwerveModuleState[] states) {
-		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxVelocity);
+		// SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxVelocity);
+		this.control(this.kinematics.toChassisSpeeds(states));
 
-		for(int i = 0; i < this.modules.length; i++) {
-			if (this.modules[i] != null) {
-				this.modules[i].control(states[i]);
-			}
-		}
+		
+		// for(int i = 0; i < this.modules.length; i++) {
+		// 	if (this.modules[i] != null) {
+		// 		this.modules[i].control(states[i]);
+		// 	}
+		// }
 	}
 
 	public void halt() { this.control(State.locked()); }
@@ -237,25 +251,23 @@ public class Drivetrain extends SubsystemBase {
 
 	@AutoLogOutput
 	public void runCharacterization(final double volts) {
-		for(int i = 0; i < this.modules.length; i++) {
-			this.modules[i].runCharacterization(volts);
-		}
+		io.runCharacterization(volts);
 		Logger.recordOutput("Drivetrain/InputVoltage", volts);
-	}
-
+}
+	//todo this may be messed up
 	@AutoLogOutput(key = "Drivetrain/CurrentPositions")
 	public SwerveModulePosition[] modulePositions() {
-		return Arrays.stream(this.modules).map(module -> (module != null) ? module.position : new SwerveModulePosition()).toArray(SwerveModulePosition[]::new);
+		return this.swerveInputs.ModulePositions;
 	}
 
 	@AutoLogOutput(key = "Drivetrain/States/Desired")
 	public SwerveModuleState[] desiredModuleStates() {
-		return Arrays.stream(this.modules).map(module -> (module != null) ? module.desired : new SwerveModuleState()).toArray(SwerveModuleState[]::new);
+		return this.swerveInputs.ModuleTargets;
 	}
 
 	@AutoLogOutput(key = "Drivetrain/States/Current")
 	public SwerveModuleState[] currentModuleStates() {
-		return Arrays.stream(this.modules).map(module -> (module != null) ? module.current : new SwerveModuleState()).toArray(SwerveModuleState[]::new);
+		return this.swerveInputs.ModuleStates;
 	}
 
 	@AutoLogOutput(key = "Drivetrain/CurrentChassisSpeeds")
@@ -273,11 +285,8 @@ public class Drivetrain extends SubsystemBase {
 		Logger.processInputs("Drivetrain/Gyro", this.gyroInputs);
         Logger.recordOutput("Drivetrain/Botpose",limelightNote.getBluePose3d());
 
-		for(final SwerveModule module : this.modules) {
-			if (module != null) {
-				module.periodic();
-			}
-		}
+		this.io.updateModuleInputs(frontLeftInputs, frontRightInputs, backLeftInputs, backRightInputs);
+		this.io.updateSwerveInputs(swerveInputs);
 
 		// Update the odometry pose
 		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
