@@ -7,7 +7,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.subsystems.ModuleIOInputsAutoLogged;
 
 import org.littletonrobotics.junction.AutoLog;
 

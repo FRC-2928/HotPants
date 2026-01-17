@@ -34,10 +34,10 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.commands.drivetrain.JoystickDrive;
+import frc.robot.subsystems.GyroIO.GyroIOInputs;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.subsystems.drive.SwerveIO;
 import frc.robot.subsystems.drive.SwerveIOCTRE;
-import frc.robot.subsystems.drive.SwerveIOInputsAutoLogged;
 import frc.robot.subsystems.drive.SwerveIO.SwerveIOInputs;
 import frc.robot.subsystems.drive.SwerveIO.ModuleIOInputs;
 import frc.robot.vision.Limelight;
@@ -76,7 +76,7 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public final GyroIO gyro;
-	public final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+	public final GyroIOInputs gyroInputs = new GyroIOInputs();
 	private SwerveIO io = new SwerveIO() {}; // FL, FR, BL, BR
 
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
@@ -282,7 +282,7 @@ public class Drivetrain extends SubsystemBase {
 	@Override
 	public void periodic() {
 		this.gyro.updateInputs(this.gyroInputs);
-		Logger.processInputs("Drivetrain/Gyro", this.gyroInputs);
+		// Logger.processInputs("Drivetrain/Gyro", this.gyroInputs);
         Logger.recordOutput("Drivetrain/Botpose",limelightNote.getBluePose3d());
 
 		this.io.updateModuleInputs(frontLeftInputs, frontRightInputs, backLeftInputs, backRightInputs);
